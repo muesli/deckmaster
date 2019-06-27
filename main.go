@@ -33,87 +33,107 @@ func updateRecentApps(dev streamdeck.Device) {
 	}
 }
 
+func handleActiveWindowChanged(dev streamdeck.Device, event ActiveWindowChangedEvent) {
+	fmt.Println(fmt.Sprintf("Active window changed to %s (%d, %s)",
+		event.Window.Class, event.Window.ID, event.Window.Name))
+
+	// remove dupes
+	i := 0
+	for _, rw := range recentWindows {
+		if rw.ID == event.Window.ID {
+			continue
+		}
+
+		recentWindows[i] = rw
+		i++
+	}
+	recentWindows = recentWindows[:i]
+
+	recentWindows = append([]Window{event.Window}, recentWindows...)
+	if len(recentWindows) > 15 {
+		recentWindows = recentWindows[0:15]
+	}
+	updateRecentApps(dev)
+}
+
+func handleWindowClosed(dev streamdeck.Device, event WindowClosedEvent) {
+	i := 0
+	for _, rw := range recentWindows {
+		if rw.ID == event.Window.ID {
+			continue
+		}
+
+		recentWindows[i] = rw
+		i++
+	}
+	recentWindows = recentWindows[:i]
+	updateRecentApps(dev)
+
+}
+
 func main() {
 	x := Connect(os.Getenv("DISPLAY"))
 	defer x.Close()
 
-	tracker := make(chan interface{})
-	x.TrackWindows(tracker, time.Second)
+	tch := make(chan interface{})
+	x.TrackWindows(tch, time.Second)
 
 	d, err := streamdeck.Devices()
 	if err != nil {
 		panic(err)
 	}
-	for _, dev := range d {
-		err := dev.Open()
-		if err != nil {
-			panic(err)
-		}
-		ver, err := dev.FirmwareVersion()
-		if err != nil {
-			panic(err)
-		}
-		fmt.Printf("Found device with serial %s (firmware %s)\n",
-			dev.Serial, ver)
+	if len(d) == 0 {
+		fmt.Println("No Stream Deck devices found.")
+		return
+	}
+	dev := d[0]
 
-		err = dev.Reset()
-		if err != nil {
-			panic(err)
-		}
-		err = dev.SetBrightness(80)
-		if err != nil {
-			panic(err)
-		}
+	err = dev.Open()
+	if err != nil {
+		panic(err)
+	}
+	ver, err := dev.FirmwareVersion()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("Found device with serial %s (firmware %s)\n",
+		dev.Serial, ver)
 
-		kch, err := dev.ReadKeys()
-		if err != nil {
-			panic(err)
-		}
-		for {
-			select {
-			case k := <-kch:
-				spew.Dump(k)
+	err = dev.Reset()
+	if err != nil {
+		panic(err)
+	}
+	err = dev.SetBrightness(80)
+	if err != nil {
+		panic(err)
+	}
 
-				if k.Pressed && int(k.Index) < len(recentWindows) {
-					x.RequestActivation(recentWindows[k.Index])
+	kch, err := dev.ReadKeys()
+	if err != nil {
+		panic(err)
+	}
+	for {
+		select {
+		case k, ok := <-kch:
+			if !ok {
+				err = dev.Open()
+				if err != nil {
+					panic(err)
 				}
-			case w := <-tracker:
-				switch et := w.(type) {
-				case WindowClosedEvent:
-					idx := 0
-					for _, rw := range recentWindows {
-						if rw.ID == et.Window.ID {
-							continue
-						}
+				continue
+			}
+			spew.Dump(k)
 
-						recentWindows[idx] = rw
-						idx++
-					}
-					recentWindows = recentWindows[:idx]
-					updateRecentApps(dev)
+			if k.Pressed && int(k.Index) < len(recentWindows) {
+				x.RequestActivation(recentWindows[k.Index])
+			}
+		case e := <-tch:
+			switch event := e.(type) {
+			case WindowClosedEvent:
+				handleWindowClosed(dev, event)
 
-				case ActiveWindowChangedEvent:
-					fmt.Println(fmt.Sprintf("Active window changed to %s (%d, %s)",
-						et.Window.Class, et.Window.ID, et.Window.Name))
-
-					// remove dupes
-					idx := 0
-					for _, rw := range recentWindows {
-						if rw.ID == et.Window.ID {
-							continue
-						}
-
-						recentWindows[idx] = rw
-						idx++
-					}
-					recentWindows = recentWindows[:idx]
-
-					recentWindows = append([]Window{et.Window}, recentWindows...)
-					if len(recentWindows) > 15 {
-						recentWindows = recentWindows[0:15]
-					}
-					updateRecentApps(dev)
-				}
+			case ActiveWindowChangedEvent:
+				handleActiveWindowChanged(dev, event)
 			}
 		}
 	}
