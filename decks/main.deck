@@ -1,0 +1,41 @@
+[[keys]]
+  index = 0
+  [keys.widget]
+    id = "recentWindow"
+    [keys.widget.config]
+      window = "1"
+
+[[keys]]
+  index = 1
+  [keys.widget]
+    id = "recentWindow"
+    [keys.widget.config]
+      window = "2"
+
+[[keys]]
+  index = 2
+  [keys.widget]
+    id = "recentWindow"
+    [keys.widget.config]
+      window = "3"
+
+[[keys]]
+  index = 3
+  [keys.widget]
+    id = "recentWindow"
+    [keys.widget.config]
+      window = "4"
+
+[[keys]]
+  index = 4
+  [keys.widget]
+    id = "recentWindow"
+    [keys.widget.config]
+      window = "5"
+
+[[keys]]
+  index = 14
+  [keys.widget]
+    id = "top"
+  [keys.action]
+    deck = "decks/system.deck"
