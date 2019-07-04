@@ -34,6 +34,11 @@
       window = "5"
 
 [[keys]]
+  index = 10
+  [keys.widget]
+    id = "clock"
+
+[[keys]]
   index = 14
   [keys.widget]
     id = "top"

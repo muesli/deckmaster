@@ -52,6 +52,8 @@ func NewWidget(index uint8, id string, action *ActionConfig, config map[string]s
 		return &RecentWindowWidget{BaseWidget: bw, window: uint8(i)}
 	case "top":
 		return &TopWidget{bw}
+	case "clock":
+		return &ClockWidget{bw}
 	case "launcher":
 		return &LauncherWidget{BaseWidget: bw, launch: config["exec"], icon: config["icon"]}
 	}
