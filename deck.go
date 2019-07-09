@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"log"
+	"os/exec"
+	"strings"
 )
 
 type Deck struct {
@@ -24,6 +26,15 @@ func LoadDeck(deck string) (*Deck, error) {
 	return &d, nil
 }
 
+// executes a command
+func executeCommand(cmd string) {
+	args := strings.Split(cmd, " ")
+	c := exec.Command(args[0], args[1:]...)
+	if err := c.Start(); err != nil {
+		panic(err)
+	}
+}
+
 func (d *Deck) triggerAction(index uint8) {
 	for _, w := range d.Widgets {
 		if w.Key() == index {
@@ -42,6 +53,9 @@ func (d *Deck) triggerAction(index uint8) {
 
 					deck = d
 					deck.updateWidgets()
+				}
+				if a.Exec != "" {
+					executeCommand(a.Exec)
 				}
 			} else {
 				w.TriggerAction()
