@@ -8,11 +8,13 @@ import (
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/godbus/dbus"
 	"github.com/muesli/streamdeck"
 )
 
 var (
 	dev           streamdeck.Device
+	dbusConn      *dbus.Conn
 	deck          *Deck
 	x             Xorg
 	recentWindows []Window
@@ -64,6 +66,11 @@ func main() {
 	deck, err = LoadDeck(*deckFile)
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	dbusConn, err = dbus.SessionBus()
+	if err != nil {
+		panic(err)
 	}
 
 	x = Connect(os.Getenv("DISPLAY"))

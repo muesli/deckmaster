@@ -5,6 +5,8 @@ import (
 	"log"
 	"os/exec"
 	"strings"
+
+	"github.com/godbus/dbus"
 )
 
 type Deck struct {
@@ -24,6 +26,14 @@ func LoadDeck(deck string) (*Deck, error) {
 	}
 
 	return &d, nil
+}
+
+// executes a dbus method
+func executeDBusMethod(object, path, method, args string) {
+	call := dbusConn.Object(object, dbus.ObjectPath(path)).Call(method, 0, args)
+	if call.Err != nil {
+		log.Printf("dbus call failed: %s", call.Err)
+	}
 }
 
 // executes a command
@@ -53,6 +63,9 @@ func (d *Deck) triggerAction(index uint8) {
 
 					deck = d
 					deck.updateWidgets()
+				}
+				if a.DBus.Method != "" {
+					executeDBusMethod(a.DBus.Object, a.DBus.Path, a.DBus.Method, a.DBus.Value)
 				}
 				if a.Exec != "" {
 					executeCommand(a.Exec)
