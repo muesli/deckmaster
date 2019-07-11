@@ -3,13 +3,16 @@ package main
 import (
 	"image"
 	"image/color"
+	"image/draw"
 	"io/ioutil"
 	"log"
+	"os"
 	"strconv"
 
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
 	"github.com/muesli/streamdeck"
+	"github.com/nfnt/resize"
 	"golang.org/x/image/font"
 	"golang.org/x/image/math/fixed"
 )
@@ -57,6 +60,24 @@ func NewWidget(index uint8, id string, action *ActionConfig, config map[string]s
 	case "launcher":
 		return &LauncherWidget{BaseWidget: bw, launch: config["exec"], icon: config["icon"]}
 	}
+
+	return nil
+}
+
+func drawImage(img *image.RGBA, path string, size uint, x uint, y uint) error {
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	icon, _, err := image.Decode(f)
+	if err != nil {
+		return err
+	}
+
+	icon = resize.Resize(size, size, icon, resize.Lanczos3)
+	draw.Draw(img, image.Rect(int(x), int(y), int(x+size), int(y+size)), icon, image.Point{0, 0}, draw.Src)
 
 	return nil
 }
