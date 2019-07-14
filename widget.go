@@ -43,6 +43,9 @@ func (w *BaseWidget) Action() *ActionConfig {
 	return w.action
 }
 
+func (w *BaseWidget) TriggerAction() {
+}
+
 func NewWidget(index uint8, id string, action *ActionConfig, config map[string]string) Widget {
 	bw := BaseWidget{index, action}
 
