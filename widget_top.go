@@ -36,6 +36,3 @@ func (w *TopWidget) Update(dev *streamdeck.Device) {
 		log.Fatal(err)
 	}
 }
-
-func (w *TopWidget) TriggerAction() {
-}

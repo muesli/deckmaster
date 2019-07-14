@@ -29,6 +29,3 @@ func (w *ClockWidget) Update(dev *streamdeck.Device) {
 		log.Fatal(err)
 	}
 }
-
-func (w *ClockWidget) TriggerAction() {
-}
