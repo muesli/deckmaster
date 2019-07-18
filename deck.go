@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
+	"strconv"
 	"strings"
 
 	"github.com/godbus/dbus"
@@ -26,6 +27,24 @@ func LoadDeck(deck string) (*Deck, error) {
 	}
 
 	return &d, nil
+}
+
+// emulates a (multi-)key press
+func emulateKeyPress(keys string) {
+	kk := strings.Split(keys, "-")
+	for i, k := range kk {
+		kc, err := strconv.Atoi(k)
+		if err != nil {
+			log.Fatalf("%s is not a valid keycode: %s", k, err)
+		}
+
+		if i+1 < len(kk) {
+			keyboard.KeyDown(kc)
+			defer keyboard.KeyUp(kc)
+		} else {
+			keyboard.KeyPress(kc)
+		}
+	}
 }
 
 // executes a dbus method
@@ -63,6 +82,9 @@ func (d *Deck) triggerAction(index uint8) {
 
 					deck = d
 					deck.updateWidgets()
+				}
+				if a.Keycode != "" {
+					emulateKeyPress(a.Keycode)
 				}
 				if a.DBus.Method != "" {
 					executeDBusMethod(a.DBus.Object, a.DBus.Path, a.DBus.Method, a.DBus.Value)

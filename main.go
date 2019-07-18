@@ -7,16 +7,19 @@ import (
 	"os"
 	"time"
 
+	"github.com/bendahl/uinput"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/godbus/dbus"
 	"github.com/muesli/streamdeck"
 )
 
 var (
-	dev           streamdeck.Device
-	dbusConn      *dbus.Conn
+	dev      streamdeck.Device
+	dbusConn *dbus.Conn
+	keyboard uinput.Keyboard
+	x        Xorg
+
 	deck          *Deck
-	x             Xorg
 	recentWindows []Window
 
 	deckFile = flag.String("deck", "deckmaster.deck", "path to deck config file")
@@ -107,6 +110,14 @@ func main() {
 	err = dev.SetBrightness(80)
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	keyboard, err = uinput.CreateKeyboard("/dev/uinput", []byte("Deckmaster"))
+	if err != nil {
+		log.Printf("Could not create virtual input device (/dev/uinput): %s", err)
+		log.Println("Emulating keyboard events will be disabled!")
+	} else {
+		defer keyboard.Close()
 	}
 
 	kch, err := dev.ReadKeys()
