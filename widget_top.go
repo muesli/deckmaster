@@ -26,10 +26,10 @@ func (w *TopWidget) Update(dev *streamdeck.Device) {
 
 	draw.Draw(img, image.Rect(12, 6, 60, 54), &image.Uniform{color.RGBA{255, 255, 255, 255}}, image.ZP, draw.Src)
 	draw.Draw(img, image.Rect(13, 7, 59, 53), &image.Uniform{color.RGBA{0, 0, 0, 255}}, image.ZP, draw.Src)
-	draw.Draw(img, image.Rect(14, 7+int(46*(1-cpuUsage[0]/100)), 58, 53), &image.Uniform{color.RGBA{10, 10, 240, 255}}, image.ZP, draw.Src)
+	draw.Draw(img, image.Rect(14, 7+int(46*(1-cpuUsage[0]/100)), 58, 53), &image.Uniform{color.RGBA{215, 158, 147, 255}}, image.ZP, draw.Src)
 
-	drawString(img, ttfBoldFont, strconv.FormatInt(int64(cpuUsage[0]), 10), 20, freetype.Pt(-1, -1))
-	drawString(img, ttfBoldFont, "% CPU", 12, freetype.Pt(-1, img.Bounds().Dx()-4))
+	drawString(img, ttfFont, strconv.FormatInt(int64(cpuUsage[0]), 10), 12, freetype.Pt(-1, -1))
+	drawString(img, ttfFont, "% CPU", 7, freetype.Pt(-1, img.Bounds().Dx()-4))
 
 	err = dev.SetImage(w.key, img)
 	if err != nil {

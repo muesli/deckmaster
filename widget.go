@@ -88,12 +88,12 @@ func drawImage(img *image.RGBA, path string, size uint, x uint, y uint) error {
 
 func drawString(img *image.RGBA, ttf *truetype.Font, text string, fontsize float64, pt fixed.Point26_6) {
 	c := freetype.NewContext()
-	c.SetDPI(72)
+	c.SetDPI(124)
 	c.SetFont(ttf)
 	c.SetSrc(image.NewUniform(color.RGBA{0, 0, 0, 0}))
 	c.SetDst(img)
 	c.SetClip(img.Bounds())
-	c.SetHinting(font.HintingNone)
+	c.SetHinting(font.HintingFull)
 	c.SetFontSize(fontsize)
 
 	// find text entent
