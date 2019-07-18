@@ -1,46 +1,86 @@
 [[keys]]
-  index = 0
+  index = 10
   [keys.widget]
     id = "recentWindow"
     [keys.widget.config]
       window = "1"
 
 [[keys]]
-  index = 1
+  index = 11
   [keys.widget]
     id = "recentWindow"
     [keys.widget.config]
       window = "2"
 
 [[keys]]
-  index = 2
+  index = 12
   [keys.widget]
     id = "recentWindow"
     [keys.widget.config]
       window = "3"
 
 [[keys]]
-  index = 3
+  index = 13
   [keys.widget]
     id = "recentWindow"
     [keys.widget.config]
       window = "4"
 
 [[keys]]
-  index = 4
+  index = 14
   [keys.widget]
     id = "recentWindow"
     [keys.widget.config]
       window = "5"
 
 [[keys]]
-  index = 10
+  index = 5
+  [keys.widget]
+    id = "button"
+    [keys.widget.config]
+      icon = "assets/volume-low.png"
+      label = "Lower Vol"
+  [keys.action]
+    keycode = "114"
+
+[[keys]]
+  index = 6
+  [keys.widget]
+    id = "button"
+    [keys.widget.config]
+      icon = "assets/volume-high.png"
+      label = "Raise Vol"
+  [keys.action]
+    keycode = "115"
+
+[[keys]]
+  index = 4
   [keys.widget]
     id = "clock"
 
 [[keys]]
-  index = 14
+  index = 3
   [keys.widget]
     id = "top"
   [keys.action]
     deck = "decks/system.deck"
+
+[[keys]]
+  index = 0
+  [keys.widget]
+    id = "button"
+    [keys.widget.config]
+      icon = "assets/go-previous.png"
+      label = "Prev Act"
+  [keys.action]
+    exec = "kactivities-cli --previous-activity"
+
+[[keys]]
+  index = 1
+  [keys.widget]
+    id = "button"
+    [keys.widget.config]
+      icon = "assets/go-next.png"
+      label = "Next Act"
+  [keys.action]
+    exec = "kactivities-cli --next-activity"
