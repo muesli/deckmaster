@@ -50,6 +50,10 @@ func NewWidget(index uint8, id string, action *ActionConfig, config map[string]s
 	bw := BaseWidget{index, action}
 
 	switch id {
+	case "button":
+		return &ButtonWidget{BaseWidget: bw, icon: config["icon"], label: config["label"]}
+	case "clock":
+		return &ClockWidget{bw}
 	case "recentWindow":
 		i, err := strconv.ParseUint(config["window"], 10, 64)
 		if err != nil {
@@ -58,12 +62,9 @@ func NewWidget(index uint8, id string, action *ActionConfig, config map[string]s
 		return &RecentWindowWidget{BaseWidget: bw, window: uint8(i)}
 	case "top":
 		return &TopWidget{bw}
-	case "clock":
-		return &ClockWidget{bw}
-	case "launcher":
-		return &LauncherWidget{BaseWidget: bw, launch: config["exec"], icon: config["icon"]}
 	}
 
+	panic(id)
 	return nil
 }
 
