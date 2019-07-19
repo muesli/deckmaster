@@ -31,6 +31,11 @@ func LoadDeck(deck string) (*Deck, error) {
 
 // emulates a (multi-)key press
 func emulateKeyPress(keys string) {
+	if keyboard == nil {
+		log.Println("Keyboard emulation is disabled!")
+		return
+	}
+
 	kk := strings.Split(keys, "-")
 	for i, k := range kk {
 		kc, err := strconv.Atoi(k)
