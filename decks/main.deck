@@ -1,5 +1,5 @@
 [[keys]]
-  index = 2
+  index = 0
   [keys.widget]
     id = "top"
     [keys.widget.config]
@@ -9,7 +9,7 @@
     deck = "decks/system.deck"
 
 [[keys]]
-  index = 3
+  index = 1
   [keys.widget]
     id = "top"
     [keys.widget.config]
