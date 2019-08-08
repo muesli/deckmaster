@@ -51,17 +51,31 @@ func NewWidget(index uint8, id string, action *ActionConfig, config map[string]s
 
 	switch id {
 	case "button":
-		return &ButtonWidget{BaseWidget: bw, icon: config["icon"], label: config["label"]}
+		return &ButtonWidget{
+			BaseWidget: bw,
+			icon:       config["icon"],
+			label:      config["label"],
+		}
+
 	case "clock":
 		return &ClockWidget{bw}
+
 	case "recentWindow":
 		i, err := strconv.ParseUint(config["window"], 10, 64)
 		if err != nil {
 			log.Fatal(err)
 		}
-		return &RecentWindowWidget{BaseWidget: bw, window: uint8(i)}
+		return &RecentWindowWidget{
+			BaseWidget: bw,
+			window:     uint8(i),
+		}
+
 	case "top":
-		return &TopWidget{bw}
+		return &TopWidget{
+			BaseWidget: bw,
+			mode:       config["mode"],
+			fillColor:  config["fillColor"],
+		}
 	}
 
 	panic(id)
