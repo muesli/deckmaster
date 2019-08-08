@@ -3,8 +3,8 @@
   [keys.widget]
     id = "top"
     [keys.widget.config]
-      mode = "memory"
-      fillColor = "#a69bd6"
+      mode = "cpu"
+      fillColor = "#d497de"
   [keys.action]
     deck = "decks/system.deck"
 
@@ -13,8 +13,8 @@
   [keys.widget]
     id = "top"
     [keys.widget.config]
-      mode = "cpu"
-      fillColor = "#d497de"
+      mode = "memory"
+      fillColor = "#a69bd6"
   [keys.action]
     deck = "decks/system.deck"
 
