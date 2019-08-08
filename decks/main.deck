@@ -1,4 +1,69 @@
 [[keys]]
+  index = 2
+  [keys.widget]
+    id = "top"
+    [keys.widget.config]
+      mode = "memory"
+      fillColor = "#a69bd6"
+  [keys.action]
+    deck = "decks/system.deck"
+
+[[keys]]
+  index = 3
+  [keys.widget]
+    id = "top"
+    [keys.widget.config]
+      mode = "cpu"
+      fillColor = "#d497de"
+  [keys.action]
+    deck = "decks/system.deck"
+
+[[keys]]
+  index = 4
+  [keys.widget]
+    id = "clock"
+
+[[keys]]
+  index = 5
+  [keys.widget]
+    id = "button"
+    [keys.widget.config]
+      icon = "assets/volume-low.png"
+      label = "Lower Vol"
+  [keys.action]
+    keycode = "114"
+
+[[keys]]
+  index = 6
+  [keys.widget]
+    id = "button"
+    [keys.widget.config]
+      icon = "assets/volume-high.png"
+      label = "Raise Vol"
+  [keys.action]
+    keycode = "115"
+
+[[keys]]
+  index = 8
+  [keys.widget]
+    id = "button"
+    [keys.widget.config]
+      icon = "assets/go-previous.png"
+      label = "Prev Act"
+  [keys.action]
+    exec = "kactivities-cli --previous-activity"
+
+[[keys]]
+  index = 9
+  [keys.widget]
+    id = "button"
+    [keys.widget.config]
+      icon = "assets/go-next.png"
+      label = "Next Act"
+  [keys.action]
+    exec = "kactivities-cli --next-activity"
+
+[[keys]]
   index = 10
   [keys.widget]
     id = "recentWindow"
@@ -32,55 +97,3 @@
     id = "recentWindow"
     [keys.widget.config]
       window = "5"
-
-[[keys]]
-  index = 5
-  [keys.widget]
-    id = "button"
-    [keys.widget.config]
-      icon = "assets/volume-low.png"
-      label = "Lower Vol"
-  [keys.action]
-    keycode = "114"
-
-[[keys]]
-  index = 6
-  [keys.widget]
-    id = "button"
-    [keys.widget.config]
-      icon = "assets/volume-high.png"
-      label = "Raise Vol"
-  [keys.action]
-    keycode = "115"
-
-[[keys]]
-  index = 4
-  [keys.widget]
-    id = "clock"
-
-[[keys]]
-  index = 3
-  [keys.widget]
-    id = "top"
-  [keys.action]
-    deck = "decks/system.deck"
-
-[[keys]]
-  index = 0
-  [keys.widget]
-    id = "button"
-    [keys.widget.config]
-      icon = "assets/go-previous.png"
-      label = "Prev Act"
-  [keys.action]
-    exec = "kactivities-cli --previous-activity"
-
-[[keys]]
-  index = 1
-  [keys.widget]
-    id = "button"
-    [keys.widget.config]
-      icon = "assets/go-next.png"
-      label = "Next Act"
-  [keys.action]
-    exec = "kactivities-cli --next-activity"
