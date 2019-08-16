@@ -15,9 +15,10 @@ type DBusConfig struct {
 }
 
 type ActionConfig struct {
+	Deck    string     `toml:"deck,omitempty"`
 	Keycode string     `toml:"keycode,omitempty"`
 	Exec    string     `toml:"exec,omitempty"`
-	Deck    string     `toml:"deck,omitempty"`
+	Paste   string     `toml:"paste,omitempty"`
 	DBus    DBusConfig `toml:"dbus,omitempty"`
 }
 

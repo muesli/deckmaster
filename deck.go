@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/atotto/clipboard"
 	"github.com/godbus/dbus"
 )
 
@@ -52,6 +53,17 @@ func emulateKeyPress(keys string) {
 	}
 }
 
+// emulates a clipboard paste
+func emulateClipboard(text string) {
+	err := clipboard.WriteAll(text)
+	if err != nil {
+		log.Fatalf("Pasting to clipboard failed: %s", err)
+	}
+
+	// paste the string
+	emulateKeyPress("29-47") // ctrl-v
+}
+
 // executes a dbus method
 func executeDBusMethod(object, path, method, args string) {
 	call := dbusConn.Object(object, dbus.ObjectPath(path)).Call(method, 0, args)
@@ -90,6 +102,9 @@ func (d *Deck) triggerAction(index uint8) {
 				}
 				if a.Keycode != "" {
 					emulateKeyPress(a.Keycode)
+				}
+				if a.Paste != "" {
+					emulateClipboard(a.Paste)
 				}
 				if a.DBus.Method != "" {
 					executeDBusMethod(a.DBus.Object, a.DBus.Path, a.DBus.Method, a.DBus.Value)

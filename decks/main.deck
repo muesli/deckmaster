@@ -5,8 +5,6 @@
     [keys.widget.config]
       mode = "cpu"
       fillColor = "#d497de"
-  [keys.action]
-    deck = "decks/system.deck"
 
 [[keys]]
   index = 1
@@ -15,8 +13,6 @@
     [keys.widget.config]
       mode = "memory"
       fillColor = "#a69bd6"
-  [keys.action]
-    deck = "decks/system.deck"
 
 [[keys]]
   index = 4
@@ -42,6 +38,16 @@
       label = "Raise Vol"
   [keys.action]
     keycode = "115"
+
+[[keys]]
+  index = 7
+  [keys.widget]
+    id = "button"
+    [keys.widget.config]
+      icon = "assets/emoticons/grinning-face.png"
+      label = "Emoticons"
+  [keys.action]
+    deck = "decks/emoticons.deck"
 
 [[keys]]
   index = 8
