@@ -3,9 +3,9 @@
   [keys.widget]
     id = "button"
     [keys.widget.config]
-      icon = "assets/emoticons/grinning-face.png"
+      icon = "assets/emoticons/slightly-smiling-face.png"
   [keys.action]
-    paste = "😀"
+    paste = "🙂"
 
 [[keys]]
   index = 1
@@ -21,9 +21,9 @@
   [keys.widget]
     id = "button"
     [keys.widget.config]
-      icon = "assets/emoticons/slightly-smiling-face.png"
+      icon = "assets/emoticons/face-throwing-a-kiss.png"
   [keys.action]
-    paste = "🙂"
+    paste = "😘"
 
 [[keys]]
   index = 3

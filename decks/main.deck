@@ -44,7 +44,7 @@
   [keys.widget]
     id = "button"
     [keys.widget.config]
-      icon = "assets/emoticons/grinning-face.png"
+      icon = "assets/emoticons/slightly-smiling-face.png"
       label = "Emoticons"
   [keys.action]
     deck = "decks/emoticons.deck"
