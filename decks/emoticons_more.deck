@@ -3,117 +3,117 @@
   [keys.widget]
     id = "button"
     [keys.widget.config]
-      icon = "assets/emoticons/slightly-smiling-face.png"
+      icon = "assets/emoticons/neutral-face.png"
   [keys.action]
-    paste = "🙂"
+    paste = "😐"
 
 [[keys]]
   index = 1
   [keys.widget]
     id = "button"
     [keys.widget.config]
-      icon = "assets/emoticons/smiling-face-with-open-mouth-and-smiling-eyes.png"
+      icon = "assets/emoticons/white-frowning-face.png"
   [keys.action]
-    paste = "😄"
+    paste = "☹️️"
 
 [[keys]]
   index = 2
   [keys.widget]
     id = "button"
     [keys.widget.config]
-      icon = "assets/emoticons/smiling-face-with-open-mouth-and-tightly-closed-eyes.png"
+      icon = "assets/emoticons/unamused-face.png"
   [keys.action]
-    paste = "😆"
+    paste = "😒"
 
 [[keys]]
   index = 3
   [keys.widget]
     id = "button"
     [keys.widget.config]
-      icon = "assets/emoticons/winking-face.png"
+      icon = "assets/emoticons/face-with-rolling-eyes.png"
   [keys.action]
-    paste = "😉"
+    paste = "🙄"
 
 [[keys]]
   index = 4
   [keys.widget]
     id = "button"
     [keys.widget.config]
-      icon = "assets/emoticons/face-savouring-delicious-food.png"
+      icon = "assets/emoticons/thinking-face.png"
   [keys.action]
-    paste = "😋"
+    paste = "🤔"
 
 [[keys]]
   index = 5
   [keys.widget]
     id = "button"
     [keys.widget.config]
-      icon = "assets/emoticons/face-with-tears-of-joy.png"
+      icon = "assets/emoticons/angry-face.png"
   [keys.action]
-    paste = "😂"
+    paste = "😠"
 
 [[keys]]
   index = 6
   [keys.widget]
     id = "button"
     [keys.widget.config]
-      icon = "assets/emoticons/smiling-face-with-open-mouth-and-cold-sweat.png"
+      icon = "assets/emoticons/worried-face.png"
   [keys.action]
-    paste = "😅"
+    paste = "😟"
 
 [[keys]]
   index = 7
   [keys.widget]
     id = "button"
     [keys.widget.config]
-      icon = "assets/emoticons/smiling-face-with-smiling-eyes.png"
+      icon = "assets/emoticons/confused-face.png"
   [keys.action]
-    paste = "😊"
+    paste = "😕"
 
 [[keys]]
   index = 8
   [keys.widget]
     id = "button"
     [keys.widget.config]
-      icon = "assets/emoticons/face-throwing-a-kiss.png"
+      icon = "assets/emoticons/fearful-face.png"
   [keys.action]
-    paste = "😘"
+    paste = "😨"
 
 [[keys]]
   index = 9
   [keys.widget]
     id = "button"
     [keys.widget.config]
-      icon = "assets/emoticons/smiling-face-with-heart-shaped-eyes.png"
+      icon = "assets/emoticons/crying-face.png"
   [keys.action]
-    paste = "😍"
+    paste = "😢"
 
 [[keys]]
   index = 10
   [keys.widget]
     id = "button"
     [keys.widget.config]
-      icon = "assets/emoticons/face-with-stuck-out-tongue-and-tightly-closed-eyes.png"
+      icon = "assets/emoticons/sleeping-face.png"
   [keys.action]
-    paste = "😝"
+    paste = "😴"
 
 [[keys]]
   index = 11
   [keys.widget]
     id = "button"
     [keys.widget.config]
-      icon = "assets/emoticons/nerd-face.png"
+      icon = "assets/emoticons/face-with-open-mouth-vomiting.png"
   [keys.action]
-    paste = "🤓"
+    paste = "🤮"
 
 [[keys]]
   index = 12
   [keys.widget]
     id = "button"
     [keys.widget.config]
-      icon = "assets/emoticons/smiling-face-with-halo.png"
+      icon = "assets/emoticons/face-with-monocle.png"
   [keys.action]
-    paste = "😇"
+    paste = "🧐"
 
 [[keys]]
   index = 13
@@ -123,7 +123,7 @@
       icon = "assets/go-previous.png"
       label = "More"
   [keys.action]
-    deck = "decks/emoticons_more.deck"
+    deck = "decks/hand_signs.deck"
 
 [[keys]]
   index = 14

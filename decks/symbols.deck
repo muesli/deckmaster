@@ -1,0 +1,82 @@
+[[keys]]
+  index = 0
+  [keys.widget]
+    id = "button"
+    [keys.widget.config]
+      icon = "assets/emoticons/white-heavy-check-mark.png"
+  [keys.action]
+    paste = "✅"
+
+[[keys]]
+  index = 1
+  [keys.widget]
+    id = "button"
+    [keys.widget.config]
+      icon = "assets/emoticons/cross-mark.png"
+  [keys.action]
+    paste = "❌"
+
+[[keys]]
+  index = 2
+  [keys.widget]
+    id = "button"
+    [keys.widget.config]
+      icon = "assets/emoticons/no-entry.png"
+  [keys.action]
+    paste = "⛔"
+
+[[keys]]
+  index = 3
+  [keys.widget]
+    id = "button"
+    [keys.widget.config]
+      icon = "assets/emoticons/no-entry-sign.png"
+  [keys.action]
+    paste = "🚫"
+
+[[keys]]
+  index = 4
+  [keys.widget]
+    id = "button"
+    [keys.widget.config]
+      icon = "assets/emoticons/musical-note.png"
+  [keys.action]
+    paste = "🎵"
+
+[[keys]]
+  index = 5
+  [keys.widget]
+    id = "button"
+    [keys.widget.config]
+      icon = "assets/emoticons/cheering-megaphone.png"
+  [keys.action]
+    paste = "📣"
+
+[[keys]]
+  index = 6
+  [keys.widget]
+    id = "button"
+    [keys.widget.config]
+      icon = "assets/emoticons/heavy-black-heart.png"
+  [keys.action]
+    paste = "❤️"
+
+[[keys]]
+  index = 13
+  [keys.widget]
+    id = "button"
+    [keys.widget.config]
+      icon = "assets/go-previous.png"
+      label = "More"
+  [keys.action]
+    deck = "decks/emoticons.deck"
+
+[[keys]]
+  index = 14
+  [keys.widget]
+    id = "button"
+    [keys.widget.config]
+      icon = "assets/go-previous.png"
+      label = "Back"
+  [keys.action]
+    deck = "decks/main.deck"

@@ -1,0 +1,100 @@
+[[keys]]
+  index = 0
+  [keys.widget]
+    id = "button"
+    [keys.widget.config]
+      icon = "assets/emoticons/thumbs-up-sign.png"
+  [keys.action]
+    paste = "👍"
+
+[[keys]]
+  index = 1
+  [keys.widget]
+    id = "button"
+    [keys.widget.config]
+      icon = "assets/emoticons/thumbs-down-sign.png"
+  [keys.action]
+    paste = "👎"
+
+[[keys]]
+  index = 2
+  [keys.widget]
+    id = "button"
+    [keys.widget.config]
+      icon = "assets/emoticons/white-right-pointing-backhand-index.png"
+  [keys.action]
+    paste = "👉"
+
+[[keys]]
+  index = 3
+  [keys.widget]
+    id = "button"
+    [keys.widget.config]
+      icon = "assets/emoticons/white-left-pointing-backhand-index.png"
+  [keys.action]
+    paste = "👈"
+
+[[keys]]
+  index = 4
+  [keys.widget]
+    id = "button"
+    [keys.widget.config]
+      icon = "assets/emoticons/ok-hand-sign.png"
+  [keys.action]
+    paste = "👌"
+
+[[keys]]
+  index = 5
+  [keys.widget]
+    id = "button"
+    [keys.widget.config]
+      icon = "assets/emoticons/waving-hand-sign.png"
+  [keys.action]
+    paste = "👋"
+
+[[keys]]
+  index = 6
+  [keys.widget]
+    id = "button"
+    [keys.widget.config]
+      icon = "assets/emoticons/flexed-biceps.png"
+  [keys.action]
+    paste = "💪"
+
+[[keys]]
+  index = 7
+  [keys.widget]
+    id = "button"
+    [keys.widget.config]
+      icon = "assets/emoticons/person-with-folded-hands.png"
+  [keys.action]
+    paste = "🙏"
+
+[[keys]]
+  index = 8
+  [keys.widget]
+    id = "button"
+    [keys.widget.config]
+      icon = "assets/emoticons/reversed-hand-with-middle-finger-extended.png"
+  [keys.action]
+    paste = "🖕"
+
+[[keys]]
+  index = 13
+  [keys.widget]
+    id = "button"
+    [keys.widget.config]
+      icon = "assets/go-previous.png"
+      label = "More"
+  [keys.action]
+    deck = "decks/symbols.deck"
+
+[[keys]]
+  index = 14
+  [keys.widget]
+    id = "button"
+    [keys.widget.config]
+      icon = "assets/go-previous.png"
+      label = "Back"
+  [keys.action]
+    deck = "decks/main.deck"
