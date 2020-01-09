@@ -62,11 +62,29 @@
     paste = "❤️"
 
 [[keys]]
+  index = 7
+  [keys.widget]
+    id = "button"
+    [keys.widget.config]
+      icon = "assets/emoticons/heart-with-arrow.png"
+  [keys.action]
+    paste = "💘"
+
+[[keys]]
+  index = 8
+  [keys.widget]
+    id = "button"
+    [keys.widget.config]
+      icon = "assets/emoticons/eyes.png"
+  [keys.action]
+    paste = "👀"
+
+[[keys]]
   index = 13
   [keys.widget]
     id = "button"
     [keys.widget.config]
-      icon = "assets/go-previous.png"
+      icon = "assets/go-more.png"
       label = "More"
   [keys.action]
     deck = "decks/emoticons.deck"

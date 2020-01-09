@@ -84,7 +84,7 @@
   [keys.widget]
     id = "button"
     [keys.widget.config]
-      icon = "assets/go-previous.png"
+      icon = "assets/go-more.png"
       label = "More"
   [keys.action]
     deck = "decks/symbols.deck"
