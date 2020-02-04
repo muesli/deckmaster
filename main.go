@@ -23,7 +23,8 @@ var (
 	deck          *Deck
 	recentWindows []Window
 
-	deckFile = flag.String("deck", "deckmaster.deck", "path to deck config file")
+	deckFile   = flag.String("deck", "deckmaster.deck", "path to deck config file")
+	brightness = flag.Uint("brightness", 80, "brightness in percent")
 )
 
 func handleActiveWindowChanged(dev streamdeck.Device, event ActiveWindowChangedEvent) {
@@ -108,7 +109,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = dev.SetBrightness(80)
+
+	if *brightness > 100 {
+		*brightness = 100
+	}
+	err = dev.SetBrightness(uint8(*brightness))
 	if err != nil {
 		log.Fatal(err)
 	}
