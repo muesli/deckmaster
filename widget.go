@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"image/draw"
@@ -76,9 +77,11 @@ func NewWidget(index uint8, id string, action *ActionConfig, config map[string]s
 			mode:       config["mode"],
 			fillColor:  config["fillColor"],
 		}
+	default:
+		// unknown widget ID
+		fmt.Println("Unknown widget with ID:", id)
 	}
 
-	panic(id)
 	return nil
 }
 
