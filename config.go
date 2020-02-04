@@ -28,9 +28,10 @@ type WidgetConfig struct {
 }
 
 type KeyConfig struct {
-	Index  uint8         `toml:"index"`
-	Widget WidgetConfig  `toml:"widget"`
-	Action *ActionConfig `toml:"action,omitempty"`
+	Index      uint8         `toml:"index"`
+	Widget     WidgetConfig  `toml:"widget"`
+	Action     *ActionConfig `toml:"action,omitempty"`
+	ActionHold *ActionConfig `toml:"action_hold,omitempty"`
 }
 type Keys []KeyConfig
 

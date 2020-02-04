@@ -28,12 +28,14 @@ type Widget interface {
 	Key() uint8
 	Update(dev *streamdeck.Device)
 	Action() *ActionConfig
+	ActionHold() *ActionConfig
 	TriggerAction()
 }
 
 type BaseWidget struct {
-	key    uint8
-	action *ActionConfig
+	key        uint8
+	action     *ActionConfig
+	actionHold *ActionConfig
 }
 
 func (w *BaseWidget) Key() uint8 {
@@ -44,11 +46,15 @@ func (w *BaseWidget) Action() *ActionConfig {
 	return w.action
 }
 
+func (w *BaseWidget) ActionHold() *ActionConfig {
+	return w.actionHold
+}
+
 func (w *BaseWidget) TriggerAction() {
 }
 
-func NewWidget(index uint8, id string, action *ActionConfig, config map[string]string) Widget {
-	bw := BaseWidget{index, action}
+func NewWidget(index uint8, id string, action *ActionConfig, actionHold *ActionConfig, config map[string]string) Widget {
+	bw := BaseWidget{index, action, actionHold}
 
 	switch id {
 	case "button":

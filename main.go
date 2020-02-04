@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/bendahl/uinput"
@@ -120,6 +121,9 @@ func main() {
 		defer keyboard.Close()
 	}
 
+	var keyStates sync.Map
+	keyTimestamps := make(map[uint8]time.Time)
+
 	kch, err := dev.ReadKeys()
 	if err != nil {
 		log.Fatal(err)
@@ -128,6 +132,7 @@ func main() {
 		select {
 		case <-time.After(500 * time.Millisecond):
 			deck.updateWidgets()
+
 		case k, ok := <-kch:
 			if !ok {
 				err = dev.Open()
@@ -138,9 +143,33 @@ func main() {
 			}
 			spew.Dump(k)
 
-			if k.Pressed {
-				deck.triggerAction(k.Index)
+			var state bool
+			if ks, ok := keyStates.Load(k.Index); ok {
+				state = ks.(bool)
 			}
+
+			if state && !k.Pressed {
+				// key was released
+				if time.Since(keyTimestamps[k.Index]) < 200*time.Millisecond {
+					deck.triggerAction(k.Index, false)
+				}
+			}
+			if !state && k.Pressed {
+				// key was pressed
+				go func() {
+					// launch timer to observe keystate
+					time.Sleep(200 * time.Millisecond)
+
+					if state, ok := keyStates.Load(k.Index); ok && state.(bool) {
+						// key still pressed
+						deck.triggerAction(k.Index, true)
+					}
+				}()
+			}
+
+			keyStates.Store(k.Index, k.Pressed)
+			keyTimestamps[k.Index] = time.Now()
+
 		case e := <-tch:
 			switch event := e.(type) {
 			case WindowClosedEvent:

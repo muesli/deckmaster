@@ -23,7 +23,7 @@ func LoadDeck(deck string) (*Deck, error) {
 	}
 
 	for _, k := range dc.Keys {
-		w := NewWidget(k.Index, k.Widget.ID, k.Action, k.Widget.Config)
+		w := NewWidget(k.Index, k.Widget.ID, k.Action, k.ActionHold, k.Widget.Config)
 		d.Widgets = append(d.Widgets, w)
 	}
 
@@ -81,12 +81,19 @@ func executeCommand(cmd string) {
 	}
 }
 
-func (d *Deck) triggerAction(index uint8) {
+// triggerAction triggers an action
+func (d *Deck) triggerAction(index uint8, hold bool) {
 	for _, w := range d.Widgets {
 		if w.Key() == index {
-			a := w.Action()
+			var a *ActionConfig
+			if hold {
+				a = w.ActionHold()
+			} else {
+				a = w.Action()
+			}
+
 			if a != nil {
-				fmt.Println("Executing overwritten action")
+				fmt.Println("Executing overloaded action")
 				if a.Deck != "" {
 					d, err := LoadDeck(a.Deck)
 					if err != nil {
