@@ -11,10 +11,12 @@ import (
 	"github.com/godbus/dbus"
 )
 
+// Deck is a set of widgets
 type Deck struct {
 	Widgets []Widget
 }
 
+// LoadDeck loads a deck configuration
 func LoadDeck(deck string) (*Deck, error) {
 	d := Deck{}
 	dc, err := LoadConfig(deck)
@@ -126,6 +128,7 @@ func (d *Deck) triggerAction(index uint8, hold bool) {
 	}
 }
 
+// updateWidgets updates/repaints all the widgets
 func (d *Deck) updateWidgets() {
 	for _, w := range d.Widgets {
 		w.Update(&dev)
