@@ -152,10 +152,13 @@ func main() {
 			if ks, ok := keyStates.Load(k.Index); ok {
 				state = ks.(bool)
 			}
+			// fmt.Println("Storing state", k.Pressed)
+			keyStates.Store(k.Index, k.Pressed)
 
 			if state && !k.Pressed {
 				// key was released
 				if time.Since(keyTimestamps[k.Index]) < 200*time.Millisecond {
+					fmt.Println("Triggering short action")
 					deck.triggerAction(k.Index, false)
 				}
 			}
@@ -167,12 +170,11 @@ func main() {
 
 					if state, ok := keyStates.Load(k.Index); ok && state.(bool) {
 						// key still pressed
+						fmt.Println("Triggering long action")
 						deck.triggerAction(k.Index, true)
 					}
 				}()
 			}
-
-			keyStates.Store(k.Index, k.Pressed)
 			keyTimestamps[k.Index] = time.Now()
 
 		case e := <-tch:
