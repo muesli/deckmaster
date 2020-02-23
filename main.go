@@ -135,7 +135,7 @@ func main() {
 	}
 	for {
 		select {
-		case <-time.After(500 * time.Millisecond):
+		case <-time.After(900 * time.Millisecond):
 			deck.updateWidgets()
 
 		case k, ok := <-kch:
