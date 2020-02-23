@@ -12,12 +12,19 @@ import (
 type RecentWindowWidget struct {
 	BaseWidget
 	window uint8
+
+	lastClass string
 }
 
 func (w *RecentWindowWidget) Update(dev *streamdeck.Device) {
 	img := image.NewRGBA(image.Rect(0, 0, 72, 72))
 
 	if int(w.window) < len(recentWindows) {
+		if w.lastClass == recentWindows[w.window].Class {
+			return
+		}
+		w.lastClass = recentWindows[w.window].Class
+
 		icon := resize.Resize(64, 64, recentWindows[w.window].Icon, resize.Bilinear)
 		draw.Draw(img, image.Rect(4, 4, 68, 68), icon, image.Point{0, 0}, draw.Src)
 	}
