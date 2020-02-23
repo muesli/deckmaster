@@ -103,7 +103,7 @@ func drawImage(img *image.RGBA, path string, size uint, x uint, y uint) error {
 		return err
 	}
 
-	icon = resize.Resize(size, size, icon, resize.Lanczos3)
+	icon = resize.Resize(size, size, icon, resize.Bilinear)
 	draw.Draw(img, image.Rect(int(x), int(y), int(x+size), int(y+size)), icon, image.Point{0, 0}, draw.Src)
 
 	return nil

@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/muesli/streamdeck"
+	"github.com/nfnt/resize"
 )
 
 type RecentWindowWidget struct {
@@ -17,7 +18,8 @@ func (w *RecentWindowWidget) Update(dev *streamdeck.Device) {
 	img := image.NewRGBA(image.Rect(0, 0, 72, 72))
 
 	if int(w.window) < len(recentWindows) {
-		draw.Draw(img, image.Rect(4, 4, 68, 68), recentWindows[w.window].Icon, image.Point{0, 0}, draw.Src)
+		icon := resize.Resize(64, 64, recentWindows[w.window].Icon, resize.Bilinear)
+		draw.Draw(img, image.Rect(4, 4, 68, 68), icon, image.Point{0, 0}, draw.Src)
 	}
 
 	err := dev.SetImage(w.key, img)

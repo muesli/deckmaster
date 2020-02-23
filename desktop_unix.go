@@ -191,7 +191,7 @@ func (x Xorg) name(w xproto.Window) (string, error) {
 }
 
 func (x Xorg) icon(w xproto.Window) (image.Image, error) {
-	icon, err := xgraphics.FindIcon(x.util, w, 64, 64)
+	icon, err := xgraphics.FindIcon(x.util, w, 128, 128)
 	if err != nil {
 		log.Printf("Could not find icon for window %d.", w)
 		return nil, err
