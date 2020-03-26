@@ -81,6 +81,10 @@ func executeCommand(cmd string) {
 	if err := c.Start(); err != nil {
 		panic(err)
 	}
+	err := c.Wait()
+	if err != nil {
+		log.Printf("command failed: %s", err)
+	}
 }
 
 // triggerAction triggers an action
@@ -119,7 +123,7 @@ func (d *Deck) triggerAction(index uint8, hold bool) {
 					executeDBusMethod(a.DBus.Object, a.DBus.Path, a.DBus.Method, a.DBus.Value)
 				}
 				if a.Exec != "" {
-					executeCommand(a.Exec)
+					go executeCommand(a.Exec)
 				}
 			} else {
 				w.TriggerAction()
