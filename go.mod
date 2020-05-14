@@ -16,7 +16,7 @@ require (
 	github.com/godbus/dbus v4.1.0+incompatible
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/lucasb-eyer/go-colorful v1.0.2
-	github.com/muesli/streamdeck v0.0.0-20200331081101-0d357fe72f88
+	github.com/muesli/streamdeck v0.0.0-20200514174954-dd59ecb861aa
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/shirou/gopsutil v2.18.12+incompatible
 	golang.org/x/image v0.0.0-20200119044424-58c23975cae1
