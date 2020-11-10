@@ -13,3 +13,6 @@
 
 # Binaries
 deckmaster
+
+# direnv
+.envrc
