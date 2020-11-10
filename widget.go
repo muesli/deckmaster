@@ -10,6 +10,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/flopp/go-findfont"
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
 	"github.com/muesli/streamdeck"
@@ -145,33 +146,33 @@ func drawString(img *image.RGBA, ttf *truetype.Font, text string, fontsize float
 	}
 }
 
+func loadFont(name string) (*truetype.Font, error) {
+	fontPath, err := findfont.Find(name)
+	if err != nil {
+		return nil, err
+	}
+
+	ttf, err := ioutil.ReadFile(fontPath)
+	if err != nil {
+		return nil, err
+	}
+
+	return freetype.ParseFont(ttf)
+}
+
 func init() {
-	ttf, err := ioutil.ReadFile("/usr/share/fonts/TTF/Roboto-Regular.ttf")
+	var err error
+	ttfFont, err = loadFont("Roboto-Regular.ttf")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	ttfFont, err = freetype.ParseFont(ttf)
+	ttfThinFont, err = loadFont("Roboto-Thin.ttf")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	ttf, err = ioutil.ReadFile("/usr/share/fonts/TTF/Roboto-Thin.ttf")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	ttfThinFont, err = freetype.ParseFont(ttf)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	ttf, err = ioutil.ReadFile("/usr/share/fonts/TTF/Roboto-Bold.ttf")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	ttfBoldFont, err = freetype.ParseFont(ttf)
+	ttfBoldFont, err = loadFont("Roboto-Bold.ttf")
 	if err != nil {
 		log.Fatal(err)
 	}
