@@ -39,7 +39,7 @@ type DeckConfig struct {
 	Keys Keys `toml:"keys"`
 }
 
-// LoadConfig loads config from filename
+// LoadConfig loads config from filename.
 func LoadConfig(filename string) (DeckConfig, error) {
 	config := DeckConfig{}
 
@@ -52,7 +52,7 @@ func LoadConfig(filename string) (DeckConfig, error) {
 	return config, err
 }
 
-// Save writes config as json to filename
+// Save writes config as json to filename.
 func (c DeckConfig) Save(filename string) error {
 	var b bytes.Buffer
 	e := toml.NewEncoder(&b)

@@ -27,9 +27,9 @@ var (
 	brightness = flag.Uint("brightness", 80, "brightness in percent")
 )
 
-func handleActiveWindowChanged(dev streamdeck.Device, event ActiveWindowChangedEvent) {
-	fmt.Println(fmt.Sprintf("Active window changed to %s (%d, %s)",
-		event.Window.Class, event.Window.ID, event.Window.Name))
+func handleActiveWindowChanged(_ streamdeck.Device, event ActiveWindowChangedEvent) {
+	fmt.Printf("Active window changed to %s (%d, %s)",
+		event.Window.Class, event.Window.ID, event.Window.Name)
 
 	// remove dupes
 	i := 0

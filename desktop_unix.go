@@ -144,7 +144,7 @@ func (x *Xorg) TrackWindows(ch chan interface{}, timeout time.Duration) {
 	}()
 }
 
-// ActiveWindow returns the currently active window
+// ActiveWindow returns the currently active window.
 func (x Xorg) ActiveWindow() Window {
 	return x.activeWindow
 }

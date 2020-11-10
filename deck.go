@@ -11,12 +11,12 @@ import (
 	"github.com/godbus/dbus"
 )
 
-// Deck is a set of widgets
+// Deck is a set of widgets.
 type Deck struct {
 	Widgets []Widget
 }
 
-// LoadDeck loads a deck configuration
+// LoadDeck loads a deck configuration.
 func LoadDeck(deck string) (*Deck, error) {
 	d := Deck{}
 	dc, err := LoadConfig(deck)
@@ -32,7 +32,7 @@ func LoadDeck(deck string) (*Deck, error) {
 	return &d, nil
 }
 
-// emulates a (multi-)key press
+// emulates a (multi-)key press.
 func emulateKeyPress(keys string) {
 	if keyboard == nil {
 		log.Println("Keyboard emulation is disabled!")
@@ -55,7 +55,7 @@ func emulateKeyPress(keys string) {
 	}
 }
 
-// emulates a clipboard paste
+// emulates a clipboard paste.
 func emulateClipboard(text string) {
 	err := clipboard.WriteAll(text)
 	if err != nil {
@@ -66,7 +66,7 @@ func emulateClipboard(text string) {
 	emulateKeyPress("29-47") // ctrl-v
 }
 
-// executes a dbus method
+// executes a dbus method.
 func executeDBusMethod(object, path, method, args string) {
 	call := dbusConn.Object(object, dbus.ObjectPath(path)).Call(method, 0, args)
 	if call.Err != nil {
@@ -74,7 +74,7 @@ func executeDBusMethod(object, path, method, args string) {
 	}
 }
 
-// executes a command
+// executes a command.
 func executeCommand(cmd string) {
 	args := strings.Split(cmd, " ")
 	c := exec.Command(args[0], args[1:]...)
@@ -87,7 +87,7 @@ func executeCommand(cmd string) {
 	}
 }
 
-// triggerAction triggers an action
+// triggerAction triggers an action.
 func (d *Deck) triggerAction(index uint8, hold bool) {
 	for _, w := range d.Widgets {
 		if w.Key() == index {
@@ -132,7 +132,7 @@ func (d *Deck) triggerAction(index uint8, hold bool) {
 	}
 }
 
-// updateWidgets updates/repaints all the widgets
+// updateWidgets updates/repaints all the widgets.
 func (d *Deck) updateWidgets() {
 	for _, w := range d.Widgets {
 		w.Update(&dev)
