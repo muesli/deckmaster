@@ -1,8 +1,9 @@
 # deckmaster
 
-[![GoDoc](https://godoc.org/github.com/golang/gddo?status.svg)](https://godoc.org/github.com/muesli/deckmaster)
-[![Build Status](https://travis-ci.org/muesli/deckmaster.svg?branch=master)](https://travis-ci.org/muesli/deckmaster)
+[![Latest Release](https://img.shields.io/github/release/muesli/deckmaster.svg)](https://github.com/muesli/deckmaster/releases)
+[![Build Status](https://github.com/muesli/deckmaster/workflows/build/badge.svg)](https://github.com/muesli/deckmaster/actions)
 [![Go ReportCard](http://goreportcard.com/badge/muesli/deckmaster)](http://goreportcard.com/report/muesli/deckmaster)
+[![GoDoc](https://godoc.org/github.com/golang/gddo?status.svg)](https://pkg.go.dev/github.com/muesli/deckmaster)
 
 An application to control your Elgato Stream Deck on Linux
 
