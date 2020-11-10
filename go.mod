@@ -12,6 +12,7 @@ require (
 	github.com/atotto/clipboard v0.1.2
 	github.com/bendahl/uinput v1.0.2
 	github.com/davecgh/go-spew v1.1.1
+	github.com/flopp/go-findfont v0.0.0-20201103071330-d960cd9a3075
 	github.com/go-ole/go-ole v1.2.4 // indirect
 	github.com/godbus/dbus v4.1.0+incompatible
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
