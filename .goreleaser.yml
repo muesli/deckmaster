@@ -1,0 +1,71 @@
+env:
+  - GO111MODULE=on
+before:
+  hooks:
+    - go mod download
+builds:
+  - id: "deckmaster"
+    env:
+      - CGO_ENABLED=0
+    binary: deckmaster
+    flags:
+      - -trimpath
+    ldflags: -s -w -X main.Version={{ .Version }} -X main.CommitSHA={{ .Commit }}
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+      - 386
+      - arm
+    goarm:
+      - 6
+      - 7
+
+archives:
+  - id: default
+    builds:
+      - deckmaster
+    replacements:
+      386: i386
+      amd64: x86_64
+
+nfpms:
+  - builds:
+      - deckmaster
+    vendor: muesli
+    homepage: "https://fribbledom.com/"
+    maintainer: "Christian Muehlhaeuser <muesli@gmail.com>"
+    description: "An application to control your Elgato Stream Deck"
+    license: MIT
+    formats:
+      - apk
+      - deb
+      - rpm
+    bindir: /usr/bin
+
+brews:
+  - goarm: 6
+    tap:
+      owner: muesli
+      name: homebrew-tap
+    commit_author:
+      name: "Christian Muehlhaeuser"
+      email: "muesli@gmail.com"
+    homepage: "https://fribbledom.com/"
+    description: "An application to control your Elgato Stream Deck"
+    # skip_upload: true
+
+signs:
+  - artifacts: checksum
+
+checksum:
+  name_template: "checksums.txt"
+snapshot:
+  name_template: "{{ .Tag }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
