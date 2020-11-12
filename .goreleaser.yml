@@ -54,6 +54,8 @@ brews:
       email: "muesli@gmail.com"
     homepage: "https://fribbledom.com/"
     description: "An application to control your Elgato Stream Deck"
+    dependencies:
+      - name: linux
     # skip_upload: true
 
 signs:
