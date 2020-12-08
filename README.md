@@ -22,14 +22,55 @@ On Linux you need to set up some udev rules to be able to access the device as a
 regular user. Edit `/etc/udev/rules.d/99-streamdeck.rules` and add these lines:
 
 ```
-SUBSYSTEM=="usb", ATTRS{idVendor}=="0fd9", ATTRS{idProduct}=="0060", MODE:="666", GROUP="plugdev"
-SUBSYSTEM=="usb", ATTRS{idVendor}=="0fd9", ATTRS{idProduct}=="0063", MODE:="666", GROUP="plugdev"
-SUBSYSTEM=="usb", ATTRS{idVendor}=="0fd9", ATTRS{idProduct}=="006c", MODE:="666", GROUP="plugdev"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0fd9", ATTRS{idProduct}=="0060", MODE:="666", GROUP="plugdev", SYMLINK+="streamdeck"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0fd9", ATTRS{idProduct}=="0063", MODE:="666", GROUP="plugdev", SYMLINK+="streamdeck-mini"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0fd9", ATTRS{idProduct}=="006c", MODE:="666", GROUP="plugdev", SYMLINK+="streamdeck-xl"
 ```
 
 Make sure your user is part of the `plugdev` group and reload the rules with
 `sudo udevadm control --reload-rules`. Unplug and replug the device and you
 should be good to go.
+
+### Starting deckmaster automatically
+
+If you want deckmaster to be started automatically upon device plugin, you can use systemd path activation, adding `streamdeck.path` and `streamdeck.service` files to `$HOME/.config/systemd/user`.
+
+`streamdeck.path` contents:
+
+```ini
+[Unit]
+Description="Stream Deck Device Path"
+
+[Path]
+# the device name will be different if you use streamdeck-mini or streamdeck-xl
+PathModified=/dev/streamdeck
+Unit=streamdeck.service
+
+[Install]
+WantedBy=multi-user.target
+```
+
+`streamdeck.service` contents:
+
+```ini
+[Unit]
+Description=Deckmaster Service
+
+[Service]
+# adjust the path to deckmaster and .deck file to suit your needs
+ExecStart=/usr/local/bin/deckmaster --deck path-to/some.deck
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
+```
+
+Then enable and start the `streamdeck.path` unit:
+
+```
+systemctl --user enable streamdeck.path
+systemctl --user start streamdeck.path
+```
 
 ## Configuration
 
