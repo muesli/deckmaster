@@ -79,7 +79,8 @@ func executeCommand(cmd string) {
 	args := strings.Split(cmd, " ")
 	c := exec.Command(args[0], args[1:]...)
 	if err := c.Start(); err != nil {
-		panic(err)
+		log.Printf("command failed: %s", err)
+		return
 	}
 	err := c.Wait()
 	if err != nil {
