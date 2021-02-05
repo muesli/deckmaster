@@ -6,11 +6,11 @@ require (
 	github.com/BurntSushi/freetype-go v0.0.0-20160129220410-b763ddbfe298 // indirect
 	github.com/BurntSushi/graphics-go v0.0.0-20160129215708-b43f31a4a966 // indirect
 	github.com/BurntSushi/toml v0.3.1
-	github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802
-	github.com/BurntSushi/xgbutil v0.0.0-20160919175755-f7c97cef3b4e
+	github.com/BurntSushi/xgb v0.0.0-20210121224620-deaf085860bc
+	github.com/BurntSushi/xgbutil v0.0.0-20190907113008-ad855c713046
 	github.com/StackExchange/wmi v0.0.0-20190523213315-cbe66965904d // indirect
 	github.com/atotto/clipboard v0.1.2
-	github.com/bendahl/uinput v1.0.2
+	github.com/bendahl/uinput v1.4.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/flopp/go-findfont v0.0.0-20201103071330-d960cd9a3075
 	github.com/go-ole/go-ole v1.2.4 // indirect
