@@ -28,7 +28,7 @@ var (
 )
 
 func handleActiveWindowChanged(_ streamdeck.Device, event ActiveWindowChangedEvent) {
-	fmt.Printf("Active window changed to %s (%d, %s)",
+	fmt.Printf("Active window changed to %s (%d, %s)\n",
 		event.Window.Class, event.Window.ID, event.Window.Name)
 
 	// remove dupes
