@@ -75,7 +75,7 @@ func main() {
 
 	dbusConn, err = dbus.SessionBus()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	x = Connect(os.Getenv("DISPLAY"))
