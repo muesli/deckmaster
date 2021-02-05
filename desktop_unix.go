@@ -167,7 +167,7 @@ func (x Xorg) property(w xproto.Window, a *xproto.InternAtomReply) (*xproto.GetP
 
 func (x Xorg) active() xproto.Window {
 	p, err := x.property(x.root, x.activeAtom)
-	if err != nil {
+	if err != nil || len(p.Value) == 0 {
 		return x.root
 	}
 	return xproto.Window(xgb.Get32(p.Value))
