@@ -43,7 +43,7 @@ Description="Stream Deck Device Path"
 
 [Path]
 # the device name will be different if you use streamdeck-mini or streamdeck-xl
-PathModified=/dev/streamdeck
+PathExists=/dev/streamdeck
 Unit=streamdeck.service
 
 [Install]
