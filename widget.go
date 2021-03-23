@@ -68,6 +68,9 @@ func NewWidget(index uint8, id string, action *ActionConfig, actionHold *ActionC
 	case "clock":
 		return &ClockWidget{bw}
 
+	case "date":
+		return &DateWidget{bw}
+
 	case "recentWindow":
 		i, err := strconv.ParseUint(config["window"], 10, 64)
 		if err != nil {
