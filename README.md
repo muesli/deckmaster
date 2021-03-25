@@ -13,7 +13,7 @@ An application to control your Elgato Stream Deck on Linux
 
 - Arch Linux: [deckmaster](https://aur.archlinux.org/packages/deckmaster/)
 - [Packages](https://github.com/muesli/deckmaster/releases) in Alpine, Debian & RPM formats
-- [Binaries](https://github.com/muesli/duf/releases) for various architectures
+- [Binaries](https://github.com/muesli/deckmaster/releases) for various architectures
 
 ### From source
 
