@@ -1,13 +1,11 @@
 env:
   - GO111MODULE=on
+  - CGO_ENABLED=0
 before:
   hooks:
-    - go mod download
+    - go mod tidy
 builds:
-  - id: "deckmaster"
-    env:
-      - CGO_ENABLED=0
-    binary: deckmaster
+  - binary: deckmaster
     flags:
       - -trimpath
     ldflags: -s -w -X main.Version={{ .Version }} -X main.CommitSHA={{ .Commit }}
@@ -23,10 +21,7 @@ builds:
       - 7
 
 archives:
-  - id: default
-    builds:
-      - deckmaster
-    replacements:
+  - replacements:
       386: i386
       amd64: x86_64
 
@@ -44,19 +39,18 @@ nfpms:
       - rpm
     bindir: /usr/bin
 
-brews:
-  - goarm: 6
-    tap:
-      owner: muesli
-      name: homebrew-tap
-    commit_author:
-      name: "Christian Muehlhaeuser"
-      email: "muesli@gmail.com"
-    homepage: "https://fribbledom.com/"
-    description: "An application to control your Elgato Stream Deck"
-    dependencies:
-      - name: linux
-    # skip_upload: true
+#brews:
+#  - goarm: 6
+#    tap:
+#      owner: muesli
+#      name: homebrew-tap
+#    commit_author:
+#      name: "Christian Muehlhaeuser"
+#      email: "muesli@gmail.com"
+#    homepage: "https://fribbledom.com/"
+#    description: "An application to control your Elgato Stream Deck"
+#    dependencies:
+#      - name: linux
 
 signs:
   - artifacts: checksum
