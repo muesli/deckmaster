@@ -9,12 +9,22 @@ An application to control your Elgato Stream Deck on Linux
 
 ## Installation
 
-Make sure you have a working Go environment (Go 1.9 or higher is required).
+### Packages
+
+- Arch Linux: [deckmaster](https://aur.archlinux.org/packages/deckmaster/)
+- [Packages](https://github.com/muesli/deckmaster/releases) in Alpine, Debian & RPM formats
+- [Binaries](https://github.com/muesli/duf/releases) for various architectures
+
+### From source
+
+Make sure you have a working Go environment (Go 1.11 or higher is required).
 See the [install instructions](http://golang.org/doc/install.html).
 
 To install deckmaster, simply run:
 
-    go get github.com/muesli/deckmaster
+    git clone https://github.com/muesli/deckmaster.git
+    cd deckmaster
+    go build
 
 ## System Setup
 
