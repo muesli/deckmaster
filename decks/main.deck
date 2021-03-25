@@ -15,6 +15,11 @@
       fillColor = "#a69bd6"
 
 [[keys]]
+  index = 3
+  [keys.widget]
+    id = "date"
+
+[[keys]]
   index = 4
   [keys.widget]
     id = "clock"
