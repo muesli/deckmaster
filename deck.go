@@ -82,8 +82,8 @@ func executeCommand(cmd string) {
 		log.Printf("command failed: %s", err)
 		return
 	}
-	err := c.Wait()
-	if err != nil {
+
+	if err := c.Wait(); err != nil {
 		log.Printf("command failed: %s", err)
 	}
 }

@@ -143,8 +143,7 @@ func drawString(img *image.RGBA, ttf *truetype.Font, text string, fontsize float
 	}
 
 	c.SetSrc(image.NewUniform(color.RGBA{255, 255, 255, 255}))
-	_, err := c.DrawString(text, pt)
-	if err != nil {
+	if _, err := c.DrawString(text, pt); err != nil {
 		log.Fatal(err)
 	}
 }
