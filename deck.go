@@ -2,13 +2,13 @@ package main
 
 import (
 	"fmt"
+	"github.com/atotto/clipboard"
+	"github.com/godbus/dbus"
 	"log"
 	"os/exec"
 	"strconv"
 	"strings"
-
-	"github.com/atotto/clipboard"
-	"github.com/godbus/dbus"
+	"time"
 )
 
 // Deck is a set of widgets.
@@ -41,7 +41,7 @@ func emulateKeyPress(keys string) {
 
 	kk := strings.Split(keys, "-")
 	for i, k := range kk {
-		kc, err := strconv.Atoi(k)
+		kc, err := strconv.Atoi(strings.TrimSpace(k))
 		if err != nil {
 			log.Fatalf("%s is not a valid keycode: %s", k, err)
 		}
@@ -55,6 +55,25 @@ func emulateKeyPress(keys string) {
 	}
 }
 
+// emulates a range of key presses
+func emulateKeyPresses(keys string) {
+	if keyboard == nil {
+		log.Println("Keyboard emulation is disabled!")
+		return
+	}
+
+	kkp := strings.Split(keys, "/")
+	for i, kp := range kkp {
+		println("Single Keybinding: ", kp)
+		emulateKeyPress(kp)
+		if i+1 < len(kkp) {
+			println("Sleeping")
+			// TODO: Make available from config
+			time.Sleep(100 * time.Millisecond)
+		}
+	}
+}
+
 // emulates a clipboard paste.
 func emulateClipboard(text string) {
 	err := clipboard.WriteAll(text)
@@ -63,7 +82,7 @@ func emulateClipboard(text string) {
 	}
 
 	// paste the string
-	emulateKeyPress("29-47") // ctrl-v
+	emulateKeyPresses("29-47") // ctrl-v
 }
 
 // executes a dbus method.
@@ -115,7 +134,7 @@ func (d *Deck) triggerAction(index uint8, hold bool) {
 					deck.updateWidgets()
 				}
 				if a.Keycode != "" {
-					emulateKeyPress(a.Keycode)
+					emulateKeyPresses(a.Keycode)
 				}
 				if a.Paste != "" {
 					emulateClipboard(a.Paste)
