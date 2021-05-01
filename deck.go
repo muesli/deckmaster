@@ -55,23 +55,66 @@ func emulateKeyPress(keys string) {
 	}
 }
 
+func createArrayFixedLength(amount int, value int) []int {
+	s := make([]int, amount)
+	for i := range s {
+		s[i] = value
+	}
+	return s
+}
+
+func padArray(targetLen int, padValue int, existingSlice []int) []int {
+	currentLen := len(existingSlice)
+	var newSlice []int
+	newSlice = append(newSlice, existingSlice...)
+	newEntries := createArrayFixedLength(targetLen-currentLen, padValue)
+
+	newSlice = append(newSlice, newEntries...)
+
+	return newSlice
+}
+
 // emulates a range of key presses
-func emulateKeyPresses(keys string, delayMs int) {
+func emulateKeyPresses(keys string, delaysMs ...int) {
 	if keyboard == nil {
 		log.Println("Keyboard emulation is disabled!")
 		return
 	}
 
 	kkp := strings.Split(keys, "/")
+
+	usedDelays := createDelays(kkp, delaysMs)
+
 	for i, kp := range kkp {
 		println("Single Keybinding: ", kp)
 		emulateKeyPress(kp)
 		if i+1 < len(kkp) {
 			println("Sleeping")
-			// TODO: Make available from config
-			time.Sleep(time.Duration(delayMs) * time.Millisecond)
+			time.Sleep(time.Duration(usedDelays[i]) * time.Millisecond)
 		}
 	}
+}
+
+func createDelays(kkp []string, delaysMs []int) []int {
+	numberOfKeybindings := len(kkp)
+
+	requiredDelays := numberOfKeybindings - 1
+	var usedDelays []int
+	givenDelays := len(delaysMs)
+	if givenDelays == 0 {
+		log.Println("Using single default delay value of ", 100, " ms")
+		usedDelays = createArrayFixedLength(requiredDelays, 100)
+	} else if givenDelays == 1 {
+		usedDelays = createArrayFixedLength(requiredDelays, delaysMs[0])
+	} else if givenDelays < requiredDelays {
+		usedDelays = padArray(requiredDelays, delaysMs[givenDelays-1], delaysMs)
+	} else if givenDelays == requiredDelays {
+		usedDelays = delaysMs
+	} else {
+		log.Println("Too many delays giving. Skipping surplus ones.")
+		usedDelays = delaysMs[:requiredDelays]
+	}
+	return usedDelays
 }
 
 func emulateKeyPressesDefaultDelay(keys string) {
@@ -138,7 +181,7 @@ func (d *Deck) triggerAction(index uint8, hold bool) {
 					deck.updateWidgets()
 				}
 				if a.Keycode != "" {
-					emulateKeyPresses(a.Keycode, a.DelayMs)
+					emulateKeyPresses(a.Keycode, a.DelaysMs...)
 				}
 				if a.Paste != "" {
 					emulateClipboard(a.Paste)
