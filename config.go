@@ -2,8 +2,9 @@ package main
 
 import (
 	"bytes"
-	"github.com/BurntSushi/toml"
 	"io/ioutil"
+
+	"github.com/BurntSushi/toml"
 )
 
 type DBusConfig struct {

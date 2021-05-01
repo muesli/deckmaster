@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
-	"github.com/atotto/clipboard"
-	"github.com/godbus/dbus"
 	"log"
 	"os/exec"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/atotto/clipboard"
+	"github.com/godbus/dbus"
 )
 
 // Deck is a set of widgets.
