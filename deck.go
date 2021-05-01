@@ -56,7 +56,7 @@ func emulateKeyPress(keys string) {
 }
 
 // emulates a range of key presses
-func emulateKeyPresses(keys string) {
+func emulateKeyPresses(keys string, delayMs int) {
 	if keyboard == nil {
 		log.Println("Keyboard emulation is disabled!")
 		return
@@ -69,9 +69,13 @@ func emulateKeyPresses(keys string) {
 		if i+1 < len(kkp) {
 			println("Sleeping")
 			// TODO: Make available from config
-			time.Sleep(100 * time.Millisecond)
+			time.Sleep(time.Duration(delayMs) * time.Millisecond)
 		}
 	}
+}
+
+func emulateKeyPressesDefaultDelay(keys string) {
+	emulateKeyPresses(keys, 100)
 }
 
 // emulates a clipboard paste.
@@ -82,7 +86,7 @@ func emulateClipboard(text string) {
 	}
 
 	// paste the string
-	emulateKeyPresses("29-47") // ctrl-v
+	emulateKeyPressesDefaultDelay("29-47") // ctrl-v
 }
 
 // executes a dbus method.
@@ -134,7 +138,7 @@ func (d *Deck) triggerAction(index uint8, hold bool) {
 					deck.updateWidgets()
 				}
 				if a.Keycode != "" {
-					emulateKeyPresses(a.Keycode)
+					emulateKeyPresses(a.Keycode, a.DelayMs)
 				}
 				if a.Paste != "" {
 					emulateClipboard(a.Paste)

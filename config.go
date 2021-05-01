@@ -2,9 +2,8 @@ package main
 
 import (
 	"bytes"
-	"io/ioutil"
-
 	"github.com/BurntSushi/toml"
+	"io/ioutil"
 )
 
 type DBusConfig struct {
@@ -17,6 +16,7 @@ type DBusConfig struct {
 type ActionConfig struct {
 	Deck    string     `toml:"deck,omitempty"`
 	Keycode string     `toml:"keycode,omitempty"`
+	DelayMs int        `toml:"delayms,omitempty"` // default: 0
 	Exec    string     `toml:"exec,omitempty"`
 	Paste   string     `toml:"paste,omitempty"`
 	DBus    DBusConfig `toml:"dbus,omitempty"`
