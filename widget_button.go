@@ -16,7 +16,7 @@ type ButtonWidget struct {
 	init sync.Once
 }
 
-func (w *ButtonWidget) Update(dev *streamdeck.Device) error {
+func (w *ButtonWidget) UpdateImage(dev *streamdeck.Device) error {
 	var err error
 
 	w.init.Do(func() {
@@ -43,7 +43,7 @@ func (w *ButtonWidget) Update(dev *streamdeck.Device) error {
 			_ = drawImage(img, w.icon, height, image.Pt(-1, -1))
 		}
 
-		err = dev.SetImage(w.key, img)
+		w.fg = img
 	})
 
 	return err

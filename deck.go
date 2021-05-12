@@ -1,7 +1,11 @@
 package main
 
 import (
+	"fmt"
+	"image"
+	"image/draw"
 	"log"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
@@ -10,6 +14,7 @@ import (
 
 	"github.com/atotto/clipboard"
 	"github.com/godbus/dbus"
+	"github.com/muesli/streamdeck"
 )
 
 // Deck is a set of widgets.
@@ -19,7 +24,7 @@ type Deck struct {
 }
 
 // LoadDeck loads a deck configuration.
-func LoadDeck(base string, deck string) (*Deck, error) {
+func LoadDeck(base string, deck string, dev *streamdeck.Device) (*Deck, error) {
 	if !filepath.IsAbs(deck) {
 		deck = filepath.Join(base, deck)
 	}
@@ -37,8 +42,51 @@ func LoadDeck(base string, deck string) (*Deck, error) {
 	d := Deck{
 		File: abs,
 	}
+
+	padding := int(dev.Padding)
+	pixels := int(dev.Pixels)
+	rows := int(dev.Rows)
+	cols := int(dev.Columns)
+	var background image.Image
+	if dc.Background.Image != "" {
+		f, err := os.Open(dc.Background.Image)
+		if err != nil {
+			return nil, err
+		}
+		defer f.Close()
+
+		background, _, err = image.Decode(f)
+		if err != nil {
+			return nil, err
+		}
+		width := cols*pixels + (cols-1)*padding
+		height := rows*pixels + (rows-1)*padding
+		if background.Bounds().Dx() != width ||
+			background.Bounds().Dy() != height {
+			return nil, fmt.Errorf("supplied background image has wrong dimensions, expected %dx%d pixels", width, height)
+		}
+	}
+
+	keyMap := map[uint8]KeyConfig{}
 	for _, k := range dc.Keys {
-		w := NewWidget(k.Index, k.Widget.ID, k.Action, k.ActionHold, k.Widget.Config)
+		keyMap[k.Index] = k
+	}
+
+	for i := 0; i < cols*rows; i++ {
+		buttonBg := image.NewRGBA(image.Rect(0, 0, pixels, pixels))
+
+		if background != nil {
+			startx := (i % cols) * (pixels + padding)
+			starty := (i / cols) * (pixels + padding)
+			draw.Draw(buttonBg, buttonBg.Bounds(), background, image.Point{startx, starty}, draw.Src)
+		}
+
+		var w Widget
+		if k, found := keyMap[uint8(i)]; found {
+			w = NewWidget(k.Index, k.Widget.ID, k.Action, k.ActionHold, buttonBg, k.Widget.Config)
+		} else {
+			w = NewWidget(uint8(i), "empty", nil, nil, buttonBg, nil)
+		}
 		d.Widgets = append(d.Widgets, w)
 	}
 
@@ -136,7 +184,7 @@ func (d *Deck) triggerAction(index uint8, hold bool) {
 			if a != nil {
 				// log.Println("Executing overloaded action")
 				if a.Deck != "" {
-					d, err := LoadDeck(filepath.Dir(d.File), a.Deck)
+					d, err := LoadDeck(filepath.Dir(d.File), a.Deck, &dev)
 					if err != nil {
 						log.Fatal(err)
 					}
@@ -170,6 +218,9 @@ func (d *Deck) triggerAction(index uint8, hold bool) {
 // updateWidgets updates/repaints all the widgets.
 func (d *Deck) updateWidgets() {
 	for _, w := range d.Widgets {
+		if err := w.UpdateImage(&dev); err != nil {
+			log.Fatalf("error: %v", err)
+		}
 		if err := w.Update(&dev); err != nil {
 			log.Fatalf("error: %v", err)
 		}

@@ -69,10 +69,6 @@ func main() {
 	flag.Parse()
 
 	var err error
-	deck, err = LoadDeck(".", *deckFile)
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	dbusConn, err = dbus.SessionBus()
 	if err != nil {
@@ -107,10 +103,16 @@ func main() {
 	log.Printf("Found device with serial %s (firmware %s)\n",
 		dev.Serial, ver)
 
+	deck, err = LoadDeck(".", *deckFile, &dev)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	err = dev.Reset()
 	if err != nil {
 		log.Fatal(err)
 	}
+	deck.updateWidgets()
 
 	if *brightness > 100 {
 		*brightness = 100

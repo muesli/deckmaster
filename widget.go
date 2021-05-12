@@ -16,6 +16,7 @@ import (
 
 type Widget interface {
 	Key() uint8
+	UpdateImage(dev *streamdeck.Device) error
 	Update(dev *streamdeck.Device) error
 	Action() *ActionConfig
 	ActionHold() *ActionConfig
@@ -26,10 +27,26 @@ type BaseWidget struct {
 	key        uint8
 	action     *ActionConfig
 	actionHold *ActionConfig
+	fg         image.Image
+	bg         image.Image
 }
 
 func (w *BaseWidget) Key() uint8 {
 	return w.key
+}
+
+func (w *BaseWidget) Update(dev *streamdeck.Device) error {
+	pixels := int(dev.Pixels)
+
+	buttonImg := image.NewRGBA(image.Rect(0, 0, pixels, pixels))
+	if w.bg != nil {
+		draw.Draw(buttonImg, buttonImg.Bounds(), w.bg, image.Point{0, 0}, draw.Over)
+	}
+	if w.fg != nil {
+		draw.Draw(buttonImg, buttonImg.Bounds(), w.fg, image.Point{0, 0}, draw.Over)
+	}
+
+	return dev.SetImage(w.key, buttonImg)
 }
 
 func (w *BaseWidget) Action() *ActionConfig {
@@ -44,8 +61,8 @@ func (w *BaseWidget) TriggerAction() {
 	// just a stub
 }
 
-func NewWidget(index uint8, id string, action *ActionConfig, actionHold *ActionConfig, config map[string]string) Widget {
-	bw := BaseWidget{index, action, actionHold}
+func NewWidget(index uint8, id string, action *ActionConfig, actionHold *ActionConfig, bg image.Image, config map[string]string) Widget {
+	bw := BaseWidget{index, action, actionHold, nil, bg}
 
 	switch id {
 	case "button":
@@ -91,6 +108,11 @@ func NewWidget(index uint8, id string, action *ActionConfig, actionHold *ActionC
 			BaseWidget: bw,
 			mode:       config["mode"],
 			fillColor:  config["fillColor"],
+		}
+
+	case "empty":
+		return &EmptyWidget{
+			BaseWidget: bw,
 		}
 
 	default:

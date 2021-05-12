@@ -7,6 +7,10 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
+type Background struct {
+	Image string `toml:"image"`
+}
+
 type DBusConfig struct {
 	Object string `toml:"object,omitempty"`
 	Path   string `toml:"path,omitempty"`
@@ -33,10 +37,12 @@ type KeyConfig struct {
 	Action     *ActionConfig `toml:"action,omitempty"`
 	ActionHold *ActionConfig `toml:"action_hold,omitempty"`
 }
+
 type Keys []KeyConfig
 
 type DeckConfig struct {
-	Keys Keys `toml:"keys"`
+	Background Background `toml:"background,omitempty"`
+	Keys       Keys       `toml:"keys"`
 }
 
 // LoadConfig loads config from filename.
