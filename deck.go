@@ -33,6 +33,35 @@ func LoadDeck(deck string) (*Deck, error) {
 	return &d, nil
 }
 
+// Handles keypress delay
+func emulateKeyPressWithDelay(keys string) {
+	if strings.Contains(keys, "+") {
+		kd := strings.Split(keys, "+")
+		key := kd[0]
+		delay, err := strconv.Atoi(strings.TrimSpace(kd[1]))
+		emulateKeyPress(key)
+		if err == nil {
+			time.Sleep(time.Duration(delay) * time.Millisecond)
+		}
+	} else {
+		emulateKeyPress(keys)
+	}
+}
+
+// emulates a range of key presses
+func emulateKeyPresses(keys string) {
+	if keyboard == nil {
+		log.Println("Keyboard emulation is disabled!")
+		return
+	}
+
+	kkp := strings.Split(keys, "/")
+
+	for _, kp := range kkp {
+		emulateKeyPressWithDelay(kp)
+	}
+}
+
 // emulates a (multi-)key press.
 func emulateKeyPress(keys string) {
 	if keyboard == nil {
@@ -56,72 +85,6 @@ func emulateKeyPress(keys string) {
 	}
 }
 
-func createArrayFixedLength(amount int, value int) []int {
-	s := make([]int, amount)
-	for i := range s {
-		s[i] = value
-	}
-	return s
-}
-
-func padArray(targetLen int, padValue int, existingSlice []int) []int {
-	currentLen := len(existingSlice)
-	var newSlice []int
-	newSlice = append(newSlice, existingSlice...)
-	newEntries := createArrayFixedLength(targetLen-currentLen, padValue)
-
-	newSlice = append(newSlice, newEntries...)
-
-	return newSlice
-}
-
-// emulates a range of key presses
-func emulateKeyPresses(keys string, delaysMs ...int) {
-	if keyboard == nil {
-		log.Println("Keyboard emulation is disabled!")
-		return
-	}
-
-	kkp := strings.Split(keys, "/")
-
-	usedDelays := createDelays(kkp, delaysMs)
-
-	for i, kp := range kkp {
-		println("Single Keybinding: ", kp)
-		emulateKeyPress(kp)
-		if i+1 < len(kkp) {
-			println("Sleeping")
-			time.Sleep(time.Duration(usedDelays[i]) * time.Millisecond)
-		}
-	}
-}
-
-func createDelays(kkp []string, delaysMs []int) []int {
-	numberOfKeybindings := len(kkp)
-
-	requiredDelays := numberOfKeybindings - 1
-	var usedDelays []int
-	givenDelays := len(delaysMs)
-	if givenDelays == 0 {
-		log.Println("Using single default delay value of ", 100, " ms")
-		usedDelays = createArrayFixedLength(requiredDelays, 100)
-	} else if givenDelays == 1 {
-		usedDelays = createArrayFixedLength(requiredDelays, delaysMs[0])
-	} else if givenDelays < requiredDelays {
-		usedDelays = padArray(requiredDelays, delaysMs[givenDelays-1], delaysMs)
-	} else if givenDelays == requiredDelays {
-		usedDelays = delaysMs
-	} else {
-		log.Println("Too many delays giving. Skipping surplus ones.")
-		usedDelays = delaysMs[:requiredDelays]
-	}
-	return usedDelays
-}
-
-func emulateKeyPressesDefaultDelay(keys string) {
-	emulateKeyPresses(keys, 100)
-}
-
 // emulates a clipboard paste.
 func emulateClipboard(text string) {
 	err := clipboard.WriteAll(text)
@@ -130,7 +93,7 @@ func emulateClipboard(text string) {
 	}
 
 	// paste the string
-	emulateKeyPressesDefaultDelay("29-47") // ctrl-v
+	emulateKeyPress("29-47") // ctrl-v
 }
 
 // executes a dbus method.
@@ -182,7 +145,7 @@ func (d *Deck) triggerAction(index uint8, hold bool) {
 					deck.updateWidgets()
 				}
 				if a.Keycode != "" {
-					emulateKeyPresses(a.Keycode, a.DelaysMs...)
+					emulateKeyPresses(a.Keycode)
 				}
 				if a.Paste != "" {
 					emulateClipboard(a.Paste)

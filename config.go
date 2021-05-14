@@ -15,12 +15,11 @@ type DBusConfig struct {
 }
 
 type ActionConfig struct {
-	Deck     string     `toml:"deck,omitempty"`
-	Keycode  string     `toml:"keycode,omitempty"`
-	DelaysMs []int      `toml:"delaysms,omitempty"`
-	Exec     string     `toml:"exec,omitempty"`
-	Paste    string     `toml:"paste,omitempty"`
-	DBus     DBusConfig `toml:"dbus,omitempty"`
+	Deck    string     `toml:"deck,omitempty"`
+	Keycode string     `toml:"keycode,omitempty"`
+	Exec    string     `toml:"exec,omitempty"`
+	Paste   string     `toml:"paste,omitempty"`
+	DBus    DBusConfig `toml:"dbus,omitempty"`
 }
 
 type WidgetConfig struct {
