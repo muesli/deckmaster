@@ -33,31 +33,23 @@ func LoadDeck(deck string) (*Deck, error) {
 	return &d, nil
 }
 
-// Handles keypress delay
+// handles keypress with delay.
 func emulateKeyPressWithDelay(keys string) {
-	if strings.Contains(keys, "+") {
-		kd := strings.Split(keys, "+")
-		key := kd[0]
-		delay, err := strconv.Atoi(strings.TrimSpace(kd[1]))
-		emulateKeyPress(key)
-		if err == nil {
-			time.Sleep(time.Duration(delay) * time.Millisecond)
-		}
-	} else {
-		emulateKeyPress(keys)
-	}
-}
-
-// emulates a range of key presses
-func emulateKeyPresses(keys string) {
-	if keyboard == nil {
-		log.Println("Keyboard emulation is disabled!")
+	kd := strings.Split(keys, "+")
+	emulateKeyPress(kd[0])
+	if len(kd) == 1 {
 		return
 	}
 
-	kkp := strings.Split(keys, "/")
+	// optional delay
+	if delay, err := strconv.Atoi(strings.TrimSpace(kd[1])); err == nil {
+		time.Sleep(time.Duration(delay) * time.Millisecond)
+	}
+}
 
-	for _, kp := range kkp {
+// emulates a range of key presses.
+func emulateKeyPresses(keys string) {
+	for _, kp := range strings.Split(keys, "/") {
 		emulateKeyPressWithDelay(kp)
 	}
 }
