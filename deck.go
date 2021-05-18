@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/atotto/clipboard"
 	"github.com/godbus/dbus"
@@ -32,6 +33,27 @@ func LoadDeck(deck string) (*Deck, error) {
 	return &d, nil
 }
 
+// handles keypress with delay.
+func emulateKeyPressWithDelay(keys string) {
+	kd := strings.Split(keys, "+")
+	emulateKeyPress(kd[0])
+	if len(kd) == 1 {
+		return
+	}
+
+	// optional delay
+	if delay, err := strconv.Atoi(strings.TrimSpace(kd[1])); err == nil {
+		time.Sleep(time.Duration(delay) * time.Millisecond)
+	}
+}
+
+// emulates a range of key presses.
+func emulateKeyPresses(keys string) {
+	for _, kp := range strings.Split(keys, "/") {
+		emulateKeyPressWithDelay(kp)
+	}
+}
+
 // emulates a (multi-)key press.
 func emulateKeyPress(keys string) {
 	if keyboard == nil {
@@ -41,7 +63,7 @@ func emulateKeyPress(keys string) {
 
 	kk := strings.Split(keys, "-")
 	for i, k := range kk {
-		kc, err := strconv.Atoi(k)
+		kc, err := strconv.Atoi(strings.TrimSpace(k))
 		if err != nil {
 			log.Fatalf("%s is not a valid keycode: %s", k, err)
 		}
@@ -115,7 +137,7 @@ func (d *Deck) triggerAction(index uint8, hold bool) {
 					deck.updateWidgets()
 				}
 				if a.Keycode != "" {
-					emulateKeyPress(a.Keycode)
+					emulateKeyPresses(a.Keycode)
 				}
 				if a.Paste != "" {
 					emulateClipboard(a.Paste)
