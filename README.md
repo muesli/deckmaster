@@ -7,6 +7,22 @@
 
 An application to control your Elgato Stream Deck on Linux
 
+## Features
+
+- Multiple pages & navigation between decks
+- Buttons (icons & text)
+- Brightness control
+- Comes with a collection of widgets:
+    - Clock
+    - Date
+    - CPU/Mem usage
+    - Recently used windows (X11-only)
+- Lets you trigger several actions:
+    - Run commands
+    - Emulate a key-press
+    - Paste to clipboard
+    - Trigger a dbus call
+
 ## Installation
 
 ### Packages
