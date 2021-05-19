@@ -2,7 +2,7 @@
 
 [![Latest Release](https://img.shields.io/github/release/muesli/deckmaster.svg)](https://github.com/muesli/deckmaster/releases)
 [![Build Status](https://github.com/muesli/deckmaster/workflows/build/badge.svg)](https://github.com/muesli/deckmaster/actions)
-[![Go ReportCard](http://goreportcard.com/badge/muesli/deckmaster)](http://goreportcard.com/report/muesli/deckmaster)
+[![Go ReportCard](https://goreportcard.com/badge/muesli/deckmaster)](https://goreportcard.com/report/muesli/deckmaster)
 [![GoDoc](https://godoc.org/github.com/golang/gddo?status.svg)](https://pkg.go.dev/github.com/muesli/deckmaster)
 
 An application to control your Elgato Stream Deck on Linux
@@ -34,7 +34,7 @@ An application to control your Elgato Stream Deck on Linux
 ### From source
 
 Make sure you have a working Go environment (Go 1.11 or higher is required).
-See the [install instructions](http://golang.org/doc/install.html).
+See the [install instructions](https://golang.org/doc/install.html).
 
 To install deckmaster, simply run:
 
