@@ -37,7 +37,12 @@ func (w *RecentWindowWidget) Update(dev *streamdeck.Device) {
 }
 
 func (w *RecentWindowWidget) TriggerAction() {
+	if xorg == nil {
+		log.Println("xorg support is disabled!")
+		return
+	}
+
 	if int(w.window) < len(recentWindows) {
-		x.RequestActivation(recentWindows[w.window])
+		xorg.RequestActivation(recentWindows[w.window])
 	}
 }

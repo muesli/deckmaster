@@ -48,30 +48,27 @@ var (
 	ErrNoClass = errors.New("empty class")
 )
 
-func Connect(display string) Xorg {
+func Connect(display string) (*Xorg, error) {
 	var x Xorg
 	var err error
 
 	x.conn, err = xgb.NewConnDisplay(display)
 	if err != nil {
-		log.Fatal("xgb:", err)
+		return nil, err
 	}
 
 	x.util, err = xgbutil.NewConnDisplay(display)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	err = screensaver.Init(x.conn)
-	if err != nil {
-		log.Fatal("screensaver:", err)
+	if err := screensaver.Init(x.conn); err == nil {
+		drw := xproto.Drawable(x.root)
+		screensaver.SelectInput(x.conn, drw, screensaver.EventNotifyMask)
 	}
 
 	setup := xproto.Setup(x.conn)
 	x.root = setup.DefaultScreen(x.conn).Root
-
-	drw := xproto.Drawable(x.root)
-	screensaver.SelectInput(x.conn, drw, screensaver.EventNotifyMask)
 
 	x.activeAtom = x.atom("_NET_ACTIVE_WINDOW")
 	x.netNameAtom = x.atom("_NET_WM_NAME")
@@ -79,7 +76,7 @@ func Connect(display string) Xorg {
 	x.classAtom = x.atom("WM_CLASS")
 
 	x.spy(x.root)
-	return x
+	return &x, nil
 }
 
 func (x Xorg) Close() {

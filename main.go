@@ -15,12 +15,13 @@ import (
 )
 
 var (
-	dev      streamdeck.Device
+	dev  streamdeck.Device
+	deck *Deck
+
 	dbusConn *dbus.Conn
 	keyboard uinput.Keyboard
-	x        Xorg
 
-	deck          *Deck
+	xorg          *Xorg
 	recentWindows []Window
 
 	deckFile   = flag.String("deck", "deckmaster.deck", "path to deck config file")
@@ -79,11 +80,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	x = Connect(os.Getenv("DISPLAY"))
-	defer x.Close()
-
 	tch := make(chan interface{})
-	x.TrackWindows(tch, time.Second)
+	xorg, err = Connect(os.Getenv("DISPLAY"))
+	if err == nil {
+		defer xorg.Close()
+		xorg.TrackWindows(tch, time.Second)
+	}
 
 	d, err := streamdeck.Devices()
 	if err != nil {
