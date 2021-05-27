@@ -27,7 +27,7 @@ var (
 	brightness = flag.Uint("brightness", 80, "brightness in percent")
 )
 
-func handleActiveWindowChanged(_ streamdeck.Device, event ActiveWindowChangedEvent) {
+func handleActiveWindowChanged(dev streamdeck.Device, event ActiveWindowChangedEvent) {
 	fmt.Printf("Active window changed to %s (%d, %s)\n",
 		event.Window.Class, event.Window.ID, event.Window.Name)
 
@@ -43,14 +43,15 @@ func handleActiveWindowChanged(_ streamdeck.Device, event ActiveWindowChangedEve
 	}
 	recentWindows = recentWindows[:i]
 
+	keys := int(dev.Rows * dev.Columns)
 	recentWindows = append([]Window{event.Window}, recentWindows...)
-	if len(recentWindows) > 15 {
-		recentWindows = recentWindows[0:15]
+	if len(recentWindows) > keys {
+		recentWindows = recentWindows[0:keys]
 	}
 	deck.updateWidgets()
 }
 
-func handleWindowClosed(dev streamdeck.Device, event WindowClosedEvent) {
+func handleWindowClosed(_ streamdeck.Device, event WindowClosedEvent) {
 	i := 0
 	for _, rw := range recentWindows {
 		if rw.ID == event.Window.ID {
