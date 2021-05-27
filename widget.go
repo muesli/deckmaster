@@ -143,7 +143,7 @@ func drawString(img *image.RGBA, bounds image.Rectangle, ttf *truetype.Font, tex
 		pt = image.Pt(int(xcenter), pt.Y)
 	}
 	if pt.Y < 0 {
-		actheight := int(float64(fontsize) * 72.0 / float64(dev.DPI))
+		actheight := int(fontsize * 72.0 / float64(dev.DPI))
 		ycenter := float64(bounds.Dy()/2.0) + float64(actheight)
 		pt = image.Pt(pt.X, bounds.Min.Y+int(ycenter))
 	}
