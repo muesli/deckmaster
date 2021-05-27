@@ -257,6 +257,7 @@ func (x Xorg) waitForEvent(events chan<- xgb.Event) {
 	}
 }
 
+/*
 func (x Xorg) queryIdle() time.Duration {
 	info, err := screensaver.QueryInfo(x.conn, xproto.Drawable(x.root)).Reply()
 	if err != nil {
@@ -265,3 +266,4 @@ func (x Xorg) queryIdle() time.Duration {
 	}
 	return time.Duration(info.MsSinceUserInput) * time.Millisecond
 }
+*/
