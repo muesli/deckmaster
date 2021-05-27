@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/bendahl/uinput"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/godbus/dbus"
 	"github.com/muesli/streamdeck"
 )
@@ -29,7 +28,7 @@ var (
 )
 
 func handleActiveWindowChanged(dev streamdeck.Device, event ActiveWindowChangedEvent) {
-	fmt.Printf("Active window changed to %s (%d, %s)\n",
+	log.Printf("Active window changed to %s (%d, %s)\n",
 		event.Window.Class, event.Window.ID, event.Window.Name)
 
 	// remove dupes
@@ -105,7 +104,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("Found device with serial %s (firmware %s)\n",
+	log.Printf("Found device with serial %s (firmware %s)\n",
 		dev.Serial, ver)
 
 	err = dev.Reset()
@@ -149,19 +148,19 @@ func main() {
 				}
 				continue
 			}
-			spew.Dump(k)
+			// spew.Dump(k)
 
 			var state bool
 			if ks, ok := keyStates.Load(k.Index); ok {
 				state = ks.(bool)
 			}
-			// fmt.Println("Storing state", k.Pressed)
+			// log.Println("Storing state", k.Pressed)
 			keyStates.Store(k.Index, k.Pressed)
 
 			if state && !k.Pressed {
 				// key was released
 				if time.Since(keyTimestamps[k.Index]) < 200*time.Millisecond {
-					fmt.Println("Triggering short action")
+					// log.Println("Triggering short action")
 					deck.triggerAction(k.Index, false)
 				}
 			}
@@ -173,7 +172,7 @@ func main() {
 
 					if state, ok := keyStates.Load(k.Index); ok && state.(bool) {
 						// key still pressed
-						fmt.Println("Triggering long action")
+						// log.Println("Triggering long action")
 						deck.triggerAction(k.Index, true)
 					}
 				}()

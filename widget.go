@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"image"
 	"image/color"
 	"image/draw"
@@ -90,7 +89,7 @@ func NewWidget(index uint8, id string, action *ActionConfig, actionHold *ActionC
 
 	default:
 		// unknown widget ID
-		fmt.Println("Unknown widget with ID:", id)
+		log.Println("Unknown widget with ID:", id)
 	}
 
 	return nil
