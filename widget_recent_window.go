@@ -17,16 +17,17 @@ type RecentWindowWidget struct {
 }
 
 func (w *RecentWindowWidget) Update(dev *streamdeck.Device) {
-	img := image.NewRGBA(image.Rect(0, 0, 72, 72))
+	img := image.NewRGBA(image.Rect(0, 0, int(dev.Pixels), int(dev.Pixels)))
 
+	size := int(dev.Pixels)
 	if int(w.window) < len(recentWindows) {
 		if w.lastClass == recentWindows[w.window].Class {
 			return
 		}
 		w.lastClass = recentWindows[w.window].Class
 
-		icon := resize.Resize(64, 64, recentWindows[w.window].Icon, resize.Bilinear)
-		draw.Draw(img, image.Rect(4, 4, 68, 68), icon, image.Point{0, 0}, draw.Src)
+		icon := resize.Resize(uint(size-8), uint(size-8), recentWindows[w.window].Icon, resize.Bilinear)
+		draw.Draw(img, image.Rect(4, 4, size-4, size-4), icon, image.Point{0, 0}, draw.Src)
 	}
 
 	err := dev.SetImage(w.key, img)

@@ -7,7 +7,6 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/golang/freetype"
 	colorful "github.com/lucasb-eyer/go-colorful"
 	"github.com/muesli/streamdeck"
 	"github.com/shirou/gopsutil/cpu"
@@ -36,11 +35,11 @@ func (w *TopWidget) Update(dev *streamdeck.Device) {
 		label = "CPU"
 
 	case "memory":
-		mem, err := mem.VirtualMemory()
+		memory, err := mem.VirtualMemory()
 		if err != nil {
 			log.Fatal(err)
 		}
-		value = mem.UsedPercent
+		value = memory.UsedPercent
 		label = "MEM"
 
 	default:
@@ -57,22 +56,47 @@ func (w *TopWidget) Update(dev *streamdeck.Device) {
 		panic("Invalid color: " + w.fillColor)
 	}
 
-	img := image.NewRGBA(image.Rect(0, 0, 72, 72))
+	size := int(dev.Pixels)
+	pt := (float64(size) / 3.0) * 66.0 / float64(dev.DPI)
+	ptSmall := (float64(size) / 3.0) * 40.0 / float64(dev.DPI)
+
+	img := image.NewRGBA(image.Rect(0, 0, size, size))
+
 	draw.Draw(img,
-		image.Rect(12, 6, 60, 54),
+		image.Rect(12, 6, size-12, size-18),
 		&image.Uniform{color.RGBA{255, 255, 255, 255}},
 		image.Point{}, draw.Src)
 	draw.Draw(img,
-		image.Rect(13, 7, 59, 53),
+		image.Rect(13, 7, size-14, size-20),
 		&image.Uniform{color.RGBA{0, 0, 0, 255}},
 		image.Point{}, draw.Src)
 	draw.Draw(img,
-		image.Rect(14, 7+int(46*(1-value/100)), 58, 53),
+		image.Rect(14, 7+int(float64(size-26)*(1-value/100)), size-15, size-21),
 		&image.Uniform{fill},
 		image.Point{}, draw.Src)
 
-	drawString(img, ttfFont, strconv.FormatInt(int64(value), 10), 12, freetype.Pt(-1, -1))
-	drawString(img, ttfFont, "% "+label, 7, freetype.Pt(-1, img.Bounds().Dx()-4))
+	// draw percentage
+	bounds := img.Bounds()
+	bounds.Min.Y = 6
+	bounds.Max.Y -= 18
+
+	drawString(img,
+		bounds,
+		ttfFont,
+		strconv.FormatInt(int64(value), 10),
+		pt,
+		image.Pt(-1, -1))
+
+	// draw description
+	bounds = img.Bounds()
+	bounds.Min.Y = size - 18
+
+	drawString(img,
+		bounds,
+		ttfFont,
+		"% "+label,
+		ptSmall,
+		image.Pt(-1, -1))
 
 	err = dev.SetImage(w.key, img)
 	if err != nil {
