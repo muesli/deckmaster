@@ -17,12 +17,18 @@
 [[keys]]
   index = 3
   [keys.widget]
-    id = "date"
+    id = "time"
+    [keys.widget.config]
+      format = "dd;mmm;yyyy"
+      font = "bold;regular;thin"
 
 [[keys]]
   index = 4
   [keys.widget]
-    id = "clock"
+    id = "time"
+    [keys.widget.config]
+      format = "HH;MM;SS"
+      font = "bold;regular;thin"
 
 [[keys]]
   index = 5

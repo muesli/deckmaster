@@ -64,14 +64,12 @@ func NewWidget(index uint8, id string, action *ActionConfig, actionHold *ActionC
 			label:      config["label"],
 		}
 
-	case "clock":
-		return &ClockWidget{
+	case "time":
+		return &TimeWidget{
 			BaseWidget: bw,
-			mode:       config["mode"],
+			format:     config["format"],
+			font:       config["font"],
 		}
-
-	case "date":
-		return &DateWidget{bw}
 
 	case "recentWindow":
 		i, err := strconv.ParseUint(config["window"], 10, 64)
