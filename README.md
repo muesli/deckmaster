@@ -14,6 +14,7 @@ An application to control your Elgato Stream Deck on Linux
 - Brightness control
 - Supports different actions for short & long presses
 - Comes with a collection of widgets:
+    - Buttons
     - Clock
     - Date
     - CPU/Mem usage
