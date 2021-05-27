@@ -65,7 +65,10 @@ func NewWidget(index uint8, id string, action *ActionConfig, actionHold *ActionC
 		}
 
 	case "clock":
-		return &ClockWidget{bw}
+		return &ClockWidget{
+			BaseWidget: bw,
+			mode:       config["mode"],
+		}
 
 	case "date":
 		return &DateWidget{bw}
