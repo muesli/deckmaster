@@ -53,6 +53,8 @@
       label = "Emoticons"
   [keys.action]
     deck = "decks/emoticons.deck"
+  [keys.action_hold]
+    deck = "decks/symbols.deck"
 
 [[keys]]
   index = 8
