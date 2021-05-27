@@ -56,10 +56,9 @@ func LoadConfig(filename string) (DeckConfig, error) {
 func (c DeckConfig) Save(filename string) error {
 	var b bytes.Buffer
 	e := toml.NewEncoder(&b)
-	err := e.Encode(c)
-	if err != nil {
+	if err := e.Encode(c); err != nil {
 		return err
 	}
 
-	return ioutil.WriteFile(filename, b.Bytes(), 0644)
+	return ioutil.WriteFile(filename, b.Bytes(), 0600)
 }
