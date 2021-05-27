@@ -52,9 +52,9 @@
       icon = "assets/emoticons/slightly-smiling-face.png"
       label = "Emoticons"
   [keys.action]
-    deck = "decks/emoticons.deck"
+    deck = "emoticons.deck"
   [keys.action_hold]
-    deck = "decks/symbols.deck"
+    deck = "symbols.deck"
 
 [[keys]]
   index = 8

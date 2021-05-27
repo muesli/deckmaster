@@ -70,7 +70,7 @@ func main() {
 	flag.Parse()
 
 	var err error
-	deck, err = LoadDeck(*deckFile)
+	deck, err = LoadDeck(".", *deckFile)
 	if err != nil {
 		log.Fatal(err)
 	}

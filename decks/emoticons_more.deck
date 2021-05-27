@@ -60,7 +60,7 @@
       icon = "assets/go-more.png"
       label = "More"
   [keys.action]
-    deck = "decks/emoticons_negative.deck"
+    deck = "emoticons_negative.deck"
 
 [[keys]]
   index = 14
@@ -70,4 +70,4 @@
       icon = "assets/go-previous.png"
       label = "Back"
   [keys.action]
-    deck = "decks/main.deck"
+    deck = "main.deck"

@@ -87,7 +87,7 @@
       icon = "assets/go-more.png"
       label = "More"
   [keys.action]
-    deck = "decks/symbols.deck"
+    deck = "symbols.deck"
 
 [[keys]]
   index = 14
@@ -97,4 +97,4 @@
       icon = "assets/go-previous.png"
       label = "Back"
   [keys.action]
-    deck = "decks/main.deck"
+    deck = "main.deck"

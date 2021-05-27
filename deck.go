@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -14,17 +14,29 @@ import (
 
 // Deck is a set of widgets.
 type Deck struct {
+	File    string
 	Widgets []Widget
 }
 
 // LoadDeck loads a deck configuration.
-func LoadDeck(deck string) (*Deck, error) {
-	d := Deck{}
-	dc, err := LoadConfig(deck)
+func LoadDeck(base string, deck string) (*Deck, error) {
+	if !filepath.IsAbs(deck) {
+		deck = filepath.Join(base, deck)
+	}
+	abs, err := filepath.Abs(deck)
+	if err != nil {
+		return nil, err
+	}
+	log.Println("Loading deck:", abs)
+
+	dc, err := LoadConfig(abs)
 	if err != nil {
 		return nil, err
 	}
 
+	d := Deck{
+		File: abs,
+	}
 	for _, k := range dc.Keys {
 		w := NewWidget(k.Index, k.Widget.ID, k.Action, k.ActionHold, k.Widget.Config)
 		d.Widgets = append(d.Widgets, w)
@@ -122,9 +134,9 @@ func (d *Deck) triggerAction(index uint8, hold bool) {
 			}
 
 			if a != nil {
-				fmt.Println("Executing overloaded action")
+				// log.Println("Executing overloaded action")
 				if a.Deck != "" {
-					d, err := LoadDeck(a.Deck)
+					d, err := LoadDeck(filepath.Dir(d.File), a.Deck)
 					if err != nil {
 						log.Fatal(err)
 					}
