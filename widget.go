@@ -4,23 +4,14 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
-	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
 
-	"github.com/flopp/go-findfont"
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
 	"github.com/muesli/streamdeck"
 	"github.com/nfnt/resize"
-	"golang.org/x/image/font"
-)
-
-var (
-	ttfFont     *truetype.Font
-	ttfThinFont *truetype.Font
-	ttfBoldFont *truetype.Font
 )
 
 type Widget interface {
@@ -164,38 +155,6 @@ func drawString(img *image.RGBA, bounds image.Rectangle, ttf *truetype.Font, tex
 
 	c.SetSrc(image.NewUniform(color.RGBA{255, 255, 255, 255}))
 	if _, err := c.DrawString(text, freetype.Pt(pt.X, pt.Y)); err != nil {
-		log.Fatal(err)
-	}
-}
-
-func loadFont(name string) (*truetype.Font, error) {
-	fontPath, err := findfont.Find(name)
-	if err != nil {
-		return nil, err
-	}
-
-	ttf, err := ioutil.ReadFile(fontPath)
-	if err != nil {
-		return nil, err
-	}
-
-	return freetype.ParseFont(ttf)
-}
-
-func init() {
-	var err error
-	ttfFont, err = loadFont("Roboto-Regular.ttf")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	ttfThinFont, err = loadFont("Roboto-Thin.ttf")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	ttfBoldFont, err = loadFont("Roboto-Bold.ttf")
-	if err != nil {
 		log.Fatal(err)
 	}
 }
