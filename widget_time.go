@@ -50,7 +50,7 @@ func (w *TimeWidget) Update(dev *streamdeck.Device) error {
 	formats := strings.Split(w.format, ";")
 	fonts := strings.Split(w.font, ";")
 
-	if len(formats) == 0 {
+	if len(formats) == 0 || len(w.format) == 0 {
 		return fmt.Errorf("no time format supplied")
 	}
 	for len(fonts) < len(formats) {
