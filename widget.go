@@ -16,7 +16,7 @@ import (
 
 type Widget interface {
 	Key() uint8
-	Update(dev *streamdeck.Device)
+	Update(dev *streamdeck.Device) error
 	Action() *ActionConfig
 	ActionHold() *ActionConfig
 	TriggerAction()

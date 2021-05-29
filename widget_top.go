@@ -21,7 +21,7 @@ type TopWidget struct {
 	lastValue float64
 }
 
-func (w *TopWidget) Update(dev *streamdeck.Device) {
+func (w *TopWidget) Update(dev *streamdeck.Device) error {
 	var value float64
 	var label string
 
@@ -48,7 +48,7 @@ func (w *TopWidget) Update(dev *streamdeck.Device) {
 	}
 
 	if w.lastValue == value {
-		return
+		return nil
 	}
 	w.lastValue = value
 
@@ -98,8 +98,5 @@ func (w *TopWidget) Update(dev *streamdeck.Device) {
 		-1,
 		image.Pt(-1, -1))
 
-	err = dev.SetImage(w.key, img)
-	if err != nil {
-		log.Fatal(err)
-	}
+	return dev.SetImage(w.key, img)
 }

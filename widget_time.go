@@ -1,8 +1,8 @@
 package main
 
 import (
+	"fmt"
 	"image"
-	"log"
 	"strings"
 	"time"
 
@@ -41,7 +41,7 @@ func formatTime(t time.Time, format string) string {
 	return t.Format(format)
 }
 
-func (w *TimeWidget) Update(dev *streamdeck.Device) {
+func (w *TimeWidget) Update(dev *streamdeck.Device) error {
 	size := int(dev.Pixels)
 	margin := size / 18
 	height := size - (margin * 2)
@@ -51,7 +51,7 @@ func (w *TimeWidget) Update(dev *streamdeck.Device) {
 	fonts := strings.Split(w.font, ";")
 
 	if len(formats) == 0 {
-		return
+		return fmt.Errorf("no time format supplied")
 	}
 	for len(fonts) < len(formats) {
 		fonts = append(fonts, "regular")
@@ -70,8 +70,5 @@ func (w *TimeWidget) Update(dev *streamdeck.Device) {
 			image.Pt(-1, -1))
 	}
 
-	err := dev.SetImage(w.key, img)
-	if err != nil {
-		log.Fatal(err)
-	}
+	return dev.SetImage(w.key, img)
 }

@@ -2,7 +2,6 @@ package main
 
 import (
 	"image"
-	"log"
 	"sync"
 
 	"github.com/muesli/streamdeck"
@@ -17,7 +16,9 @@ type ButtonWidget struct {
 	init sync.Once
 }
 
-func (w *ButtonWidget) Update(dev *streamdeck.Device) {
+func (w *ButtonWidget) Update(dev *streamdeck.Device) error {
+	var err error
+
 	w.init.Do(func() {
 		size := int(dev.Pixels)
 		margin := size / 18
@@ -42,9 +43,8 @@ func (w *ButtonWidget) Update(dev *streamdeck.Device) {
 			_ = drawImage(img, w.icon, height, image.Pt(-1, -1))
 		}
 
-		err := dev.SetImage(w.key, img)
-		if err != nil {
-			log.Fatal(err)
-		}
+		err = dev.SetImage(w.key, img)
 	})
+
+	return err
 }

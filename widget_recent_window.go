@@ -16,13 +16,13 @@ type RecentWindowWidget struct {
 	lastClass string
 }
 
-func (w *RecentWindowWidget) Update(dev *streamdeck.Device) {
+func (w *RecentWindowWidget) Update(dev *streamdeck.Device) error {
 	img := image.NewRGBA(image.Rect(0, 0, int(dev.Pixels), int(dev.Pixels)))
 
 	size := int(dev.Pixels)
 	if int(w.window) < len(recentWindows) {
 		if w.lastClass == recentWindows[w.window].Class {
-			return
+			return nil
 		}
 		w.lastClass = recentWindows[w.window].Class
 
@@ -30,10 +30,7 @@ func (w *RecentWindowWidget) Update(dev *streamdeck.Device) {
 		draw.Draw(img, image.Rect(4, 4, size-4, size-4), icon, image.Point{0, 0}, draw.Src)
 	}
 
-	err := dev.SetImage(w.key, img)
-	if err != nil {
-		log.Fatal(err)
-	}
+	return dev.SetImage(w.key, img)
 }
 
 func (w *RecentWindowWidget) TriggerAction() {

@@ -170,6 +170,8 @@ func (d *Deck) triggerAction(index uint8, hold bool) {
 // updateWidgets updates/repaints all the widgets.
 func (d *Deck) updateWidgets() {
 	for _, w := range d.Widgets {
-		w.Update(&dev)
+		if err := w.Update(&dev); err != nil {
+			log.Fatalf("error: %v", err)
+		}
 	}
 }
