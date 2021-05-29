@@ -19,15 +19,15 @@
   [keys.widget]
     id = "time"
     [keys.widget.config]
-      format = "dd;mmm;yyyy"
-      font = "bold;regular;thin"
+      format = "%l;%d;%M"
+      font = "regular;bold;regular"
 
 [[keys]]
   index = 4
   [keys.widget]
     id = "time"
     [keys.widget.config]
-      format = "HH;MM;SS"
+      format = "%H;%i;%s"
       font = "bold;regular;thin"
 
 [[keys]]

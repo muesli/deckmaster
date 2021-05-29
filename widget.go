@@ -58,15 +58,15 @@ func NewWidget(index uint8, id string, action *ActionConfig, actionHold *ActionC
 	case "clock":
 		return &TimeWidget{
 			BaseWidget: bw,
-			format:     "HH;MM;SS",
+			format:     "%H;%i;%s",
 			font:       "bold;regular;thin",
 		}
 
 	case "date":
 		return &TimeWidget{
 			BaseWidget: bw,
-			format:     "dd;mmm;yyyy",
-			font:       "bold;regular;thin",
+			format:     "%l;%d;%M",
+			font:       "regular;bold;regular",
 		}
 
 	case "time":
