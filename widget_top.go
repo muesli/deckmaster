@@ -24,6 +24,7 @@ type TopWidget struct {
 func (w *TopWidget) Update(dev *streamdeck.Device) {
 	var value float64
 	var label string
+
 	switch w.mode {
 	case "cpu":
 		cpuUsage, err := cpu.Percent(0, false)
@@ -57,9 +58,7 @@ func (w *TopWidget) Update(dev *streamdeck.Device) {
 	}
 
 	size := int(dev.Pixels)
-	pt := (float64(size) / 3.0) * 66.0 / float64(dev.DPI)
-	ptSmall := (float64(size) / 3.0) * 40.0 / float64(dev.DPI)
-
+	margin := size / 18
 	img := image.NewRGBA(image.Rect(0, 0, size, size))
 
 	draw.Draw(img,
@@ -84,18 +83,19 @@ func (w *TopWidget) Update(dev *streamdeck.Device) {
 		bounds,
 		ttfFont,
 		strconv.FormatInt(int64(value), 10),
-		pt,
+		13,
 		image.Pt(-1, -1))
 
 	// draw description
 	bounds = img.Bounds()
-	bounds.Min.Y = size - 18
+	bounds.Min.Y = size - 16
+	bounds.Max.Y -= margin
 
 	drawString(img,
 		bounds,
 		ttfFont,
 		"% "+label,
-		ptSmall,
+		-1,
 		image.Pt(-1, -1))
 
 	err = dev.SetImage(w.key, img)
