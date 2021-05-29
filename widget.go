@@ -129,27 +129,25 @@ func drawImage(img *image.RGBA, path string, size int, pt image.Point) error {
 }
 
 func drawString(img *image.RGBA, bounds image.Rectangle, ttf *truetype.Font, text string, fontsize float64, pt image.Point) {
-	c := freetype.NewContext()
-	c.SetDPI(float64(dev.DPI))
-	c.SetFont(ttf)
-	c.SetSrc(image.NewUniform(color.RGBA{0, 0, 0, 0}))
-	c.SetDst(img)
-	c.SetClip(img.Bounds())
-	c.SetHinting(font.HintingFull)
-	c.SetFontSize(fontsize)
+	c := ftContext(img, ttf, fontsize)
 
-	// find text entent
-	c.SetSrc(image.NewUniform(color.RGBA{0, 0, 0, 0}))
+	if fontsize <= 0 {
+		// pick biggest available height to fit the string
+		fontsize, _ = maxPointSize(text, ftContext(img, ttf, fontsize), bounds.Dx(), bounds.Dy())
+		c.SetFontSize(fontsize)
+	}
 
 	if pt.X < 0 {
-		extent, _ := c.DrawString(text, freetype.Pt(0, 0))
-		actwidth := int(float64(extent.X) / 64.0)
+		// center horizontally
+		extent, _ := ftContext(img, ttf, fontsize).DrawString(text, freetype.Pt(0, 0))
+		actwidth := extent.X.Floor()
 		xcenter := float64(bounds.Dx())/2.0 - (float64(actwidth) / 2.0)
-		pt = image.Pt(int(xcenter), pt.Y)
+		pt = image.Pt(bounds.Min.X+int(xcenter), pt.Y)
 	}
 	if pt.Y < 0 {
-		actheight := int(fontsize * 72.0 / float64(dev.DPI))
-		ycenter := float64(bounds.Dy()/2.0) + float64(actheight)
+		// center vertically
+		actheight := float64(c.PointToFixed(fontsize).Round())
+		ycenter := float64(bounds.Dy()/2.0) + (float64(actheight) / 2.6)
 		pt = image.Pt(pt.X, bounds.Min.Y+int(ycenter))
 	}
 
