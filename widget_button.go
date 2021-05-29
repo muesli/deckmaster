@@ -10,32 +10,36 @@ import (
 
 type ButtonWidget struct {
 	BaseWidget
-	icon  string
-	label string
+	icon     string
+	label    string
+	fontsize float64
 
 	init sync.Once
 }
 
 func (w *ButtonWidget) Update(dev *streamdeck.Device) {
 	w.init.Do(func() {
-		const margin = 4
+		size := int(dev.Pixels)
+		margin := size / 18
+		height := size - (margin * 2)
+		img := image.NewRGBA(image.Rect(0, 0, size, size))
 
-		img := image.NewRGBA(image.Rect(0, 0, int(dev.Pixels), int(dev.Pixels)))
 		if w.label != "" {
-			size := int((float64(dev.Pixels-margin*2) / 3.0) * 2.0)
-			_ = drawImage(img, w.icon, size, image.Pt(-1, margin))
+			iconsize := int((float64(height) / 3.0) * 2.0)
+			_ = drawImage(img, w.icon, iconsize, image.Pt(-1, margin))
 
-			pt := (float64(dev.Pixels) / 3.0) * 42.0 / float64(dev.DPI)
 			bounds := img.Bounds()
-			bounds.Min.Y += size + margin/2
+			bounds.Min.Y += iconsize + margin
+			bounds.Max.Y -= margin
+
 			drawString(img,
 				bounds,
 				ttfFont,
 				w.label,
-				pt,
+				w.fontsize,
 				image.Pt(-1, -1))
 		} else {
-			_ = drawImage(img, w.icon, 64, image.Pt(-1, -1))
+			_ = drawImage(img, w.icon, height, image.Pt(-1, -1))
 		}
 
 		err := dev.SetImage(w.key, img)
