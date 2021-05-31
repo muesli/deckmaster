@@ -18,14 +18,11 @@ var (
 	ttfBoldFont *truetype.Font
 )
 
-// maxPointSize returns the maximum point size we can use to fit text inside width and height
-// as well as the resulting text-width in pixels.
+// maxPointSize returns the maximum point size we can use to fit text inside
+// width and height, as well as the resulting text-width in pixels.
 func maxPointSize(text string, c *freetype.Context, width, height int) (float64, int) {
 	// never let the font size exceed the requested height
-	fontsize := 72.0
-	for c.PointToFixed(fontsize).Round() > height {
-		fontsize -= 1
-	}
+	fontsize := float64(height<<6) / float64(dev.DPI) / (64.0 / 72.0)
 
 	// offset initial loop iteration
 	fontsize += 1
