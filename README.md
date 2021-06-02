@@ -11,6 +11,7 @@ An application to control your Elgato Stream Deck on Linux
 
 - Multiple pages & navigation between decks
 - Buttons (icons & text)
+- Background images
 - Brightness control
 - Supports different actions for short & long presses
 - Comes with a collection of widgets:
@@ -105,6 +106,65 @@ systemctl --user start streamdeck.path
 
 You can find a few example configurations in the [decks](https://github.com/muesli/deckmaster/tree/master/decks)
 directory. Edit them to your needs!
+
+### Widgets
+
+#### Button
+
+A simple button that can display an image and/or a label.
+
+```
+[keys.widget]
+  id = "button"
+  [keys.widget.config]
+    icon = "/some/image.png"
+    label = "My Button"
+```
+
+#### Recent Window (requires X11)
+
+Displays the icon of a recently used window/application. Pressing the button
+activates the window.
+
+```
+[keys.widget]
+  id = "recentWindow"
+  [keys.widget.config]
+    window = "1"
+```
+
+#### Time
+
+A flexible widget that can display the current time or date.
+
+```
+[keys.widget]
+  id = "time"
+  [keys.widget.config]
+    format = "%H;%i;%s"
+    font = "bold;regular;thin"
+```
+
+#### Top
+
+This widget shows the current CPU or memory utilization as a bar graph.
+
+```
+[keys.widget]
+  id = "top"
+  [keys.widget.config]
+    mode = "cpu"
+    fillColor = "#d497de"
+```
+
+### Background Image
+
+You can configure each deck to display an individual wallpaper behind its
+widgets:
+
+```
+background = "/some/image.png"
+```
 
 ## Usage
 
