@@ -25,11 +25,11 @@ func maxPointSize(text string, c *freetype.Context, width, height int) (float64,
 	fontsize := float64(height<<6) / float64(dev.DPI) / (64.0 / 72.0)
 
 	// offset initial loop iteration
-	fontsize += 1
+	fontsize++
 
 	// find the biggest matching font size for the requested width
 	var actwidth int
-	for actwidth = width + 1; actwidth > width; fontsize -= 1 {
+	for actwidth = width + 1; actwidth > width; fontsize-- {
 		c.SetFontSize(fontsize)
 
 		textExtent, err := c.DrawString(text, freetype.Pt(0, 0))

@@ -192,7 +192,7 @@ func drawString(img *image.RGBA, bounds image.Rectangle, ttf *truetype.Font, tex
 	}
 	if pt.Y < 0 {
 		// center vertically
-		actheight := float64(c.PointToFixed(fontsize).Round())
+		actheight := c.PointToFixed(fontsize).Round()
 		ycenter := float64(bounds.Dy()/2.0) + (float64(actheight) / 2.6)
 		pt = image.Pt(pt.X, bounds.Min.Y+int(ycenter))
 	}
