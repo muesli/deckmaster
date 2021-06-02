@@ -145,6 +145,25 @@ A flexible widget that can display the current time or date.
     font = "bold;regular;thin"
 ```
 
+Values for `format` are:
+
+| %   | gets replaced with                                                 |
+| --- | ------------------------------------------------------------------ |
+| %Y  | A full numeric representation of a year, 4 digits                  |
+| %y  | A two digit representation of a year                               |
+| %F  | A full textual representation of a month, such as January or March |
+| %M  | A short textual representation of a month, three letters           |
+| %m  | Numeric representation of a month, with leading zeros              |
+| %l  | A full textual representation of the day of the week               |
+| %D  | A textual representation of a day, three letters                   |
+| %d  | Day of the month, 2 digits with leading zeros                      |
+| %h  | 12-hour format of an hour with leading zeros                       |
+| %H  | 24-hour format of an hour with leading zeros                       |
+| %i  | Minutes with leading zeros                                         |
+| %s  | Seconds with leading zeros                                         |
+| %a  | Lowercase Ante meridiem and Post meridiem                          |
+| %t  | Timezone abbreviation                                              |
+
 #### Top
 
 This widget shows the current CPU or memory utilization as a bar graph.
@@ -157,6 +176,8 @@ This widget shows the current CPU or memory utilization as a bar graph.
     fillColor = "#d497de"
 ```
 
+There are two values for `mode`: `cpu` and `memory`.
+
 ### Background Image
 
 You can configure each deck to display an individual wallpaper behind its
@@ -164,6 +185,42 @@ widgets:
 
 ```
 background = "/some/image.png"
+```
+
+### Actions
+
+You can hook up any key with one of several actions:
+
+#### Run a command
+
+```
+[keys.action]
+  exec = "some_command --with-parameters"
+```
+
+#### Emulate a key-press
+
+```
+[keys.action]
+  keycode = "114"
+```
+
+#### Paste to clipboard
+
+```
+[keys.action]
+  paste = "a text"
+```
+
+#### Trigger a dbus call
+
+```
+[keys.action]
+  [dbus]
+    object = "object"
+    path = "path"
+    method = "method"
+    value = "value"
 ```
 
 ## Usage
