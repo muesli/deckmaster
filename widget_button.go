@@ -27,11 +27,14 @@ func (w *ButtonWidget) Update(dev *streamdeck.Device) error {
 
 		if w.label != "" {
 			iconsize := int((float64(height) / 3.0) * 2.0)
-			err = drawImage(img, w.icon, iconsize, image.Pt(-1, margin))
-
 			bounds := img.Bounds()
-			bounds.Min.Y += iconsize + margin
-			bounds.Max.Y -= margin
+
+			if w.icon != "" {
+				err = drawImage(img, w.icon, iconsize, image.Pt(-1, margin))
+
+				bounds.Min.Y += iconsize + margin
+				bounds.Max.Y -= margin
+			}
 
 			drawString(img,
 				bounds,
@@ -39,7 +42,7 @@ func (w *ButtonWidget) Update(dev *streamdeck.Device) error {
 				w.label,
 				w.fontsize,
 				image.Pt(-1, -1))
-		} else {
+		} else if w.icon != "" {
 			err = drawImage(img, w.icon, height, image.Pt(-1, -1))
 		}
 
