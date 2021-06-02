@@ -15,6 +15,7 @@ type DBusConfig struct {
 	Value  string `toml:"value,omitempty"`
 }
 
+// ActionConfig describes an action that can be triggered.
 type ActionConfig struct {
 	Deck    string     `toml:"deck,omitempty"`
 	Keycode string     `toml:"keycode,omitempty"`
@@ -23,11 +24,13 @@ type ActionConfig struct {
 	DBus    DBusConfig `toml:"dbus,omitempty"`
 }
 
+// WidgetConfig describes configuration data for widgets.
 type WidgetConfig struct {
 	ID     string            `toml:"id,omitempty"`
 	Config map[string]string `toml:"config,omitempty"`
 }
 
+// KeyConfig holds the entire configuration for a single key.
 type KeyConfig struct {
 	Index      uint8         `toml:"index"`
 	Widget     WidgetConfig  `toml:"widget"`
@@ -35,8 +38,10 @@ type KeyConfig struct {
 	ActionHold *ActionConfig `toml:"action_hold,omitempty"`
 }
 
+// Keys is a slice of keys.
 type Keys []KeyConfig
 
+// DeckConfig is the central configuration struct.
 type DeckConfig struct {
 	Background string `toml:"background,omitempty"`
 	Keys       Keys   `toml:"keys"`

@@ -13,6 +13,7 @@ import (
 	"github.com/shirou/gopsutil/mem"
 )
 
+// TopWidget is a widget displaying the current CPU/MEM usage as a bar.
 type TopWidget struct {
 	BaseWidget
 	mode      string

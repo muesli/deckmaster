@@ -15,6 +15,7 @@ import (
 	"github.com/nfnt/resize"
 )
 
+// Widget is an interface implemented by all available widgets.
 type Widget interface {
 	Key() uint8
 	Update(dev *streamdeck.Device) error
@@ -23,6 +24,7 @@ type Widget interface {
 	TriggerAction()
 }
 
+// BaseWidget provides common functionality required by all widgets.
 type BaseWidget struct {
 	key        uint8
 	action     *ActionConfig
@@ -31,6 +33,7 @@ type BaseWidget struct {
 	init       *sync.Once
 }
 
+// Key returns the key a widget is mapped to.
 func (w *BaseWidget) Key() uint8 {
 	return w.key
 }
@@ -40,10 +43,12 @@ func (w *BaseWidget) Action() *ActionConfig {
 	return w.action
 }
 
+// ActionHold returns the associated ActionConfig for long presses.
 func (w *BaseWidget) ActionHold() *ActionConfig {
 	return w.actionHold
 }
 
+// TriggerAction gets called when a button is pressed.
 func (w *BaseWidget) TriggerAction() {
 	// just a stub
 }

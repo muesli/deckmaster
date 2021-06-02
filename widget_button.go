@@ -7,6 +7,7 @@ import (
 	"github.com/muesli/streamdeck"
 )
 
+// ButtonWidget is a simple widget displaying an icon and/or label.
 type ButtonWidget struct {
 	BaseWidget
 	icon     string

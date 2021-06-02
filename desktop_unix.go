@@ -17,6 +17,7 @@ import (
 	"github.com/jezek/xgbutil/xgraphics"
 )
 
+// Xorg provides an interface to an X11 session.
 type Xorg struct {
 	conn         *xgb.Conn
 	util         *xgbutil.XUtil
@@ -28,14 +29,17 @@ type Xorg struct {
 	activeWindow Window
 }
 
+// ActiveWindowChangedEvent gets emitted when the active window changes.
 type ActiveWindowChangedEvent struct {
 	Window Window
 }
 
+// WindowClosedEvent gets emitted when a window gets closed.
 type WindowClosedEvent struct {
 	Window Window
 }
 
+// Window describes an X11 window.
 type Window struct {
 	ID    uint32
 	Class string
@@ -48,6 +52,7 @@ var (
 	ErrNoClass = errors.New("empty class")
 )
 
+// Connect establishes a connection with an Xorg display.
 func Connect(display string) (*Xorg, error) {
 	var x Xorg
 	var err error
@@ -79,11 +84,13 @@ func Connect(display string) (*Xorg, error) {
 	return &x, nil
 }
 
+// Close terminates the connection.
 func (x Xorg) Close() {
 	x.util.Conn().Close()
 	x.conn.Close()
 }
 
+// TrackWindows monitors the active window.
 func (x *Xorg) TrackWindows(ch chan interface{}, timeout time.Duration) {
 	if win, ok := x.window(); ok {
 		x.activeWindow = win
@@ -146,6 +153,7 @@ func (x Xorg) ActiveWindow() Window {
 	return x.activeWindow
 }
 
+// RequestActivation requests a window to be focused.
 func (x Xorg) RequestActivation(w Window) error {
 	return ewmh.ActiveWindowReq(x.util, xproto.Window(w.ID))
 }

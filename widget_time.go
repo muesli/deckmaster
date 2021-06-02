@@ -9,6 +9,7 @@ import (
 	"github.com/muesli/streamdeck"
 )
 
+// TimeWidget is a widget displaying the current time/date.
 type TimeWidget struct {
 	BaseWidget
 

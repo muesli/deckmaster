@@ -9,6 +9,7 @@ import (
 	"github.com/nfnt/resize"
 )
 
+// RecentWindowWidget is a widget displaying a recently activated window.
 type RecentWindowWidget struct {
 	BaseWidget
 	window uint8
@@ -34,6 +35,7 @@ func (w *RecentWindowWidget) Update(dev *streamdeck.Device) error {
 	return w.render(dev, img)
 }
 
+// TriggerAction gets called when a button is pressed.
 func (w *RecentWindowWidget) TriggerAction() {
 	if xorg == nil {
 		log.Println("xorg support is disabled!")
