@@ -16,6 +16,7 @@ type RecentWindowWidget struct {
 	lastClass string
 }
 
+// Update renders the widget.
 func (w *RecentWindowWidget) Update(dev *streamdeck.Device) error {
 	img := image.NewRGBA(image.Rect(0, 0, int(dev.Pixels), int(dev.Pixels)))
 
@@ -30,7 +31,7 @@ func (w *RecentWindowWidget) Update(dev *streamdeck.Device) error {
 		draw.Draw(img, image.Rect(4, 4, size-4, size-4), icon, image.Point{0, 0}, draw.Src)
 	}
 
-	return dev.SetImage(w.key, img)
+	return w.render(dev, img)
 }
 
 func (w *RecentWindowWidget) TriggerAction() {

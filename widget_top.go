@@ -21,6 +21,7 @@ type TopWidget struct {
 	lastValue float64
 }
 
+// Update renders the widget.
 func (w *TopWidget) Update(dev *streamdeck.Device) error {
 	var value float64
 	var label string
@@ -98,5 +99,5 @@ func (w *TopWidget) Update(dev *streamdeck.Device) error {
 		-1,
 		image.Pt(-1, -1))
 
-	return dev.SetImage(w.key, img)
+	return w.render(dev, img)
 }

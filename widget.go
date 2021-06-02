@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"sync"
 
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
@@ -26,12 +27,15 @@ type BaseWidget struct {
 	key        uint8
 	action     *ActionConfig
 	actionHold *ActionConfig
+	background image.Image
+	init       *sync.Once
 }
 
 func (w *BaseWidget) Key() uint8 {
 	return w.key
 }
 
+// Action returns the associated ActionConfig.
 func (w *BaseWidget) Action() *ActionConfig {
 	return w.action
 }
@@ -44,34 +48,56 @@ func (w *BaseWidget) TriggerAction() {
 	// just a stub
 }
 
-func NewWidget(index uint8, id string, action *ActionConfig, actionHold *ActionConfig, config map[string]string) Widget {
-	bw := BaseWidget{index, action, actionHold}
+// Update renders the widget.
+func (w *BaseWidget) Update(dev *streamdeck.Device) error {
+	var err error
+	w.init.Do(func() {
+		err = w.render(dev, nil)
+	})
+
+	return err
+}
+
+// NewBaseWidget returns a new BaseWidget.
+func NewBaseWidget(index uint8, action *ActionConfig, actionHold *ActionConfig, bg image.Image) *BaseWidget {
+	return &BaseWidget{
+		key:        index,
+		action:     action,
+		actionHold: actionHold,
+		background: bg,
+		init:       &sync.Once{},
+	}
+}
+
+// NewWidget initializes a widget.
+func NewWidget(index uint8, id string, action *ActionConfig, actionHold *ActionConfig, bg image.Image, config map[string]string) Widget {
+	bw := NewBaseWidget(index, action, actionHold, bg)
 
 	switch id {
 	case "button":
 		return &ButtonWidget{
-			BaseWidget: bw,
+			BaseWidget: *bw,
 			icon:       config["icon"],
 			label:      config["label"],
 		}
 
 	case "clock":
 		return &TimeWidget{
-			BaseWidget: bw,
+			BaseWidget: *bw,
 			format:     "%H;%i;%s",
 			font:       "bold;regular;thin",
 		}
 
 	case "date":
 		return &TimeWidget{
-			BaseWidget: bw,
+			BaseWidget: *bw,
 			format:     "%l;%d;%M",
 			font:       "regular;bold;regular",
 		}
 
 	case "time":
 		return &TimeWidget{
-			BaseWidget: bw,
+			BaseWidget: *bw,
 			format:     config["format"],
 			font:       config["font"],
 		}
@@ -82,13 +108,13 @@ func NewWidget(index uint8, id string, action *ActionConfig, actionHold *ActionC
 			log.Fatal(err)
 		}
 		return &RecentWindowWidget{
-			BaseWidget: bw,
+			BaseWidget: *bw,
 			window:     uint8(i),
 		}
 
 	case "top":
 		return &TopWidget{
-			BaseWidget: bw,
+			BaseWidget: *bw,
 			mode:       config["mode"],
 			fillColor:  config["fillColor"],
 		}
@@ -99,6 +125,21 @@ func NewWidget(index uint8, id string, action *ActionConfig, actionHold *ActionC
 	}
 
 	return nil
+}
+
+// renders the widget including its background image.
+func (w *BaseWidget) render(dev *streamdeck.Device, fg image.Image) error {
+	pixels := int(dev.Pixels)
+
+	img := image.NewRGBA(image.Rect(0, 0, pixels, pixels))
+	if w.background != nil {
+		draw.Draw(img, img.Bounds(), w.background, image.Point{}, draw.Over)
+	}
+	if fg != nil {
+		draw.Draw(img, img.Bounds(), fg, image.Point{}, draw.Over)
+	}
+
+	return dev.SetImage(w.key, img)
 }
 
 func drawImage(img *image.RGBA, path string, size int, pt image.Point) error {

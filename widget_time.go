@@ -41,6 +41,7 @@ func formatTime(t time.Time, format string) string {
 	return t.Format(format)
 }
 
+// Update renders the widget.
 func (w *TimeWidget) Update(dev *streamdeck.Device) error {
 	size := int(dev.Pixels)
 	margin := size / 18
@@ -70,5 +71,5 @@ func (w *TimeWidget) Update(dev *streamdeck.Device) error {
 			image.Pt(-1, -1))
 	}
 
-	return dev.SetImage(w.key, img)
+	return w.render(dev, img)
 }

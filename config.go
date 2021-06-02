@@ -7,6 +7,7 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
+// DBusConfig describes a dbus action.
 type DBusConfig struct {
 	Object string `toml:"object,omitempty"`
 	Path   string `toml:"path,omitempty"`
@@ -33,10 +34,12 @@ type KeyConfig struct {
 	Action     *ActionConfig `toml:"action,omitempty"`
 	ActionHold *ActionConfig `toml:"action_hold,omitempty"`
 }
+
 type Keys []KeyConfig
 
 type DeckConfig struct {
-	Keys Keys `toml:"keys"`
+	Background string `toml:"background,omitempty"`
+	Keys       Keys   `toml:"keys"`
 }
 
 // LoadConfig loads config from filename.
