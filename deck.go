@@ -19,12 +19,13 @@ import (
 
 // Deck is a set of widgets.
 type Deck struct {
-	File    string
-	Widgets []Widget
+	File       string
+	Background image.Image
+	Widgets    []Widget
 }
 
 // LoadDeck loads a deck configuration.
-func LoadDeck(base string, deck string, dev *streamdeck.Device) (*Deck, error) {
+func LoadDeck(dev *streamdeck.Device, base string, deck string) (*Deck, error) {
 	if !filepath.IsAbs(deck) {
 		deck = filepath.Join(base, deck)
 	}
@@ -42,28 +43,9 @@ func LoadDeck(base string, deck string, dev *streamdeck.Device) (*Deck, error) {
 	d := Deck{
 		File: abs,
 	}
-
-	padding := int(dev.Padding)
-	pixels := int(dev.Pixels)
-	rows := int(dev.Rows)
-	cols := int(dev.Columns)
-	var background image.Image
-	if dc.Background.Image != "" {
-		f, err := os.Open(dc.Background.Image)
-		if err != nil {
+	if dc.Background != "" {
+		if err := d.loadBackground(dc.Background); err != nil {
 			return nil, err
-		}
-		defer f.Close()
-
-		background, _, err = image.Decode(f)
-		if err != nil {
-			return nil, err
-		}
-		width := cols*pixels + (cols-1)*padding
-		height := rows*pixels + (rows-1)*padding
-		if background.Bounds().Dx() != width ||
-			background.Bounds().Dy() != height {
-			return nil, fmt.Errorf("supplied background image has wrong dimensions, expected %dx%d pixels", width, height)
 		}
 	}
 
@@ -72,25 +54,64 @@ func LoadDeck(base string, deck string, dev *streamdeck.Device) (*Deck, error) {
 		keyMap[k.Index] = k
 	}
 
-	for i := 0; i < cols*rows; i++ {
-		buttonBg := image.NewRGBA(image.Rect(0, 0, pixels, pixels))
-
-		if background != nil {
-			startx := (i % cols) * (pixels + padding)
-			starty := (i / cols) * (pixels + padding)
-			draw.Draw(buttonBg, buttonBg.Bounds(), background, image.Point{startx, starty}, draw.Src)
-		}
+	for i := uint8(0); i < dev.Columns*dev.Rows; i++ {
+		bg := d.backgroundForKey(i)
 
 		var w Widget
-		if k, found := keyMap[uint8(i)]; found {
-			w = NewWidget(k.Index, k.Widget.ID, k.Action, k.ActionHold, buttonBg, k.Widget.Config)
+		if k, found := keyMap[i]; found {
+			w = NewWidget(k.Index, k.Widget.ID, k.Action, k.ActionHold, bg, k.Widget.Config)
 		} else {
-			w = NewWidget(uint8(i), "empty", nil, nil, buttonBg, nil)
+			w = NewBaseWidget(i, nil, nil, bg)
 		}
+
 		d.Widgets = append(d.Widgets, w)
 	}
 
 	return &d, nil
+}
+
+// loads a background image.
+func (d *Deck) loadBackground(bg string) error {
+	f, err := os.Open(bg)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	background, _, err := image.Decode(f)
+	if err != nil {
+		return err
+	}
+
+	rows := int(dev.Rows)
+	cols := int(dev.Columns)
+	padding := int(dev.Padding)
+	pixels := int(dev.Pixels)
+
+	width := cols*pixels + (cols-1)*padding
+	height := rows*pixels + (rows-1)*padding
+	if background.Bounds().Dx() != width ||
+		background.Bounds().Dy() != height {
+		return fmt.Errorf("supplied background image has wrong dimensions, expected %dx%d pixels", width, height)
+	}
+
+	d.Background = background
+	return nil
+}
+
+// returns the background image for an individual key.
+func (d Deck) backgroundForKey(key uint8) image.Image {
+	padding := int(dev.Padding)
+	pixels := int(dev.Pixels)
+	bg := image.NewRGBA(image.Rect(0, 0, pixels, pixels))
+
+	if d.Background != nil {
+		startx := int(key%dev.Columns) * (pixels + padding)
+		starty := int(key/dev.Columns) * (pixels + padding)
+		draw.Draw(bg, bg.Bounds(), d.Background, image.Point{startx, starty}, draw.Src)
+	}
+
+	return bg
 }
 
 // handles keypress with delay.
@@ -184,7 +205,7 @@ func (d *Deck) triggerAction(index uint8, hold bool) {
 			if a != nil {
 				// log.Println("Executing overloaded action")
 				if a.Deck != "" {
-					d, err := LoadDeck(filepath.Dir(d.File), a.Deck, &dev)
+					d, err := LoadDeck(&dev, filepath.Dir(d.File), a.Deck)
 					if err != nil {
 						log.Fatal(err)
 					}
@@ -218,9 +239,6 @@ func (d *Deck) triggerAction(index uint8, hold bool) {
 // updateWidgets updates/repaints all the widgets.
 func (d *Deck) updateWidgets() {
 	for _, w := range d.Widgets {
-		if err := w.UpdateImage(&dev); err != nil {
-			log.Fatalf("error: %v", err)
-		}
 		if err := w.Update(&dev); err != nil {
 			log.Fatalf("error: %v", err)
 		}

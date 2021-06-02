@@ -7,10 +7,7 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
-type Background struct {
-	Image string `toml:"image"`
-}
-
+// DBusConfig describes a dbus action.
 type DBusConfig struct {
 	Object string `toml:"object,omitempty"`
 	Path   string `toml:"path,omitempty"`
@@ -41,8 +38,8 @@ type KeyConfig struct {
 type Keys []KeyConfig
 
 type DeckConfig struct {
-	Background Background `toml:"background,omitempty"`
-	Keys       Keys       `toml:"keys"`
+	Background string `toml:"background,omitempty"`
+	Keys       Keys   `toml:"keys"`
 }
 
 // LoadConfig loads config from filename.

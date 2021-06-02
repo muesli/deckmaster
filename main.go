@@ -103,7 +103,7 @@ func main() {
 	log.Printf("Found device with serial %s (firmware %s)\n",
 		dev.Serial, ver)
 
-	deck, err = LoadDeck(".", *deckFile, &dev)
+	deck, err = LoadDeck(&dev, ".", *deckFile)
 	if err != nil {
 		log.Fatal(err)
 	}
