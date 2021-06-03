@@ -126,7 +126,7 @@ func main() {
 		log.Printf("Could not create virtual input device (/dev/uinput): %s", err)
 		log.Println("Emulating keyboard events will be disabled!")
 	} else {
-		defer keyboard.Close()
+		defer keyboard.Close() //nolint:errcheck
 	}
 
 	var keyStates sync.Map

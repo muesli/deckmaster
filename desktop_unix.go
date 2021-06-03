@@ -47,11 +47,6 @@ type Window struct {
 	Icon  image.Image
 }
 
-var (
-	ErrNoValue = errors.New("empty value")
-	ErrNoClass = errors.New("empty class")
-)
-
 // Connect establishes a connection with an Xorg display.
 func Connect(display string) (*Xorg, error) {
 	var x Xorg
@@ -189,7 +184,7 @@ func (x Xorg) name(w xproto.Window) (string, error) {
 			return "", err
 		}
 		if string(name.Value) == "" {
-			return "", ErrNoValue
+			return "", errors.New("empty value")
 		}
 	}
 	return string(name.Value), nil
@@ -215,7 +210,7 @@ func (x Xorg) class(w xproto.Window) (string, error) {
 	if l := len(s); l > 0 && len(s[l-1]) != 0 {
 		return string(s[l-1]), nil
 	}
-	return "", ErrNoClass
+	return "", errors.New("empty class")
 }
 
 func (x Xorg) window() (Window, bool) {

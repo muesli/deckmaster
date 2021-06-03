@@ -152,7 +152,7 @@ func drawImage(img *image.RGBA, path string, size int, pt image.Point) error {
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer f.Close() //nolint:errcheck
 
 	icon, _, err := image.Decode(f)
 	if err != nil {
@@ -169,7 +169,8 @@ func drawImage(img *image.RGBA, path string, size int, pt image.Point) error {
 	}
 
 	icon = resize.Resize(uint(size), uint(size), icon, resize.Bilinear)
-	draw.Draw(img, image.Rect(pt.X, pt.Y, pt.X+size, pt.Y+size), icon, image.Point{0, 0}, draw.Src)
+	rect := image.Rect(pt.X, pt.Y, pt.X+size, pt.Y+size)
+	draw.Draw(img, rect, icon, image.Point{0, 0}, draw.Src)
 
 	return nil
 }

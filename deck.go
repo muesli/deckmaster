@@ -77,7 +77,7 @@ func (d *Deck) loadBackground(dev *streamdeck.Device, bg string) error {
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer f.Close() //nolint:errcheck
 
 	background, _, err := image.Decode(f)
 	if err != nil {
@@ -152,10 +152,10 @@ func emulateKeyPress(keys string) {
 		}
 
 		if i+1 < len(kk) {
-			keyboard.KeyDown(kc)
-			defer keyboard.KeyUp(kc)
+			_ = keyboard.KeyDown(kc)
+			defer keyboard.KeyUp(kc) //nolint:errcheck
 		} else {
-			keyboard.KeyPress(kc)
+			_ = keyboard.KeyPress(kc)
 		}
 	}
 }

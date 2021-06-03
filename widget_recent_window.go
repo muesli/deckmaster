@@ -43,6 +43,6 @@ func (w *RecentWindowWidget) TriggerAction() {
 	}
 
 	if int(w.window) < len(recentWindows) {
-		xorg.RequestActivation(recentWindows[w.window])
+		_ = xorg.RequestActivation(recentWindows[w.window])
 	}
 }
