@@ -14,7 +14,6 @@ import (
 )
 
 var (
-	dev  streamdeck.Device
 	deck *Deck
 
 	dbusConn *dbus.Conn
@@ -48,10 +47,10 @@ func handleActiveWindowChanged(dev streamdeck.Device, event ActiveWindowChangedE
 	if len(recentWindows) > keys {
 		recentWindows = recentWindows[0:keys]
 	}
-	deck.updateWidgets()
+	deck.updateWidgets(&dev)
 }
 
-func handleWindowClosed(_ streamdeck.Device, event WindowClosedEvent) {
+func handleWindowClosed(dev streamdeck.Device, event WindowClosedEvent) {
 	i := 0
 	for _, rw := range recentWindows {
 		if rw.ID == event.Window.ID {
@@ -62,7 +61,7 @@ func handleWindowClosed(_ streamdeck.Device, event WindowClosedEvent) {
 		i++
 	}
 	recentWindows = recentWindows[:i]
-	deck.updateWidgets()
+	deck.updateWidgets(&dev)
 }
 
 func main() {
@@ -90,7 +89,7 @@ func main() {
 		fmt.Println("No Stream Deck devices found.")
 		return
 	}
-	dev = d[0]
+	dev := d[0]
 
 	err = dev.Open()
 	if err != nil {
@@ -112,7 +111,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	deck.updateWidgets()
+	deck.updateWidgets(&dev)
 
 	if *brightness > 100 {
 		*brightness = 100
@@ -140,7 +139,7 @@ func main() {
 	for {
 		select {
 		case <-time.After(900 * time.Millisecond):
-			deck.updateWidgets()
+			deck.updateWidgets(&dev)
 
 		case k, ok := <-kch:
 			if !ok {
@@ -163,7 +162,7 @@ func main() {
 				// key was released
 				if time.Since(keyTimestamps[k.Index]) < 200*time.Millisecond {
 					// log.Println("Triggering short action")
-					deck.triggerAction(k.Index, false)
+					deck.triggerAction(&dev, k.Index, false)
 				}
 			}
 			if !state && k.Pressed {
@@ -175,7 +174,7 @@ func main() {
 					if state, ok := keyStates.Load(k.Index); ok && state.(bool) {
 						// key still pressed
 						// log.Println("Triggering long action")
-						deck.triggerAction(k.Index, true)
+						deck.triggerAction(&dev, k.Index, true)
 					}
 				}()
 			}

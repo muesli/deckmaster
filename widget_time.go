@@ -68,6 +68,7 @@ func (w *TimeWidget) Update(dev *streamdeck.Device) error {
 		drawString(img, image.Rect(0, lower, size, upper),
 			font,
 			str,
+			dev.DPI,
 			-1,
 			image.Pt(-1, -1))
 	}

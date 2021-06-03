@@ -45,6 +45,7 @@ func (w *ButtonWidget) Update(dev *streamdeck.Device) error {
 				bounds,
 				ttfFont,
 				w.label,
+				dev.DPI,
 				w.fontsize,
 				image.Pt(-1, -1))
 		} else if w.icon != "" {

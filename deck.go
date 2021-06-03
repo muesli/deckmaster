@@ -45,7 +45,7 @@ func LoadDeck(dev *streamdeck.Device, base string, deck string) (*Deck, error) {
 	}
 	if dc.Background != "" {
 		bgpath := findImage(filepath.Dir(abs), dc.Background)
-		if err := d.loadBackground(bgpath); err != nil {
+		if err := d.loadBackground(dev, bgpath); err != nil {
 			return nil, err
 		}
 	}
@@ -56,7 +56,7 @@ func LoadDeck(dev *streamdeck.Device, base string, deck string) (*Deck, error) {
 	}
 
 	for i := uint8(0); i < dev.Columns*dev.Rows; i++ {
-		bg := d.backgroundForKey(i)
+		bg := d.backgroundForKey(dev, i)
 
 		var w Widget
 		if k, found := keyMap[i]; found {
@@ -72,7 +72,7 @@ func LoadDeck(dev *streamdeck.Device, base string, deck string) (*Deck, error) {
 }
 
 // loads a background image.
-func (d *Deck) loadBackground(bg string) error {
+func (d *Deck) loadBackground(dev *streamdeck.Device, bg string) error {
 	f, err := os.Open(bg)
 	if err != nil {
 		return err
@@ -101,7 +101,7 @@ func (d *Deck) loadBackground(bg string) error {
 }
 
 // returns the background image for an individual key.
-func (d Deck) backgroundForKey(key uint8) image.Image {
+func (d Deck) backgroundForKey(dev *streamdeck.Device, key uint8) image.Image {
 	padding := int(dev.Padding)
 	pixels := int(dev.Pixels)
 	bg := image.NewRGBA(image.Rect(0, 0, pixels, pixels))
@@ -194,7 +194,7 @@ func executeCommand(cmd string) {
 }
 
 // triggerAction triggers an action.
-func (d *Deck) triggerAction(index uint8, hold bool) {
+func (d *Deck) triggerAction(dev *streamdeck.Device, index uint8, hold bool) {
 	for _, w := range d.Widgets {
 		if w.Key() == index {
 			var a *ActionConfig
@@ -207,7 +207,7 @@ func (d *Deck) triggerAction(index uint8, hold bool) {
 			if a != nil {
 				// log.Println("Executing overloaded action")
 				if a.Deck != "" {
-					d, err := LoadDeck(&dev, filepath.Dir(d.File), a.Deck)
+					d, err := LoadDeck(dev, filepath.Dir(d.File), a.Deck)
 					if err != nil {
 						log.Fatal(err)
 					}
@@ -217,7 +217,7 @@ func (d *Deck) triggerAction(index uint8, hold bool) {
 					}
 
 					deck = d
-					deck.updateWidgets()
+					deck.updateWidgets(dev)
 				}
 				if a.Keycode != "" {
 					emulateKeyPresses(a.Keycode)
@@ -239,9 +239,9 @@ func (d *Deck) triggerAction(index uint8, hold bool) {
 }
 
 // updateWidgets updates/repaints all the widgets.
-func (d *Deck) updateWidgets() {
+func (d *Deck) updateWidgets(dev *streamdeck.Device) {
 	for _, w := range d.Widgets {
-		if err := w.Update(&dev); err != nil {
+		if err := w.Update(dev); err != nil {
 			log.Fatalf("error: %v", err)
 		}
 	}

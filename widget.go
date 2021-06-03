@@ -64,7 +64,7 @@ func (w *BaseWidget) Update(dev *streamdeck.Device) error {
 }
 
 // NewBaseWidget returns a new BaseWidget.
-func NewBaseWidget(index uint8, action *ActionConfig, actionHold *ActionConfig, bg image.Image) *BaseWidget {
+func NewBaseWidget(index uint8, action, actionHold *ActionConfig, bg image.Image) *BaseWidget {
 	return &BaseWidget{
 		key:        index,
 		action:     action,
@@ -75,7 +75,7 @@ func NewBaseWidget(index uint8, action *ActionConfig, actionHold *ActionConfig, 
 }
 
 // NewWidget initializes a widget.
-func NewWidget(index uint8, id string, action *ActionConfig, actionHold *ActionConfig, bg image.Image, config map[string]string) Widget {
+func NewWidget(index uint8, id string, action, actionHold *ActionConfig, bg image.Image, config map[string]string) Widget {
 	bw := NewBaseWidget(index, action, actionHold, bg)
 
 	switch id {
@@ -174,18 +174,20 @@ func drawImage(img *image.RGBA, path string, size int, pt image.Point) error {
 	return nil
 }
 
-func drawString(img *image.RGBA, bounds image.Rectangle, ttf *truetype.Font, text string, fontsize float64, pt image.Point) {
-	c := ftContext(img, ttf, fontsize)
+func drawString(img *image.RGBA, bounds image.Rectangle, ttf *truetype.Font, text string, dpi uint, fontsize float64, pt image.Point) {
+	c := ftContext(img, ttf, dpi, fontsize)
 
 	if fontsize <= 0 {
 		// pick biggest available height to fit the string
-		fontsize, _ = maxPointSize(text, ftContext(img, ttf, fontsize), bounds.Dx(), bounds.Dy())
+		fontsize, _ = maxPointSize(text,
+			ftContext(img, ttf, dpi, fontsize), dpi,
+			bounds.Dx(), bounds.Dy())
 		c.SetFontSize(fontsize)
 	}
 
 	if pt.X < 0 {
 		// center horizontally
-		extent, _ := ftContext(img, ttf, fontsize).DrawString(text, freetype.Pt(0, 0))
+		extent, _ := ftContext(img, ttf, dpi, fontsize).DrawString(text, freetype.Pt(0, 0))
 		actwidth := extent.X.Floor()
 		xcenter := float64(bounds.Dx())/2.0 - (float64(actwidth) / 2.0)
 		pt = image.Pt(bounds.Min.X+int(xcenter), pt.Y)

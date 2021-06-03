@@ -20,9 +20,9 @@ var (
 
 // maxPointSize returns the maximum point size we can use to fit text inside
 // width and height, as well as the resulting text-width in pixels.
-func maxPointSize(text string, c *freetype.Context, width, height int) (float64, int) {
+func maxPointSize(text string, c *freetype.Context, dpi uint, width, height int) (float64, int) {
 	// never let the font size exceed the requested height
-	fontsize := float64(height<<6) / float64(dev.DPI) / (64.0 / 72.0)
+	fontsize := float64(height<<6) / float64(dpi) / (64.0 / 72.0)
 
 	// offset initial loop iteration
 	fontsize++
@@ -56,9 +56,9 @@ func fontByName(font string) *truetype.Font {
 	}
 }
 
-func ftContext(img *image.RGBA, ttf *truetype.Font, fontsize float64) *freetype.Context {
+func ftContext(img *image.RGBA, ttf *truetype.Font, dpi uint, fontsize float64) *freetype.Context {
 	c := freetype.NewContext()
-	c.SetDPI(float64(dev.DPI))
+	c.SetDPI(float64(dpi))
 	c.SetFont(ttf)
 	c.SetSrc(image.NewUniform(color.RGBA{0, 0, 0, 0}))
 	c.SetDst(img)

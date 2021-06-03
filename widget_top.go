@@ -85,6 +85,7 @@ func (w *TopWidget) Update(dev *streamdeck.Device) error {
 		bounds,
 		ttfFont,
 		strconv.FormatInt(int64(value), 10),
+		dev.DPI,
 		13,
 		image.Pt(-1, -1))
 
@@ -97,6 +98,7 @@ func (w *TopWidget) Update(dev *streamdeck.Device) error {
 		bounds,
 		ttfFont,
 		"% "+label,
+		dev.DPI,
 		-1,
 		image.Pt(-1, -1))
 
