@@ -16,8 +16,7 @@ An application to control your Elgato Stream Deck on Linux
 - Supports different actions for short & long presses
 - Comes with a collection of widgets:
     - Buttons
-    - Clock
-    - Date
+    - Time (with formatting)
     - CPU/Mem usage
     - Recently used windows (X11-only)
 - Lets you trigger several actions:
@@ -189,7 +188,7 @@ background = "/some/image.png"
 
 ### Actions
 
-You can hook up any key with one of several actions:
+You can hook up any key with several actions:
 
 #### Run a command
 
@@ -198,12 +197,21 @@ You can hook up any key with one of several actions:
   exec = "some_command --with-parameters"
 ```
 
-#### Emulate a key-press
+#### Emulate key-presses
 
 ```
 [keys.action]
-  keycode = "114"
+  keycode = "Leftctrl-C"
 ```
+
+Emulate a series of key-presses with delay in between:
+
+```
+[keys.action]
+  keycode = "Leftctrl-X+500 / Leftctrl-V / Num1"
+```
+
+A list of available keycodes can be found here: [keycodes](https://github.com/muesli/deckmaster/blob/master/keycodes.go)
 
 #### Paste to clipboard
 
@@ -233,6 +241,6 @@ deckmaster -deck deck/main.deck
 
 You can control the brightness, in percent:
 
-```
+```bash
 deckmaster -brightness 50
 ```
