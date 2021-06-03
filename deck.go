@@ -142,7 +142,7 @@ func emulateKeyPress(keys string) {
 		return
 	}
 
-	kk := strings.Split(keys, "-")
+	kk := strings.Split(formatKeycodes(keys), "-")
 	for i, k := range kk {
 		kc, err := strconv.Atoi(strings.TrimSpace(k))
 		if err != nil {
