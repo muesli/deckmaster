@@ -44,7 +44,8 @@ func LoadDeck(dev *streamdeck.Device, base string, deck string) (*Deck, error) {
 		File: abs,
 	}
 	if dc.Background != "" {
-		if err := d.loadBackground(dc.Background); err != nil {
+		bgpath := findImage(filepath.Dir(abs), dc.Background)
+		if err := d.loadBackground(bgpath); err != nil {
 			return nil, err
 		}
 	}

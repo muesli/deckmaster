@@ -2,6 +2,7 @@ package main
 
 import (
 	"image"
+	"path/filepath"
 	"sync"
 
 	"github.com/muesli/streamdeck"
@@ -31,7 +32,10 @@ func (w *ButtonWidget) Update(dev *streamdeck.Device) error {
 			bounds := img.Bounds()
 
 			if w.icon != "" {
-				err = drawImage(img, w.icon, iconsize, image.Pt(-1, margin))
+				err = drawImage(img,
+					findImage(filepath.Dir(deck.File), w.icon),
+					iconsize,
+					image.Pt(-1, margin))
 
 				bounds.Min.Y += iconsize + margin
 				bounds.Max.Y -= margin
@@ -44,7 +48,10 @@ func (w *ButtonWidget) Update(dev *streamdeck.Device) error {
 				w.fontsize,
 				image.Pt(-1, -1))
 		} else if w.icon != "" {
-			err = drawImage(img, w.icon, height, image.Pt(-1, -1))
+			err = drawImage(img,
+				findImage(filepath.Dir(deck.File), w.icon),
+				height,
+				image.Pt(-1, -1))
 		}
 
 		if err != nil {
