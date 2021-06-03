@@ -5,18 +5,18 @@ import (
 	"strings"
 )
 
-var kc = map[string]uint8{
+var keycodes = map[string]uint8{
 	"Esc":              1,
-	"1":                2,
-	"2":                3,
-	"3":                4,
-	"4":                5,
-	"5":                6,
-	"6":                7,
-	"7":                8,
-	"8":                9,
-	"9":                10,
-	"0":                11,
+	"Num1":             2,
+	"Num2":             3,
+	"Num3":             4,
+	"Num4":             5,
+	"Num5":             6,
+	"Num6":             7,
+	"Num7":             8,
+	"Num8":             9,
+	"Num9":             10,
+	"Num0":             11,
 	"Minus":            12,
 	"Equal":            13,
 	"Backspace":        14,
@@ -248,8 +248,12 @@ var kc = map[string]uint8{
 }
 
 func formatKeycodes(keycode string) string {
-	for k, v := range kc {
-		keycode = strings.ReplaceAll(strings.ToLower(keycode), strings.ToLower(k), strconv.Itoa(int(v)))
+	for k, v := range keycodes {
+		if strings.ToLower(keycode) == strings.ToLower(k) {
+			keycode = strconv.Itoa(int(v))
+			break
+		}
 	}
+
 	return keycode
 }

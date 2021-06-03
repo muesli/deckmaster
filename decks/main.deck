@@ -38,7 +38,7 @@
       icon = "assets/volume-low.png"
       label = "Lower Vol"
   [keys.action]
-    keycode = "114"
+    keycode = "VolumeDown"
 
 [[keys]]
   index = 6
@@ -48,7 +48,7 @@
       icon = "assets/volume-high.png"
       label = "Raise Vol"
   [keys.action]
-    keycode = "115"
+    keycode = "VolumeUp"
 
 [[keys]]
   index = 7

@@ -143,9 +143,10 @@ func emulateKeyPress(keys string) {
 		return
 	}
 
-	kk := strings.Split(formatKeycodes(keys), "-")
+	kk := strings.Split(keys, "-")
 	for i, k := range kk {
-		kc, err := strconv.Atoi(strings.TrimSpace(k))
+		k = formatKeycodes(strings.TrimSpace(k))
+		kc, err := strconv.Atoi(k)
 		if err != nil {
 			log.Fatalf("%s is not a valid keycode: %s", k, err)
 		}
