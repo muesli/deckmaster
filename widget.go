@@ -7,7 +7,7 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"sync"
+	"time"
 
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
@@ -18,10 +18,17 @@ import (
 // Widget is an interface implemented by all available widgets.
 type Widget interface {
 	Key() uint8
+	RequiresUpdate() bool
 	Update(dev *streamdeck.Device) error
 	Action() *ActionConfig
 	ActionHold() *ActionConfig
 	TriggerAction()
+}
+
+type WidgetTime struct {
+	lastUpdate  time.Time
+	initialized bool
+	interval    int
 }
 
 // BaseWidget provides common functionality required by all widgets.
@@ -30,7 +37,7 @@ type BaseWidget struct {
 	action     *ActionConfig
 	actionHold *ActionConfig
 	background image.Image
-	init       *sync.Once
+	time       WidgetTime
 }
 
 // Key returns the key a widget is mapped to.
@@ -53,14 +60,21 @@ func (w *BaseWidget) TriggerAction() {
 	// just a stub
 }
 
+func (w *BaseWidget) RequiresUpdate() bool {
+	now := time.Now()
+	if w.time.initialized && (w.time.interval == -1 ||
+		int(now.Sub(w.time.lastUpdate).Nanoseconds()/1e6) < w.time.interval) {
+		return false
+	}
+
+	w.time.initialized = true
+	w.time.lastUpdate = now
+	return true
+}
+
 // Update renders the widget.
 func (w *BaseWidget) Update(dev *streamdeck.Device) error {
-	var err error
-	w.init.Do(func() {
-		err = w.render(dev, nil)
-	})
-
-	return err
+	return w.render(dev, nil)
 }
 
 // NewBaseWidget returns a new BaseWidget.
@@ -70,16 +84,17 @@ func NewBaseWidget(index uint8, action, actionHold *ActionConfig, bg image.Image
 		action:     action,
 		actionHold: actionHold,
 		background: bg,
-		init:       &sync.Once{},
+		time:       WidgetTime{time.Now(), false, -1},
 	}
 }
 
 // NewWidget initializes a widget.
-func NewWidget(index uint8, id string, action, actionHold *ActionConfig, bg image.Image, config map[string]string) Widget {
+func NewWidget(index uint8, id string, interval string, action, actionHold *ActionConfig, bg image.Image, config map[string]string) Widget {
 	bw := NewBaseWidget(index, action, actionHold, bg)
 
 	switch id {
 	case "button":
+		bw.setInterval(interval, -1)
 		return &ButtonWidget{
 			BaseWidget: *bw,
 			icon:       config["icon"],
@@ -87,6 +102,7 @@ func NewWidget(index uint8, id string, action, actionHold *ActionConfig, bg imag
 		}
 
 	case "clock":
+		bw.setInterval(interval, 0)
 		return &TimeWidget{
 			BaseWidget: *bw,
 			format:     "%H;%i;%s",
@@ -94,6 +110,7 @@ func NewWidget(index uint8, id string, action, actionHold *ActionConfig, bg imag
 		}
 
 	case "date":
+		bw.setInterval(interval, 0)
 		return &TimeWidget{
 			BaseWidget: *bw,
 			format:     "%l;%d;%M",
@@ -101,6 +118,7 @@ func NewWidget(index uint8, id string, action, actionHold *ActionConfig, bg imag
 		}
 
 	case "time":
+		bw.setInterval(interval, 0)
 		return &TimeWidget{
 			BaseWidget: *bw,
 			format:     config["format"],
@@ -108,6 +126,7 @@ func NewWidget(index uint8, id string, action, actionHold *ActionConfig, bg imag
 		}
 
 	case "recentWindow":
+		bw.setInterval(interval, 0)
 		i, err := strconv.ParseUint(config["window"], 10, 64)
 		if err != nil {
 			log.Fatal(err)
@@ -118,6 +137,7 @@ func NewWidget(index uint8, id string, action, actionHold *ActionConfig, bg imag
 		}
 
 	case "top":
+		bw.setInterval(interval, 0)
 		return &TopWidget{
 			BaseWidget: *bw,
 			mode:       config["mode"],
@@ -145,6 +165,16 @@ func (w *BaseWidget) render(dev *streamdeck.Device, fg image.Image) error {
 	}
 
 	return dev.SetImage(w.key, img)
+}
+
+// change the rate at which the widget is rendered
+func (w *BaseWidget) setInterval(interval string, defaultInterval int) {
+	inter, err := strconv.Atoi(interval)
+	if err != nil || inter < defaultInterval {
+		w.time.interval = defaultInterval
+	} else {
+		w.time.interval = inter
+	}
 }
 
 func drawImage(img *image.RGBA, path string, size int, pt image.Point) error {

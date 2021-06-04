@@ -26,8 +26,9 @@ type ActionConfig struct {
 
 // WidgetConfig describes configuration data for widgets.
 type WidgetConfig struct {
-	ID     string            `toml:"id,omitempty"`
-	Config map[string]string `toml:"config,omitempty"`
+	ID       string            `toml:"id,omitempty"`
+	Interval string            `toml:"interval,omitempty"`
+	Config   map[string]string `toml:"config,omitempty"`
 }
 
 // KeyConfig holds the entire configuration for a single key.
