@@ -14,6 +14,7 @@ import (
 
 	"github.com/atotto/clipboard"
 	"github.com/godbus/dbus"
+	"github.com/mitchellh/go-homedir"
 	"github.com/muesli/streamdeck"
 )
 
@@ -26,10 +27,14 @@ type Deck struct {
 
 // LoadDeck loads a deck configuration.
 func LoadDeck(dev *streamdeck.Device, base string, deck string) (*Deck, error) {
-	if !filepath.IsAbs(deck) {
-		deck = filepath.Join(base, deck)
+	exp, err := homedir.Expand(deck)
+	if err != nil {
+		return nil, err
 	}
-	abs, err := filepath.Abs(deck)
+	if !filepath.IsAbs(exp) {
+		exp = filepath.Join(base, exp)
+	}
+	abs, err := filepath.Abs(exp)
 	if err != nil {
 		return nil, err
 	}

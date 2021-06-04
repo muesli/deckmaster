@@ -16,6 +16,7 @@ require (
 	github.com/jezek/xgb v0.0.0-20210312150743-0e0f116e1240
 	github.com/jezek/xgbutil v0.0.0-20210302171758-530099784e66
 	github.com/lucasb-eyer/go-colorful v1.2.0
+	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/muesli/streamdeck v0.2.0
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/shirou/gopsutil v2.18.12+incompatible
