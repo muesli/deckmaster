@@ -2,15 +2,21 @@ package main
 
 import (
 	"path/filepath"
+
+	"github.com/mitchellh/go-homedir"
 )
 
 func findImage(base, icon string) string {
-	if !filepath.IsAbs(icon) {
-		icon = filepath.Join(base, icon)
-	}
-	abs, err := filepath.Abs(icon)
+	exp, err := homedir.Expand(icon)
 	if err != nil {
 		return icon
+	}
+	if !filepath.IsAbs(exp) {
+		exp = filepath.Join(base, exp)
+	}
+	abs, err := filepath.Abs(exp)
+	if err != nil {
+		return exp
 	}
 
 	return abs
