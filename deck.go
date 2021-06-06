@@ -60,7 +60,7 @@ func LoadDeck(dev *streamdeck.Device, base string, deck string) (*Deck, error) {
 
 		var w Widget
 		if k, found := keyMap[i]; found {
-			w = NewWidget(k.Index, k.Widget.ID, k.Widget.Interval, k.Action, k.ActionHold, bg, k.Widget.Config)
+			w = NewWidget(k, bg)
 		} else {
 			w = NewBaseWidget(i, nil, nil, bg)
 		}
@@ -244,6 +244,8 @@ func (d *Deck) updateWidgets(dev *streamdeck.Device) {
 		if !w.RequiresUpdate() {
 			continue
 		}
+
+		// log.Printf("Repaint %d", w.Key())
 		if err := w.Update(dev); err != nil {
 			log.Fatalf("error: %v", err)
 		}

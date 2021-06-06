@@ -17,7 +17,6 @@ type ButtonWidget struct {
 
 // Update renders the widget.
 func (w *ButtonWidget) Update(dev *streamdeck.Device) error {
-	var err error
 	size := int(dev.Pixels)
 	margin := size / 18
 	height := size - (margin * 2)
@@ -28,10 +27,14 @@ func (w *ButtonWidget) Update(dev *streamdeck.Device) error {
 		bounds := img.Bounds()
 
 		if w.icon != "" {
-			err = drawImage(img,
+			err := drawImage(img,
 				findImage(filepath.Dir(deck.File), w.icon),
 				iconsize,
 				image.Pt(-1, margin))
+
+			if err != nil {
+				return err
+			}
 
 			bounds.Min.Y += iconsize + margin
 			bounds.Max.Y -= margin
@@ -45,14 +48,15 @@ func (w *ButtonWidget) Update(dev *streamdeck.Device) error {
 			w.fontsize,
 			image.Pt(-1, -1))
 	} else if w.icon != "" {
-		err = drawImage(img,
+		err := drawImage(img,
 			findImage(filepath.Dir(deck.File), w.icon),
 			height,
 			image.Pt(-1, -1))
+
+		if err != nil {
+			return err
+		}
 	}
 
-	if err != nil {
-		return err
-	}
 	return w.render(dev, img)
 }
