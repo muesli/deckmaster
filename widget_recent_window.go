@@ -23,7 +23,7 @@ func (w *RecentWindowWidget) RequiresUpdate() bool {
 		return w.lastClass != recentWindows[w.window].Class
 	}
 
-	return false
+	return w.BaseWidget.RequiresUpdate()
 }
 
 // Update renders the widget.
