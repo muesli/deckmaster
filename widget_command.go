@@ -9,28 +9,29 @@ import (
 	"github.com/muesli/streamdeck"
 )
 
-// CommandWidget is a widget displaying the output of command(s)
+// CommandWidget is a widget displaying the output of command(s).
 type CommandWidget struct {
 	BaseWidget
 	command string
 	font    string
 }
 
-func NewCommandWidget(bw BaseWidget, opts WidgetConfig) (*CommandWidget, error) {
+// NewCommandWidget returns a new CommandWidget.
+func NewCommandWidget(bw BaseWidget, opts WidgetConfig) *CommandWidget {
 	bw.setInterval(opts.Interval, 1000)
 
 	var command, font string
-	ConfigValue(opts.Config["command"], &command)
-	ConfigValue(opts.Config["font"], &font)
+	_ = ConfigValue(opts.Config["command"], &command)
+	_ = ConfigValue(opts.Config["font"], &font)
 
 	return &CommandWidget{
 		BaseWidget: bw,
 		command:    command,
 		font:       font,
-	}, nil
+	}
 }
 
-// Update renders the widget
+// Update renders the widget.
 func (w *CommandWidget) Update(dev *streamdeck.Device) error {
 	size := int(dev.Pixels)
 	margin := size / 18
