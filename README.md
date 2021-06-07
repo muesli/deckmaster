@@ -18,6 +18,7 @@ An application to control your Elgato Stream Deck on Linux
     - Buttons
     - Time (with formatting)
     - CPU/Mem usage
+    - Command output
     - Recently used windows (X11-only)
 - Lets you trigger several actions:
     - Run commands
@@ -108,6 +109,18 @@ directory. Edit them to your needs!
 
 ### Widgets
 
+Any widget is build up the following way:
+
+```
+[[keys]]
+  index = 0
+  interval = 500
+```
+
+`index` needs to be present in every widget and describes the position of the widget on the streamdeck.
+`index` is 0-indexed and counted from top to bottom and left to right.
+The attribute `interval` is optional and defines the time in `ms` between two consecutive updates of the widget.
+
 #### Button
 
 A simple button that can display an image and/or a label.
@@ -118,6 +131,7 @@ A simple button that can display an image and/or a label.
   [keys.widget.config]
     icon = "/some/image.png"
     label = "My Button"
+    fontsize = 10.0
 ```
 
 #### Recent Window (requires X11)
@@ -129,7 +143,7 @@ activates the window.
 [keys.widget]
   id = "recentWindow"
   [keys.widget.config]
-    window = "1"
+    window = 1
 ```
 
 #### Time
@@ -176,6 +190,18 @@ This widget shows the current CPU or memory utilization as a bar graph.
 ```
 
 There are two values for `mode`: `cpu` and `memory`.
+
+#### Command
+
+A widget that displays the output of commands.
+
+```
+[keys.widget]
+  id = "command"
+  [keys.widget.config]
+    command = "echo 'Files:'; ls -a ~ | wc -l"
+    font = "regular;bold"
+```
 
 ### Background Image
 
