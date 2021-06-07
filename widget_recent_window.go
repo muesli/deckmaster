@@ -17,6 +17,15 @@ type RecentWindowWidget struct {
 	lastClass string
 }
 
+// RequiresUpdate returns true when the widget wants to be repainted.
+func (w *RecentWindowWidget) RequiresUpdate() bool {
+	if int(w.window) < len(recentWindows) {
+		return w.lastClass != recentWindows[w.window].Class
+	}
+
+	return false
+}
+
 // Update renders the widget.
 func (w *RecentWindowWidget) Update(dev *streamdeck.Device) error {
 	img := image.NewRGBA(image.Rect(0, 0, int(dev.Pixels), int(dev.Pixels)))

@@ -7,7 +7,7 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"sync"
+	"time"
 
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
@@ -18,6 +18,7 @@ import (
 // Widget is an interface implemented by all available widgets.
 type Widget interface {
 	Key() uint8
+	RequiresUpdate() bool
 	Update(dev *streamdeck.Device) error
 	Action() *ActionConfig
 	ActionHold() *ActionConfig
@@ -30,7 +31,8 @@ type BaseWidget struct {
 	action     *ActionConfig
 	actionHold *ActionConfig
 	background image.Image
-	init       *sync.Once
+	lastUpdate time.Time
+	interval   uint
 }
 
 // Key returns the key a widget is mapped to.
@@ -53,14 +55,20 @@ func (w *BaseWidget) TriggerAction() {
 	// just a stub
 }
 
+// RequiresUpdate returns true when the widget wants to be repainted.
+func (w *BaseWidget) RequiresUpdate() bool {
+	if !w.lastUpdate.IsZero() && // initial paint done
+		(w.interval == 0 || // never to be repainted
+			time.Since(w.lastUpdate) < time.Duration(w.interval)*time.Millisecond) {
+		return false
+	}
+
+	return true
+}
+
 // Update renders the widget.
 func (w *BaseWidget) Update(dev *streamdeck.Device) error {
-	var err error
-	w.init.Do(func() {
-		err = w.render(dev, nil)
-	})
-
-	return err
+	return w.render(dev, nil)
 }
 
 // NewBaseWidget returns a new BaseWidget.
@@ -70,23 +78,25 @@ func NewBaseWidget(index uint8, action, actionHold *ActionConfig, bg image.Image
 		action:     action,
 		actionHold: actionHold,
 		background: bg,
-		init:       &sync.Once{},
 	}
 }
 
 // NewWidget initializes a widget.
-func NewWidget(index uint8, id string, action, actionHold *ActionConfig, bg image.Image, config map[string]string) Widget {
-	bw := NewBaseWidget(index, action, actionHold, bg)
+func NewWidget(kc KeyConfig, bg image.Image) Widget {
+	bw := NewBaseWidget(kc.Index, kc.Action, kc.ActionHold, bg)
+	wc := kc.Widget
 
-	switch id {
+	switch wc.ID {
 	case "button":
+		bw.setInterval(wc.Interval, 0)
 		return &ButtonWidget{
 			BaseWidget: *bw,
-			icon:       config["icon"],
-			label:      config["label"],
+			icon:       wc.Config["icon"],
+			label:      wc.Config["label"],
 		}
 
 	case "clock":
+		bw.setInterval(wc.Interval, 1000)
 		return &TimeWidget{
 			BaseWidget: *bw,
 			format:     "%H;%i;%s",
@@ -94,6 +104,7 @@ func NewWidget(index uint8, id string, action, actionHold *ActionConfig, bg imag
 		}
 
 	case "date":
+		bw.setInterval(wc.Interval, 1000)
 		return &TimeWidget{
 			BaseWidget: *bw,
 			format:     "%l;%d;%M",
@@ -101,14 +112,15 @@ func NewWidget(index uint8, id string, action, actionHold *ActionConfig, bg imag
 		}
 
 	case "time":
+		bw.setInterval(wc.Interval, 1000)
 		return &TimeWidget{
 			BaseWidget: *bw,
-			format:     config["format"],
-			font:       config["font"],
+			format:     wc.Config["format"],
+			font:       wc.Config["font"],
 		}
 
 	case "recentWindow":
-		i, err := strconv.ParseUint(config["window"], 10, 64)
+		i, err := strconv.ParseUint(wc.Config["window"], 10, 64)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -118,15 +130,16 @@ func NewWidget(index uint8, id string, action, actionHold *ActionConfig, bg imag
 		}
 
 	case "top":
+		bw.setInterval(wc.Interval, 500)
 		return &TopWidget{
 			BaseWidget: *bw,
-			mode:       config["mode"],
-			fillColor:  config["fillColor"],
+			mode:       wc.Config["mode"],
+			fillColor:  wc.Config["fillColor"],
 		}
 
 	default:
 		// unknown widget ID
-		log.Println("Unknown widget with ID:", id)
+		log.Println("Unknown widget with ID:", wc.ID)
 	}
 
 	return nil
@@ -134,8 +147,9 @@ func NewWidget(index uint8, id string, action, actionHold *ActionConfig, bg imag
 
 // renders the widget including its background image.
 func (w *BaseWidget) render(dev *streamdeck.Device, fg image.Image) error {
-	pixels := int(dev.Pixels)
+	w.lastUpdate = time.Now()
 
+	pixels := int(dev.Pixels)
 	img := image.NewRGBA(image.Rect(0, 0, pixels, pixels))
 	if w.background != nil {
 		draw.Draw(img, img.Bounds(), w.background, image.Point{}, draw.Over)
@@ -145,6 +159,15 @@ func (w *BaseWidget) render(dev *streamdeck.Device, fg image.Image) error {
 	}
 
 	return dev.SetImage(w.key, img)
+}
+
+// change the interval a widget gets rendered in.
+func (w *BaseWidget) setInterval(interval uint, defaultInterval uint) {
+	if interval == 0 {
+		interval = defaultInterval
+	}
+
+	w.interval = interval
 }
 
 func drawImage(img *image.RGBA, path string, size int, pt image.Point) error {

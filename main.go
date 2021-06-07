@@ -138,7 +138,7 @@ func main() {
 	}
 	for {
 		select {
-		case <-time.After(900 * time.Millisecond):
+		case <-time.After(100 * time.Millisecond):
 			deck.updateWidgets(&dev)
 
 		case k, ok := <-kch:
@@ -149,13 +149,11 @@ func main() {
 				}
 				continue
 			}
-			// spew.Dump(k)
 
 			var state bool
 			if ks, ok := keyStates.Load(k.Index); ok {
 				state = ks.(bool)
 			}
-			// log.Println("Storing state", k.Pressed)
 			keyStates.Store(k.Index, k.Pressed)
 
 			if state && !k.Pressed {
