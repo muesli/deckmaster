@@ -1,12 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"image/draw"
 	"log"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/golang/freetype"
@@ -82,67 +82,37 @@ func NewBaseWidget(index uint8, action, actionHold *ActionConfig, bg image.Image
 }
 
 // NewWidget initializes a widget.
-func NewWidget(kc KeyConfig, bg image.Image) Widget {
+func NewWidget(kc KeyConfig, bg image.Image) (Widget, error) {
 	bw := NewBaseWidget(kc.Index, kc.Action, kc.ActionHold, bg)
-	wc := kc.Widget
 
-	switch wc.ID {
+	switch kc.Widget.ID {
 	case "button":
-		bw.setInterval(wc.Interval, 0)
-		return &ButtonWidget{
-			BaseWidget: *bw,
-			icon:       wc.Config["icon"],
-			label:      wc.Config["label"],
-		}
+		return NewButtonWidget(*bw, kc.Widget)
 
 	case "clock":
-		bw.setInterval(wc.Interval, 1000)
-		return &TimeWidget{
-			BaseWidget: *bw,
-			format:     "%H;%i;%s",
-			font:       "bold;regular;thin",
-		}
+		kc.Widget.Config = make(map[string]interface{})
+		kc.Widget.Config["format"] = "%H;%i;%s"
+		kc.Widget.Config["font"] = "bold;regular;thin"
+		return NewTimeWidget(*bw, kc.Widget)
 
 	case "date":
-		bw.setInterval(wc.Interval, 1000)
-		return &TimeWidget{
-			BaseWidget: *bw,
-			format:     "%l;%d;%M",
-			font:       "regular;bold;regular",
-		}
+		kc.Widget.Config = make(map[string]interface{})
+		kc.Widget.Config["format"] = "%l;%d;%M"
+		kc.Widget.Config["font"] = "regular;bold;regular"
+		return NewTimeWidget(*bw, kc.Widget)
 
 	case "time":
-		bw.setInterval(wc.Interval, 1000)
-		return &TimeWidget{
-			BaseWidget: *bw,
-			format:     wc.Config["format"],
-			font:       wc.Config["font"],
-		}
+		return NewTimeWidget(*bw, kc.Widget)
 
 	case "recentWindow":
-		i, err := strconv.ParseUint(wc.Config["window"], 10, 64)
-		if err != nil {
-			log.Fatal(err)
-		}
-		return &RecentWindowWidget{
-			BaseWidget: *bw,
-			window:     uint8(i),
-		}
+		return NewRecentWindowWidget(*bw, kc.Widget)
 
 	case "top":
-		bw.setInterval(wc.Interval, 500)
-		return &TopWidget{
-			BaseWidget: *bw,
-			mode:       wc.Config["mode"],
-			fillColor:  wc.Config["fillColor"],
-		}
-
-	default:
-		// unknown widget ID
-		log.Println("Unknown widget with ID:", wc.ID)
+		return NewTopWidget(*bw, kc.Widget)
 	}
 
-	return nil
+	// unknown widget ID
+	return nil, fmt.Errorf("Unknown widget with ID %s", kc.Widget.ID)
 }
 
 // renders the widget including its background image.

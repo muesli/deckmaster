@@ -12,7 +12,6 @@
     id = "top"
     [keys.widget.config]
       mode = "memory"
-      fillColor = "#a69bd6"
 
 [[keys]]
   index = 3
@@ -37,6 +36,7 @@
     [keys.widget.config]
       icon = "assets/volume-low.png"
       label = "Lower Vol"
+      fontsize = 8
   [keys.action]
     keycode = "VolumeDown"
 
@@ -47,6 +47,7 @@
     [keys.widget.config]
       icon = "assets/volume-high.png"
       label = "Raise Vol"
+      fontsize = 8
   [keys.action]
     keycode = "VolumeUp"
 
@@ -87,32 +88,32 @@
   [keys.widget]
     id = "recentWindow"
     [keys.widget.config]
-      window = "1"
+      window = 1
 
 [[keys]]
   index = 11
   [keys.widget]
     id = "recentWindow"
     [keys.widget.config]
-      window = "2"
+      window = 2
 
 [[keys]]
   index = 12
   [keys.widget]
     id = "recentWindow"
     [keys.widget.config]
-      window = "3"
+      window = 3
 
 [[keys]]
   index = 13
   [keys.widget]
     id = "recentWindow"
     [keys.widget.config]
-      window = "4"
+      window = 4
 
 [[keys]]
   index = 14
   [keys.widget]
     id = "recentWindow"
     [keys.widget.config]
-      window = "5"
+      window = 5

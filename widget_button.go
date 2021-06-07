@@ -15,6 +15,23 @@ type ButtonWidget struct {
 	fontsize float64
 }
 
+func NewButtonWidget(bw BaseWidget, opts WidgetConfig) (*ButtonWidget, error) {
+	bw.setInterval(opts.Interval, 0)
+
+	var icon, label string
+	ConfigValue(opts.Config["icon"], &icon)
+	ConfigValue(opts.Config["label"], &label)
+	var fontsize float64
+	ConfigValue(opts.Config["fontsize"], &fontsize)
+
+	return &ButtonWidget{
+		BaseWidget: bw,
+		icon:       icon,
+		label:      label,
+		fontsize:   fontsize,
+	}, nil
+}
+
 // Update renders the widget.
 func (w *ButtonWidget) Update(dev *streamdeck.Device) error {
 	size := int(dev.Pixels)
