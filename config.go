@@ -2,7 +2,10 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
+	"reflect"
+	"strconv"
 
 	"github.com/BurntSushi/toml"
 )
@@ -26,9 +29,9 @@ type ActionConfig struct {
 
 // WidgetConfig describes configuration data for widgets.
 type WidgetConfig struct {
-	ID       string            `toml:"id,omitempty"`
-	Interval uint              `toml:"interval,omitempty"`
-	Config   map[string]string `toml:"config,omitempty"`
+	ID       string                 `toml:"id,omitempty"`
+	Interval uint                   `toml:"interval,omitempty"`
+	Config   map[string]interface{} `toml:"config,omitempty"`
 }
 
 // KeyConfig holds the entire configuration for a single key.
@@ -70,4 +73,47 @@ func (c DeckConfig) Save(filename string) error {
 	}
 
 	return ioutil.WriteFile(filename, b.Bytes(), 0600)
+}
+
+func ConfigValue(v interface{}, dst interface{}) error {
+	switch d := dst.(type) {
+	case *string:
+		switch vt := v.(type) {
+		case string:
+			*d = vt
+		default:
+			return fmt.Errorf("unhandled type %+v for string conversion", reflect.TypeOf(vt))
+		}
+
+	case *int64:
+		switch vt := v.(type) {
+		case int64:
+			*d = vt
+		case float64:
+			*d = int64(vt)
+		case string:
+			x, _ := strconv.ParseInt(vt, 0, 64)
+			*d = int64(x)
+		default:
+			return fmt.Errorf("unhandled type %+v for uint8 conversion", reflect.TypeOf(vt))
+		}
+
+	case *float64:
+		switch vt := v.(type) {
+		case int64:
+			*d = float64(vt)
+		case float64:
+			*d = vt
+		case string:
+			x, _ := strconv.ParseFloat(vt, 64)
+			*d = float64(x)
+		default:
+			return fmt.Errorf("unhandled type %+v for float64 conversion", reflect.TypeOf(vt))
+		}
+
+	default:
+		return fmt.Errorf("unhandled dst type %+v", reflect.TypeOf(dst))
+	}
+
+	return nil
 }

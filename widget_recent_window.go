@@ -17,6 +17,18 @@ type RecentWindowWidget struct {
 	lastClass string
 }
 
+func NewRecentWindowWidget(bw BaseWidget, opts WidgetConfig) (*RecentWindowWidget, error) {
+	var window int64
+	if err := ConfigValue(opts.Config["window"], &window); err != nil {
+		return nil, err
+	}
+
+	return &RecentWindowWidget{
+		BaseWidget: bw,
+		window:     uint8(window),
+	}, nil
+}
+
 // RequiresUpdate returns true when the widget wants to be repainted.
 func (w *RecentWindowWidget) RequiresUpdate() bool {
 	if int(w.window) < len(recentWindows) {

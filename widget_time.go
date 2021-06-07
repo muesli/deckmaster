@@ -17,29 +17,18 @@ type TimeWidget struct {
 	font   string
 }
 
-func formatTime(t time.Time, format string) string {
-	tm := map[string]string{
-		"%Y": "2006",
-		"%y": "06",
-		"%F": "January",
-		"%M": "Jan",
-		"%m": "01",
-		"%l": "Monday",
-		"%D": "Mon",
-		"%d": "02",
-		"%h": "03",
-		"%H": "15",
-		"%i": "04",
-		"%s": "05",
-		"%a": "PM",
-		"%t": "MST",
-	}
+func NewTimeWidget(bw BaseWidget, opts WidgetConfig) (*TimeWidget, error) {
+	bw.setInterval(opts.Interval, 500)
 
-	for k, v := range tm {
-		format = strings.ReplaceAll(format, k, v)
-	}
+	var format, font string
+	ConfigValue(opts.Config["format"], &format)
+	ConfigValue(opts.Config["font"], &font)
 
-	return t.Format(format)
+	return &TimeWidget{
+		BaseWidget: bw,
+		format:     format,
+		font:       font,
+	}, nil
 }
 
 // Update renders the widget.
@@ -74,4 +63,29 @@ func (w *TimeWidget) Update(dev *streamdeck.Device) error {
 	}
 
 	return w.render(dev, img)
+}
+
+func formatTime(t time.Time, format string) string {
+	tm := map[string]string{
+		"%Y": "2006",
+		"%y": "06",
+		"%F": "January",
+		"%M": "Jan",
+		"%m": "01",
+		"%l": "Monday",
+		"%D": "Mon",
+		"%d": "02",
+		"%h": "03",
+		"%H": "15",
+		"%i": "04",
+		"%s": "05",
+		"%a": "PM",
+		"%t": "MST",
+	}
+
+	for k, v := range tm {
+		format = strings.ReplaceAll(format, k, v)
+	}
+
+	return t.Format(format)
 }

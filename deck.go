@@ -60,7 +60,10 @@ func LoadDeck(dev *streamdeck.Device, base string, deck string) (*Deck, error) {
 
 		var w Widget
 		if k, found := keyMap[i]; found {
-			w = NewWidget(k, bg)
+			w, err = NewWidget(k, bg)
+			if err != nil {
+				return nil, err
+			}
 		} else {
 			w = NewBaseWidget(i, nil, nil, bg)
 		}

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"image/draw"
@@ -20,6 +21,20 @@ type TopWidget struct {
 	fillColor string
 
 	lastValue float64
+}
+
+func NewTopWidget(bw BaseWidget, opts WidgetConfig) (*TopWidget, error) {
+	bw.setInterval(opts.Interval, 500)
+
+	var mode, fillColor string
+	ConfigValue(opts.Config["mode"], &mode)
+	ConfigValue(opts.Config["fillColor"], &fillColor)
+
+	return &TopWidget{
+		BaseWidget: bw,
+		mode:       mode,
+		fillColor:  fillColor,
+	}, nil
 }
 
 // Update renders the widget.
@@ -46,7 +61,7 @@ func (w *TopWidget) Update(dev *streamdeck.Device) error {
 		label = "MEM"
 
 	default:
-		panic("Unknown widget mode: " + w.mode)
+		return fmt.Errorf("unknown widget mode: %s", w.mode)
 	}
 
 	if w.lastValue == value {
@@ -54,9 +69,12 @@ func (w *TopWidget) Update(dev *streamdeck.Device) error {
 	}
 	w.lastValue = value
 
+	if w.fillColor == "" {
+		w.fillColor = "#a69bd6"
+	}
 	fill, err := colorful.Hex(w.fillColor)
 	if err != nil {
-		panic("Invalid color: " + w.fillColor)
+		return fmt.Errorf("invalid color: %s", w.fillColor)
 	}
 
 	size := int(dev.Pixels)
