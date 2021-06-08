@@ -14,7 +14,6 @@ import (
 
 	"github.com/atotto/clipboard"
 	"github.com/godbus/dbus"
-	"github.com/mitchellh/go-homedir"
 	"github.com/muesli/streamdeck"
 )
 
@@ -27,29 +26,25 @@ type Deck struct {
 
 // LoadDeck loads a deck configuration.
 func LoadDeck(dev *streamdeck.Device, base string, deck string) (*Deck, error) {
-	exp, err := homedir.Expand(deck)
+	path, err := expandPath(base, deck)
 	if err != nil {
 		return nil, err
 	}
-	if !filepath.IsAbs(exp) {
-		exp = filepath.Join(base, exp)
-	}
-	abs, err := filepath.Abs(exp)
-	if err != nil {
-		return nil, err
-	}
-	log.Println("Loading deck:", abs)
+	log.Println("Loading deck:", path)
 
-	dc, err := LoadConfig(abs)
+	dc, err := LoadConfig(path)
 	if err != nil {
 		return nil, err
 	}
 
 	d := Deck{
-		File: abs,
+		File: path,
 	}
 	if dc.Background != "" {
-		bgpath := findImage(filepath.Dir(abs), dc.Background)
+		bgpath, err := expandPath(filepath.Dir(path), dc.Background)
+		if err != nil {
+			return nil, err
+		}
 		if err := d.loadBackground(dev, bgpath); err != nil {
 			return nil, err
 		}
@@ -65,12 +60,12 @@ func LoadDeck(dev *streamdeck.Device, base string, deck string) (*Deck, error) {
 
 		var w Widget
 		if k, found := keyMap[i]; found {
-			w, err = NewWidget(k, bg)
+			w, err = NewWidget(filepath.Dir(path), k, bg)
 			if err != nil {
 				return nil, err
 			}
 		} else {
-			w = NewBaseWidget(i, nil, nil, bg)
+			w = NewBaseWidget(filepath.Dir(path), i, nil, nil, bg)
 		}
 
 		d.Widgets = append(d.Widgets, w)

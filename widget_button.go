@@ -2,7 +2,6 @@ package main
 
 import (
 	"image"
-	"path/filepath"
 
 	"github.com/muesli/streamdeck"
 )
@@ -10,7 +9,8 @@ import (
 // ButtonWidget is a simple widget displaying an icon and/or label.
 type ButtonWidget struct {
 	BaseWidget
-	icon     string
+
+	icon     image.Image
 	label    string
 	fontsize float64
 }
@@ -20,17 +20,29 @@ func NewButtonWidget(bw BaseWidget, opts WidgetConfig) (*ButtonWidget, error) {
 	bw.setInterval(opts.Interval, 0)
 
 	var icon, label string
-	ConfigValue(opts.Config["icon"], &icon)
-	ConfigValue(opts.Config["label"], &label)
+	_ = ConfigValue(opts.Config["icon"], &icon)
+	_ = ConfigValue(opts.Config["label"], &label)
 	var fontsize float64
-	ConfigValue(opts.Config["fontsize"], &fontsize)
+	_ = ConfigValue(opts.Config["fontsize"], &fontsize)
 
-	return &ButtonWidget{
+	w := &ButtonWidget{
 		BaseWidget: bw,
-		icon:       icon,
 		label:      label,
 		fontsize:   fontsize,
-	}, nil
+	}
+
+	if icon != "" {
+		path, err := expandPath(w.base, icon)
+		if err != nil {
+			return nil, err
+		}
+		w.icon, err = loadImage(path)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return w, nil
 }
 
 // Update renders the widget.
@@ -44,9 +56,9 @@ func (w *ButtonWidget) Update(dev *streamdeck.Device) error {
 		iconsize := int((float64(height) / 3.0) * 2.0)
 		bounds := img.Bounds()
 
-		if w.icon != "" {
+		if w.icon != nil {
 			err := drawImage(img,
-				findImage(filepath.Dir(deck.File), w.icon),
+				w.icon,
 				iconsize,
 				image.Pt(-1, margin))
 
@@ -65,9 +77,9 @@ func (w *ButtonWidget) Update(dev *streamdeck.Device) error {
 			dev.DPI,
 			w.fontsize,
 			image.Pt(-1, -1))
-	} else if w.icon != "" {
+	} else if w.icon != nil {
 		err := drawImage(img,
-			findImage(filepath.Dir(deck.File), w.icon),
+			w.icon,
 			height,
 			image.Pt(-1, -1))
 

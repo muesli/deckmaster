@@ -27,6 +27,7 @@ type Widget interface {
 
 // BaseWidget provides common functionality required by all widgets.
 type BaseWidget struct {
+	base       string
 	key        uint8
 	action     *ActionConfig
 	actionHold *ActionConfig
@@ -72,8 +73,9 @@ func (w *BaseWidget) Update(dev *streamdeck.Device) error {
 }
 
 // NewBaseWidget returns a new BaseWidget.
-func NewBaseWidget(index uint8, action, actionHold *ActionConfig, bg image.Image) *BaseWidget {
+func NewBaseWidget(base string, index uint8, action, actionHold *ActionConfig, bg image.Image) *BaseWidget {
 	return &BaseWidget{
+		base:       base,
 		key:        index,
 		action:     action,
 		actionHold: actionHold,
@@ -82,8 +84,8 @@ func NewBaseWidget(index uint8, action, actionHold *ActionConfig, bg image.Image
 }
 
 // NewWidget initializes a widget.
-func NewWidget(kc KeyConfig, bg image.Image) (Widget, error) {
-	bw := NewBaseWidget(kc.Index, kc.Action, kc.ActionHold, bg)
+func NewWidget(base string, kc KeyConfig, bg image.Image) (Widget, error) {
+	bw := NewBaseWidget(base, kc.Index, kc.Action, kc.ActionHold, bg)
 
 	switch kc.Widget.ID {
 	case "button":
@@ -140,18 +142,18 @@ func (w *BaseWidget) setInterval(interval uint, defaultInterval uint) {
 	w.interval = interval
 }
 
-func drawImage(img *image.RGBA, path string, size int, pt image.Point) error {
+func loadImage(path string) (image.Image, error) {
 	f, err := os.Open(path)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer f.Close() //nolint:errcheck
 
 	icon, _, err := image.Decode(f)
-	if err != nil {
-		return err
-	}
+	return icon, err
+}
 
+func drawImage(img *image.RGBA, icon image.Image, size int, pt image.Point) error {
 	if pt.X < 0 {
 		xcenter := float64(img.Bounds().Dx()/2.0) - (float64(size) / 2.0)
 		pt = image.Pt(int(xcenter), pt.Y)
