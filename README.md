@@ -134,6 +134,8 @@ A simple button that can display an image and/or a label.
     fontsize = 10.0
 ```
 
+The config options `icon`, `label`, and `fontsize` are optional.
+
 #### Recent Window (requires X11)
 
 Displays the icon of a recently used window/application. Pressing the button
@@ -189,7 +191,8 @@ This widget shows the current CPU or memory utilization as a bar graph.
     fillColor = "#d497de"
 ```
 
-There are two values for `mode`: `cpu` and `memory`.
+There are two values for `mode`: `cpu` and `memory`. The config option
+`fillColor` is optional.
 
 #### Command
 
