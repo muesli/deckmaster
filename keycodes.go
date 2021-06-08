@@ -249,7 +249,7 @@ var keycodes = map[string]uint8{
 
 func formatKeycodes(keycode string) string {
 	for k, v := range keycodes {
-		if strings.ToLower(keycode) == strings.ToLower(k) {
+		if strings.EqualFold(keycode, k) {
 			keycode = strconv.Itoa(int(v))
 			break
 		}
