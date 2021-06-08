@@ -185,7 +185,7 @@ func executeDBusMethod(object, path, method, args string) {
 // executes a command.
 func executeCommand(cmd string) {
 	args := strings.Split(cmd, " ")
-	c := exec.Command(args[0], args[1:]...)
+	c := exec.Command(args[0], args[1:]...) //nolint:gosec
 	if err := c.Start(); err != nil {
 		log.Printf("command failed: %s", err)
 		return
