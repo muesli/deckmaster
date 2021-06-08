@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"image"
 	"image/draw"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -30,7 +29,7 @@ func LoadDeck(dev *streamdeck.Device, base string, deck string) (*Deck, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Println("Loading deck:", path)
+	fmt.Println("Loading deck:", path)
 
 	dc, err := LoadConfig(path)
 	if err != nil {
@@ -142,7 +141,7 @@ func emulateKeyPresses(keys string) {
 // emulates a (multi-)key press.
 func emulateKeyPress(keys string) {
 	if keyboard == nil {
-		log.Println("Keyboard emulation is disabled!")
+		fmt.Println("Keyboard emulation is disabled!")
 		return
 	}
 
@@ -151,7 +150,7 @@ func emulateKeyPress(keys string) {
 		k = formatKeycodes(strings.TrimSpace(k))
 		kc, err := strconv.Atoi(k)
 		if err != nil {
-			log.Fatalf("%s is not a valid keycode: %s", k, err)
+			fatalf("%s is not a valid keycode: %s\n", k, err)
 		}
 
 		if i+1 < len(kk) {
@@ -167,7 +166,7 @@ func emulateKeyPress(keys string) {
 func emulateClipboard(text string) {
 	err := clipboard.WriteAll(text)
 	if err != nil {
-		log.Fatalf("Pasting to clipboard failed: %s", err)
+		fatalf("Pasting to clipboard failed: %s\n", err)
 	}
 
 	// paste the string
@@ -178,7 +177,7 @@ func emulateClipboard(text string) {
 func executeDBusMethod(object, path, method, args string) {
 	call := dbusConn.Object(object, dbus.ObjectPath(path)).Call(method, 0, args)
 	if call.Err != nil {
-		log.Printf("dbus call failed: %s", call.Err)
+		fmt.Printf("dbus call failed: %s\n", call.Err)
 	}
 }
 
@@ -187,12 +186,12 @@ func executeCommand(cmd string) {
 	args := strings.Split(cmd, " ")
 	c := exec.Command(args[0], args[1:]...) //nolint:gosec
 	if err := c.Start(); err != nil {
-		log.Printf("command failed: %s", err)
+		fmt.Printf("command failed: %s\n", err)
 		return
 	}
 
 	if err := c.Wait(); err != nil {
-		log.Printf("command failed: %s", err)
+		fmt.Printf("command failed: %s\n", err)
 	}
 }
 
@@ -208,15 +207,15 @@ func (d *Deck) triggerAction(dev *streamdeck.Device, index uint8, hold bool) {
 			}
 
 			if a != nil {
-				// log.Println("Executing overloaded action")
+				// fmt.Println("Executing overloaded action")
 				if a.Deck != "" {
 					d, err := LoadDeck(dev, filepath.Dir(d.File), a.Deck)
 					if err != nil {
-						log.Fatal(err)
+						fatal(err)
 					}
 					err = dev.Clear()
 					if err != nil {
-						log.Fatal(err)
+						fatal(err)
 					}
 
 					deck = d
@@ -248,9 +247,9 @@ func (d *Deck) updateWidgets(dev *streamdeck.Device) {
 			continue
 		}
 
-		// log.Printf("Repaint %d", w.Key())
+		// fmt.Println("Repaint", w.Key())
 		if err := w.Update(dev); err != nil {
-			log.Fatalf("error: %v", err)
+			fatalf("error: %v\n", err)
 		}
 	}
 }

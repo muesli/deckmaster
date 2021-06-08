@@ -1,8 +1,8 @@
 package main
 
 import (
+	"fmt"
 	"image"
-	"log"
 
 	"github.com/muesli/streamdeck"
 )
@@ -74,7 +74,7 @@ func (w *RecentWindowWidget) Update(dev *streamdeck.Device) error {
 // TriggerAction gets called when a button is pressed.
 func (w *RecentWindowWidget) TriggerAction(hold bool) {
 	if xorg == nil {
-		log.Println("xorg support is disabled!")
+		fmt.Println("xorg support is disabled!")
 		return
 	}
 

@@ -1,13 +1,13 @@
 package main
 
 import (
-	"log"
+	"fmt"
 
 	"github.com/muesli/streamdeck"
 )
 
 func handleActiveWindowChanged(dev *streamdeck.Device, event ActiveWindowChangedEvent) {
-	log.Printf("Active window changed to %s (%d, %s)\n",
+	fmt.Printf("Active window changed to %s (%d, %s)\n",
 		event.Window.Class, event.Window.ID, event.Window.Name)
 
 	// remove dupes

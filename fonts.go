@@ -4,7 +4,6 @@ import (
 	"image"
 	"image/color"
 	"io/ioutil"
-	"log"
 
 	"github.com/flopp/go-findfont"
 	"github.com/golang/freetype"
@@ -87,16 +86,16 @@ func init() {
 	var err error
 	ttfFont, err = loadFont("Roboto-Regular.ttf")
 	if err != nil {
-		log.Fatal(err)
+		fatal(err)
 	}
 
 	ttfThinFont, err = loadFont("Roboto-Thin.ttf")
 	if err != nil {
-		log.Fatal(err)
+		fatal(err)
 	}
 
 	ttfBoldFont, err = loadFont("Roboto-Bold.ttf")
 	if err != nil {
-		log.Fatal(err)
+		fatal(err)
 	}
 }

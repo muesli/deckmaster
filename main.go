@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"sync"
@@ -33,6 +32,16 @@ const (
 	longPressDuration = 350 * time.Millisecond
 )
 
+func fatal(v ...interface{}) {
+	fmt.Println(v...)
+	os.Exit(1)
+}
+
+func fatalf(format string, a ...interface{}) {
+	fmt.Printf(format, a...)
+	os.Exit(1)
+}
+
 func expandPath(base, path string) (string, error) {
 	var err error
 	path, err = homedir.Expand(path)
@@ -53,7 +62,7 @@ func eventLoop(dev *streamdeck.Device, tch chan interface{}) {
 
 	kch, err := dev.ReadKeys()
 	if err != nil {
-		log.Fatal(err)
+		fatal(err)
 	}
 	for {
 		select {
@@ -64,7 +73,7 @@ func eventLoop(dev *streamdeck.Device, tch chan interface{}) {
 			if !ok {
 				err = dev.Open()
 				if err != nil {
-					log.Fatal(err)
+					fatal(err)
 				}
 				continue
 			}
@@ -78,7 +87,7 @@ func eventLoop(dev *streamdeck.Device, tch chan interface{}) {
 			if state && !k.Pressed {
 				// key was released
 				if time.Since(keyTimestamps[k.Index]) < longPressDuration {
-					// log.Println("Triggering short action")
+					// fmt.Println("Triggering short action")
 					deck.triggerAction(dev, k.Index, false)
 				}
 			}
@@ -90,7 +99,7 @@ func eventLoop(dev *streamdeck.Device, tch chan interface{}) {
 
 					if state, ok := keyStates.Load(k.Index); ok && state.(bool) {
 						// key still pressed
-						// log.Println("Triggering long action")
+						// fmt.Println("Triggering long action")
 						deck.triggerAction(dev, k.Index, true)
 					}
 				}()
@@ -112,7 +121,7 @@ func eventLoop(dev *streamdeck.Device, tch chan interface{}) {
 func initDevice() (*streamdeck.Device, error) {
 	d, err := streamdeck.Devices()
 	if err != nil {
-		log.Fatal(err)
+		fatal(err)
 	}
 	if len(d) == 0 {
 		return nil, fmt.Errorf("no Stream Deck devices found")
@@ -129,9 +138,9 @@ func initDevice() (*streamdeck.Device, error) {
 			}
 		}
 		if !found {
-			log.Println("can't find device. Available devices:")
+			fmt.Println("Can't find device. Available devices:")
 			for _, v := range d {
-				log.Printf("Serial %s (%d buttons)\n", v.Serial, v.Columns*v.Rows)
+				fmt.Printf("Serial %s (%d buttons)\n", v.Serial, v.Columns*v.Rows)
 			}
 			os.Exit(1)
 		}
@@ -144,7 +153,7 @@ func initDevice() (*streamdeck.Device, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("Found device with serial %s (%d buttons, firmware %s)\n",
+	fmt.Printf("Found device with serial %s (%d buttons, firmware %s)\n",
 		dev.Serial, dev.Columns*dev.Rows, ver)
 
 	if err := dev.Reset(); err != nil {
@@ -167,13 +176,13 @@ func main() {
 	// initialize device
 	dev, err := initDevice()
 	if err != nil {
-		log.Fatal(err)
+		fatal(err)
 	}
 
 	// initialize dbus connection
 	dbusConn, err = dbus.SessionBus()
 	if err != nil {
-		log.Fatal(err)
+		fatal(err)
 	}
 
 	// initialize xorg connection and track window focus
@@ -187,8 +196,8 @@ func main() {
 	// initialize virtual keyboard
 	keyboard, err = uinput.CreateKeyboard("/dev/uinput", []byte("Deckmaster"))
 	if err != nil {
-		log.Printf("Could not create virtual input device (/dev/uinput): %s", err)
-		log.Println("Emulating keyboard events will be disabled!")
+		fmt.Printf("Could not create virtual input device (/dev/uinput): %s\n", err)
+		fmt.Println("Emulating keyboard events will be disabled!")
 	} else {
 		defer keyboard.Close() //nolint:errcheck
 	}
@@ -196,7 +205,7 @@ func main() {
 	// load deck
 	deck, err = LoadDeck(dev, ".", *deckFile)
 	if err != nil {
-		log.Fatal(err)
+		fatal(err)
 	}
 	deck.updateWidgets(dev)
 

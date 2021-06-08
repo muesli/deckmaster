@@ -5,7 +5,6 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
-	"log"
 	"strconv"
 
 	"github.com/muesli/streamdeck"
@@ -51,7 +50,7 @@ func (w *TopWidget) Update(dev *streamdeck.Device) error {
 	case "cpu":
 		cpuUsage, err := cpu.Percent(0, false)
 		if err != nil {
-			log.Fatal(err)
+			fatal(err)
 		}
 
 		value = cpuUsage[0]
@@ -60,7 +59,7 @@ func (w *TopWidget) Update(dev *streamdeck.Device) error {
 	case "memory":
 		memory, err := mem.VirtualMemory()
 		if err != nil {
-			log.Fatal(err)
+			fatal(err)
 		}
 		value = memory.UsedPercent
 		label = "MEM"
