@@ -3,11 +3,14 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"image/color"
 	"io/ioutil"
+	"math"
 	"reflect"
 	"strconv"
 
 	"github.com/BurntSushi/toml"
+	colorful "github.com/lucasb-eyer/go-colorful"
 )
 
 // DBusConfig describes a dbus action.
@@ -123,6 +126,27 @@ func ConfigValue(v interface{}, dst interface{}) error {
 			*d = x
 		default:
 			return fmt.Errorf("unhandled type %+v for float64 conversion", reflect.TypeOf(vt))
+		}
+
+	case *color.Color:
+		switch vt := v.(type) {
+		case int64:
+			x := math.Min(1.0, math.Max(0.0, float64(vt)/255))
+			*d = colorful.Color{x, x, x}
+		case float64:
+			x := math.Min(1.0, math.Max(0.0, vt/255))
+			*d = colorful.Color{x, x, x}
+		case bool:
+			if vt {
+				*d = colorful.Color{1.0, 1.0, 1.0}
+			} else {
+				*d = colorful.Color{0.0, 0.0, 0.0}
+			}
+		case string:
+			x, _ := colorful.Hex(vt)
+			*d = x
+		default:
+			return fmt.Errorf("unhandled type %+v for color.Color conversion", reflect.TypeOf(vt))
 		}
 
 	default:
