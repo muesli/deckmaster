@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"image"
+	"image/color"
 	"strings"
 	"time"
 
@@ -15,6 +16,7 @@ type TimeWidget struct {
 
 	format string
 	font   string
+	color  color.Color
 }
 
 // NewTimeWidget returns a new TimeWidget.
@@ -24,11 +26,14 @@ func NewTimeWidget(bw BaseWidget, opts WidgetConfig) *TimeWidget {
 	var format, font string
 	_ = ConfigValue(opts.Config["format"], &format)
 	_ = ConfigValue(opts.Config["font"], &font)
+	var color color.Color
+	_ = ConfigValue(opts.Config["color"], &color)
 
 	return &TimeWidget{
 		BaseWidget: bw,
 		format:     format,
 		font:       font,
+		color:      color,
 	}
 }
 
@@ -49,6 +54,10 @@ func (w *TimeWidget) Update(dev *streamdeck.Device) error {
 		fonts = append(fonts, "regular")
 	}
 
+	if w.color == nil {
+		w.color = DefaultColor
+	}
+
 	for i := 0; i < len(formats); i++ {
 		str := formatTime(time.Now(), formats[i])
 		font := fontByName(fonts[i])
@@ -60,6 +69,7 @@ func (w *TimeWidget) Update(dev *streamdeck.Device) error {
 			str,
 			dev.DPI,
 			-1,
+			w.color,
 			image.Pt(-1, -1))
 	}
 

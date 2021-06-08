@@ -132,6 +132,7 @@ A simple button that can display an image and/or a label.
     icon = "/some/image.png"
     label = "My Button"
     fontsize = 10.0
+    color = "#fefefe"
 ```
 
 The config options `icon`, `label`, and `fontsize` are optional.
@@ -158,6 +159,7 @@ A flexible widget that can display the current time or date.
   [keys.widget.config]
     format = "%H;%i;%s"
     font = "bold;regular;thin"
+    color = "#fefefe"
 ```
 
 Values for `format` are:
@@ -188,6 +190,7 @@ This widget shows the current CPU or memory utilization as a bar graph.
   id = "top"
   [keys.widget.config]
     mode = "cpu"
+    color = "#fefefe"
     fillColor = "#d497de"
 ```
 
