@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"sync"
 	"time"
 
 	"github.com/bendahl/uinput"
 	"github.com/godbus/dbus"
+	"github.com/mitchellh/go-homedir"
 	"github.com/muesli/streamdeck"
 )
 
@@ -26,109 +28,25 @@ var (
 	brightness = flag.Uint("brightness", 80, "brightness in percent")
 )
 
-func handleActiveWindowChanged(dev streamdeck.Device, event ActiveWindowChangedEvent) {
-	log.Printf("Active window changed to %s (%d, %s)\n",
-		event.Window.Class, event.Window.ID, event.Window.Name)
+const (
+	longPressDuration = 350 * time.Millisecond
+)
 
-	// remove dupes
-	i := 0
-	for _, rw := range recentWindows {
-		if rw.ID == event.Window.ID {
-			continue
-		}
-
-		recentWindows[i] = rw
-		i++
-	}
-	recentWindows = recentWindows[:i]
-
-	keys := int(dev.Rows * dev.Columns)
-	recentWindows = append([]Window{event.Window}, recentWindows...)
-	if len(recentWindows) > keys {
-		recentWindows = recentWindows[0:keys]
-	}
-	deck.updateWidgets(&dev)
-}
-
-func handleWindowClosed(dev streamdeck.Device, event WindowClosedEvent) {
-	i := 0
-	for _, rw := range recentWindows {
-		if rw.ID == event.Window.ID {
-			continue
-		}
-
-		recentWindows[i] = rw
-		i++
-	}
-	recentWindows = recentWindows[:i]
-	deck.updateWidgets(&dev)
-}
-
-func main() {
-	flag.Parse()
-
+func expandPath(base, path string) (string, error) {
 	var err error
-
-	dbusConn, err = dbus.SessionBus()
+	path, err = homedir.Expand(path)
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 
-	tch := make(chan interface{})
-	xorg, err = Connect(os.Getenv("DISPLAY"))
-	if err == nil {
-		defer xorg.Close()
-		xorg.TrackWindows(tch, time.Second)
+	if !filepath.IsAbs(path) {
+		path = filepath.Join(base, path)
 	}
 
-	d, err := streamdeck.Devices()
-	if err != nil {
-		log.Fatal(err)
-	}
-	if len(d) == 0 {
-		fmt.Println("No Stream Deck devices found.")
-		return
-	}
-	dev := d[0]
+	return filepath.Abs(path)
+}
 
-	err = dev.Open()
-	if err != nil {
-		log.Fatal(err)
-	}
-	ver, err := dev.FirmwareVersion()
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Printf("Found device with serial %s (firmware %s)\n",
-		dev.Serial, ver)
-
-	deck, err = LoadDeck(&dev, ".", *deckFile)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = dev.Reset()
-	if err != nil {
-		log.Fatal(err)
-	}
-	deck.updateWidgets(&dev)
-
-	if *brightness > 100 {
-		*brightness = 100
-	}
-	err = dev.SetBrightness(uint8(*brightness))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	keyboard, err = uinput.CreateKeyboard("/dev/uinput", []byte("Deckmaster"))
-	if err != nil {
-		log.Printf("Could not create virtual input device (/dev/uinput): %s", err)
-		log.Println("Emulating keyboard events will be disabled!")
-	} else {
-		defer keyboard.Close() //nolint:errcheck
-	}
-
+func eventLoop(dev *streamdeck.Device, tch chan interface{}) {
 	var keyStates sync.Map
 	keyTimestamps := make(map[uint8]time.Time)
 
@@ -139,7 +57,7 @@ func main() {
 	for {
 		select {
 		case <-time.After(100 * time.Millisecond):
-			deck.updateWidgets(&dev)
+			deck.updateWidgets(dev)
 
 		case k, ok := <-kch:
 			if !ok {
@@ -158,21 +76,21 @@ func main() {
 
 			if state && !k.Pressed {
 				// key was released
-				if time.Since(keyTimestamps[k.Index]) < 200*time.Millisecond {
+				if time.Since(keyTimestamps[k.Index]) < longPressDuration {
 					// log.Println("Triggering short action")
-					deck.triggerAction(&dev, k.Index, false)
+					deck.triggerAction(dev, k.Index, false)
 				}
 			}
 			if !state && k.Pressed {
 				// key was pressed
 				go func() {
 					// launch timer to observe keystate
-					time.Sleep(200 * time.Millisecond)
+					time.Sleep(longPressDuration)
 
 					if state, ok := keyStates.Load(k.Index); ok && state.(bool) {
 						// key still pressed
 						// log.Println("Triggering long action")
-						deck.triggerAction(&dev, k.Index, true)
+						deck.triggerAction(dev, k.Index, true)
 					}
 				}()
 			}
@@ -188,4 +106,80 @@ func main() {
 			}
 		}
 	}
+}
+
+func initDevice() (*streamdeck.Device, error) {
+	d, err := streamdeck.Devices()
+	if err != nil {
+		log.Fatal(err)
+	}
+	if len(d) == 0 {
+		return nil, fmt.Errorf("no Stream Deck devices found")
+	}
+	dev := d[0]
+
+	if err := dev.Open(); err != nil {
+		return nil, err
+	}
+	ver, err := dev.FirmwareVersion()
+	if err != nil {
+		return nil, err
+	}
+	log.Printf("Found device with serial %s (firmware %s)\n",
+		dev.Serial, ver)
+
+	if err := dev.Reset(); err != nil {
+		return nil, err
+	}
+
+	if *brightness > 100 {
+		*brightness = 100
+	}
+	if err = dev.SetBrightness(uint8(*brightness)); err != nil {
+		return nil, err
+	}
+
+	return &dev, nil
+}
+
+func main() {
+	flag.Parse()
+
+	// initialize device
+	dev, err := initDevice()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// initialize dbus connection
+	dbusConn, err = dbus.SessionBus()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// initialize xorg connection and track window focus
+	tch := make(chan interface{})
+	xorg, err = Connect(os.Getenv("DISPLAY"))
+	if err == nil {
+		defer xorg.Close()
+		xorg.TrackWindows(tch, time.Second)
+	}
+
+	// initialize virtual keyboard
+	keyboard, err = uinput.CreateKeyboard("/dev/uinput", []byte("Deckmaster"))
+	if err != nil {
+		log.Printf("Could not create virtual input device (/dev/uinput): %s", err)
+		log.Println("Emulating keyboard events will be disabled!")
+	} else {
+		defer keyboard.Close() //nolint:errcheck
+	}
+
+	// load deck
+	deck, err = LoadDeck(dev, ".", *deckFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+	deck.updateWidgets(dev)
+
+	eventLoop(dev, tch)
 }
