@@ -17,24 +17,26 @@ import (
 // TopWidget is a widget displaying the current CPU/MEM usage as a bar.
 type TopWidget struct {
 	BaseWidget
+
 	mode      string
 	fillColor string
 
 	lastValue float64
 }
 
-func NewTopWidget(bw BaseWidget, opts WidgetConfig) (*TopWidget, error) {
+// NewTopWidget returns a new TopWidget.
+func NewTopWidget(bw BaseWidget, opts WidgetConfig) *TopWidget {
 	bw.setInterval(opts.Interval, 500)
 
 	var mode, fillColor string
-	ConfigValue(opts.Config["mode"], &mode)
-	ConfigValue(opts.Config["fillColor"], &fillColor)
+	_ = ConfigValue(opts.Config["mode"], &mode)
+	_ = ConfigValue(opts.Config["fillColor"], &fillColor)
 
 	return &TopWidget{
 		BaseWidget: bw,
 		mode:       mode,
 		fillColor:  fillColor,
-	}, nil
+	}
 }
 
 // Update renders the widget.

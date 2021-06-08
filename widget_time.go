@@ -17,18 +17,19 @@ type TimeWidget struct {
 	font   string
 }
 
-func NewTimeWidget(bw BaseWidget, opts WidgetConfig) (*TimeWidget, error) {
+// NewTimeWidget returns a new TimeWidget.
+func NewTimeWidget(bw BaseWidget, opts WidgetConfig) *TimeWidget {
 	bw.setInterval(opts.Interval, 500)
 
 	var format, font string
-	ConfigValue(opts.Config["format"], &format)
-	ConfigValue(opts.Config["font"], &font)
+	_ = ConfigValue(opts.Config["format"], &format)
+	_ = ConfigValue(opts.Config["font"], &font)
 
 	return &TimeWidget{
 		BaseWidget: bw,
 		format:     format,
 		font:       font,
-	}, nil
+	}
 }
 
 // Update renders the widget.

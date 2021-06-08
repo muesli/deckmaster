@@ -95,22 +95,22 @@ func NewWidget(base string, kc KeyConfig, bg image.Image) (Widget, error) {
 		kc.Widget.Config = make(map[string]interface{})
 		kc.Widget.Config["format"] = "%H;%i;%s"
 		kc.Widget.Config["font"] = "bold;regular;thin"
-		return NewTimeWidget(*bw, kc.Widget)
+		return NewTimeWidget(*bw, kc.Widget), nil
 
 	case "date":
 		kc.Widget.Config = make(map[string]interface{})
 		kc.Widget.Config["format"] = "%l;%d;%M"
 		kc.Widget.Config["font"] = "regular;bold;regular"
-		return NewTimeWidget(*bw, kc.Widget)
+		return NewTimeWidget(*bw, kc.Widget), nil
 
 	case "time":
-		return NewTimeWidget(*bw, kc.Widget)
+		return NewTimeWidget(*bw, kc.Widget), nil
 
 	case "recentWindow":
 		return NewRecentWindowWidget(*bw, kc.Widget)
 
 	case "top":
-		return NewTopWidget(*bw, kc.Widget)
+		return NewTopWidget(*bw, kc.Widget), nil
 	}
 
 	// unknown widget ID
