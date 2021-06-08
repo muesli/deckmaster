@@ -86,6 +86,19 @@ func ConfigValue(v interface{}, dst interface{}) error {
 			return fmt.Errorf("unhandled type %+v for string conversion", reflect.TypeOf(vt))
 		}
 
+	case *bool:
+		switch vt := v.(type) {
+		case bool:
+			*d = vt
+		case string:
+			b, _ := strconv.ParseBool(vt)
+			*d = b
+		case int64:
+			*d = vt > 0
+		default:
+			return fmt.Errorf("unhandled type %+v for bool conversion", reflect.TypeOf(vt))
+		}
+
 	case *int64:
 		switch vt := v.(type) {
 		case int64:
