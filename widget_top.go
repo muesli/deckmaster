@@ -8,7 +8,6 @@ import (
 	"log"
 	"strconv"
 
-	colorful "github.com/lucasb-eyer/go-colorful"
 	"github.com/muesli/streamdeck"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/mem"
@@ -19,7 +18,8 @@ type TopWidget struct {
 	BaseWidget
 
 	mode      string
-	fillColor string
+	color     color.Color
+	fillColor color.Color
 
 	lastValue float64
 }
@@ -28,13 +28,16 @@ type TopWidget struct {
 func NewTopWidget(bw BaseWidget, opts WidgetConfig) *TopWidget {
 	bw.setInterval(opts.Interval, 500)
 
-	var mode, fillColor string
+	var mode string
 	_ = ConfigValue(opts.Config["mode"], &mode)
+	var color, fillColor color.Color
+	_ = ConfigValue(opts.Config["color"], &color)
 	_ = ConfigValue(opts.Config["fillColor"], &fillColor)
 
 	return &TopWidget{
 		BaseWidget: bw,
 		mode:       mode,
+		color:      color,
 		fillColor:  fillColor,
 	}
 }
@@ -71,12 +74,11 @@ func (w *TopWidget) Update(dev *streamdeck.Device) error {
 	}
 	w.lastValue = value
 
-	if w.fillColor == "" {
-		w.fillColor = "#a69bd6"
+	if w.color == nil {
+		w.color = DefaultColor
 	}
-	fill, err := colorful.Hex(w.fillColor)
-	if err != nil {
-		return fmt.Errorf("invalid color: %s", w.fillColor)
+	if w.fillColor == nil {
+		w.fillColor = color.RGBA{166, 155, 182, 255}
 	}
 
 	size := int(dev.Pixels)
@@ -85,7 +87,7 @@ func (w *TopWidget) Update(dev *streamdeck.Device) error {
 
 	draw.Draw(img,
 		image.Rect(12, 6, size-12, size-18),
-		&image.Uniform{color.RGBA{255, 255, 255, 255}},
+		&image.Uniform{w.color},
 		image.Point{}, draw.Src)
 	draw.Draw(img,
 		image.Rect(13, 7, size-14, size-20),
@@ -93,7 +95,7 @@ func (w *TopWidget) Update(dev *streamdeck.Device) error {
 		image.Point{}, draw.Src)
 	draw.Draw(img,
 		image.Rect(14, 7+int(float64(size-26)*(1-value/100)), size-15, size-21),
-		&image.Uniform{fill},
+		&image.Uniform{w.fillColor},
 		image.Point{}, draw.Src)
 
 	// draw percentage
@@ -107,6 +109,7 @@ func (w *TopWidget) Update(dev *streamdeck.Device) error {
 		strconv.FormatInt(int64(value), 10),
 		dev.DPI,
 		13,
+		w.color,
 		image.Pt(-1, -1))
 
 	// draw description
@@ -120,6 +123,7 @@ func (w *TopWidget) Update(dev *streamdeck.Device) error {
 		"% "+label,
 		dev.DPI,
 		-1,
+		w.color,
 		image.Pt(-1, -1))
 
 	return w.render(dev, img)

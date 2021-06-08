@@ -15,6 +15,10 @@ import (
 	"github.com/nfnt/resize"
 )
 
+var (
+	DefaultColor = color.RGBA{255, 255, 255, 255}
+)
+
 // Widget is an interface implemented by all available widgets.
 type Widget interface {
 	Key() uint8
@@ -173,7 +177,7 @@ func drawImage(img *image.RGBA, icon image.Image, size int, pt image.Point) erro
 	return nil
 }
 
-func drawString(img *image.RGBA, bounds image.Rectangle, ttf *truetype.Font, text string, dpi uint, fontsize float64, pt image.Point) {
+func drawString(img *image.RGBA, bounds image.Rectangle, ttf *truetype.Font, text string, dpi uint, fontsize float64, color color.Color, pt image.Point) {
 	c := ftContext(img, ttf, dpi, fontsize)
 
 	if fontsize <= 0 {
@@ -198,7 +202,7 @@ func drawString(img *image.RGBA, bounds image.Rectangle, ttf *truetype.Font, tex
 		pt = image.Pt(pt.X, bounds.Min.Y+int(ycenter))
 	}
 
-	c.SetSrc(image.NewUniform(color.RGBA{255, 255, 255, 255}))
+	c.SetSrc(image.NewUniform(color))
 	if _, err := c.DrawString(text, freetype.Pt(pt.X, pt.Y)); err != nil {
 		log.Fatal(err)
 	}
