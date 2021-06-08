@@ -15,6 +15,7 @@ type ButtonWidget struct {
 	fontsize float64
 }
 
+// NewButtonWidget returns a new ButtonWidget.
 func NewButtonWidget(bw BaseWidget, opts WidgetConfig) (*ButtonWidget, error) {
 	bw.setInterval(opts.Interval, 0)
 

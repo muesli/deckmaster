@@ -17,6 +17,7 @@ type RecentWindowWidget struct {
 	lastClass string
 }
 
+// NewRecentWindowWidget returns a new RecentWindowWidget.
 func NewRecentWindowWidget(bw BaseWidget, opts WidgetConfig) (*RecentWindowWidget, error) {
 	var window int64
 	if err := ConfigValue(opts.Config["window"], &window); err != nil {

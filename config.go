@@ -75,6 +75,7 @@ func (c DeckConfig) Save(filename string) error {
 	return ioutil.WriteFile(filename, b.Bytes(), 0600)
 }
 
+// ConfigValue tries to convert an interface{} to the desired type.
 func ConfigValue(v interface{}, dst interface{}) error {
 	switch d := dst.(type) {
 	case *string:
