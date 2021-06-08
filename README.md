@@ -104,6 +104,20 @@ systemctl --user enable streamdeck.path
 systemctl --user start streamdeck.path
 ```
 
+## Usage
+
+Start `deckmaster` with the initial deck configuration you want to load:
+
+```bash
+deckmaster -deck deck/main.deck
+```
+
+You can control the brightness, in percent:
+
+```bash
+deckmaster -brightness 50
+```
+
 ## Configuration
 
 You can find a few example configurations in the [decks](https://github.com/muesli/deckmaster/tree/master/decks)
@@ -264,16 +278,6 @@ A list of available keycodes can be found here: [keycodes](https://github.com/mu
     value = "value"
 ```
 
-## Usage
+## More Decks!
 
-Start `deckmaster`:
-
-```bash
-deckmaster -deck deck/main.deck
-```
-
-You can control the brightness, in percent:
-
-```bash
-deckmaster -brightness 50
-```
+[deckmaster-emojis](https://github.com/muesli/deckmaster-emojis), an Emoji keyboard deck
