@@ -25,6 +25,7 @@ var (
 	recentWindows []Window
 
 	deckFile   = flag.String("deck", "deckmaster.deck", "path to deck config file")
+	device     = flag.String("device", "", "which device to use (serial number)")
 	brightness = flag.Uint("brightness", 80, "brightness in percent")
 )
 
@@ -116,7 +117,25 @@ func initDevice() (*streamdeck.Device, error) {
 	if len(d) == 0 {
 		return nil, fmt.Errorf("no Stream Deck devices found")
 	}
+
 	dev := d[0]
+	if len(*device) > 0 {
+		found := false
+		for _, v := range d {
+			if v.Serial == *device {
+				dev = v
+				found = true
+				break
+			}
+		}
+		if !found {
+			log.Println("can't find device. Available devices:")
+			for _, v := range d {
+				log.Printf("Serial %s (%d buttons)\n", v.Serial, v.Columns*v.Rows)
+			}
+			os.Exit(1)
+		}
+	}
 
 	if err := dev.Open(); err != nil {
 		return nil, err
@@ -125,8 +144,8 @@ func initDevice() (*streamdeck.Device, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("Found device with serial %s (firmware %s)\n",
-		dev.Serial, ver)
+	log.Printf("Found device with serial %s (%d buttons, firmware %s)\n",
+		dev.Serial, dev.Columns*dev.Rows, ver)
 
 	if err := dev.Reset(); err != nil {
 		return nil, err
