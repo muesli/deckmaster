@@ -23,7 +23,7 @@ var (
 	xorg          *Xorg
 	recentWindows []Window
 
-	deckFile   = flag.String("deck", "deckmaster.deck", "path to deck config file")
+	deckFile   = flag.String("deck", "main.deck", "path to deck config file")
 	device     = flag.String("device", "", "which device to use (serial number)")
 	brightness = flag.Uint("brightness", 80, "brightness in percent")
 )

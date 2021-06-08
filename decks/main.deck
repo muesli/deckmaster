@@ -39,6 +39,8 @@
       fontsize = 8
   [keys.action]
     keycode = "VolumeDown"
+  [keys.action_hold]
+    keycode = "Mute"
 
 [[keys]]
   index = 6
@@ -50,18 +52,8 @@
       fontsize = 8
   [keys.action]
     keycode = "VolumeUp"
-
-[[keys]]
-  index = 7
-  [keys.widget]
-    id = "button"
-    [keys.widget.config]
-      icon = "assets/emoticons/slightly-smiling-face.png"
-      label = "Emoticons"
-  [keys.action]
-    deck = "emoticons.deck"
   [keys.action_hold]
-    deck = "symbols.deck"
+    keycode = "Mute"
 
 [[keys]]
   index = 8
