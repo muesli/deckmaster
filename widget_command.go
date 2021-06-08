@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"image"
+	"image/color"
 	"os/exec"
 	"strings"
 
@@ -12,8 +13,10 @@ import (
 // CommandWidget is a widget displaying the output of command(s).
 type CommandWidget struct {
 	BaseWidget
+
 	command string
 	font    string
+	color   color.Color
 }
 
 // NewCommandWidget returns a new CommandWidget.
@@ -23,11 +26,14 @@ func NewCommandWidget(bw BaseWidget, opts WidgetConfig) *CommandWidget {
 	var command, font string
 	_ = ConfigValue(opts.Config["command"], &command)
 	_ = ConfigValue(opts.Config["font"], &font)
+	var color color.Color
+	_ = ConfigValue(opts.Config["color"], &color)
 
 	return &CommandWidget{
 		BaseWidget: bw,
 		command:    command,
 		font:       font,
+		color:      color,
 	}
 }
 
@@ -48,6 +54,10 @@ func (w *CommandWidget) Update(dev *streamdeck.Device) error {
 		fonts = append(fonts, "regular")
 	}
 
+	if w.color == nil {
+		w.color = DefaultColor
+	}
+
 	for i := 0; i < len(commands); i++ {
 		str, err := runCommand(commands[i])
 		if err != nil {
@@ -62,6 +72,7 @@ func (w *CommandWidget) Update(dev *streamdeck.Device) error {
 			str,
 			dev.DPI,
 			-1,
+			w.color,
 			image.Pt(-1, -1))
 	}
 
