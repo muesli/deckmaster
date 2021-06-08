@@ -33,12 +33,12 @@ const (
 )
 
 func fatal(v ...interface{}) {
-	fmt.Println(v...)
+	fmt.Fprintln(os.Stderr, v...)
 	os.Exit(1)
 }
 
 func fatalf(format string, a ...interface{}) {
-	fmt.Printf(format, a...)
+	fmt.Fprintf(os.Stderr, format, a...)
 	os.Exit(1)
 }
 
