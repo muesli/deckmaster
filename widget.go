@@ -118,6 +118,9 @@ func NewWidget(base string, kc KeyConfig, bg image.Image) (Widget, error) {
 
 	case "command":
 		return NewCommandWidget(*bw, kc.Widget), nil
+
+	case "weather":
+		return NewWeatherWidget(*bw, kc.Widget), nil
 	}
 
 	// unknown widget ID
