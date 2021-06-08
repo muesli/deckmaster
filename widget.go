@@ -22,7 +22,7 @@ type Widget interface {
 	Update(dev *streamdeck.Device) error
 	Action() *ActionConfig
 	ActionHold() *ActionConfig
-	TriggerAction()
+	TriggerAction(hold bool)
 }
 
 // BaseWidget provides common functionality required by all widgets.
@@ -52,7 +52,7 @@ func (w *BaseWidget) ActionHold() *ActionConfig {
 }
 
 // TriggerAction gets called when a button is pressed.
-func (w *BaseWidget) TriggerAction() {
+func (w *BaseWidget) TriggerAction(_ bool) {
 	// just a stub
 }
 

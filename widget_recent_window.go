@@ -58,13 +58,18 @@ func (w *RecentWindowWidget) Update(dev *streamdeck.Device) error {
 }
 
 // TriggerAction gets called when a button is pressed.
-func (w *RecentWindowWidget) TriggerAction() {
+func (w *RecentWindowWidget) TriggerAction(hold bool) {
 	if xorg == nil {
 		log.Println("xorg support is disabled!")
 		return
 	}
 
 	if int(w.window) < len(recentWindows) {
+		if hold {
+			_ = xorg.CloseWindow(recentWindows[w.window])
+			return
+		}
+
 		_ = xorg.RequestActivation(recentWindows[w.window])
 	}
 }

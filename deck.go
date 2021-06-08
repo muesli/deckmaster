@@ -235,7 +235,7 @@ func (d *Deck) triggerAction(dev *streamdeck.Device, index uint8, hold bool) {
 					go executeCommand(a.Exec)
 				}
 			} else {
-				w.TriggerAction()
+				w.TriggerAction(hold)
 			}
 		}
 	}
