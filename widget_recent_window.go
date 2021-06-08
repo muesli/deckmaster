@@ -2,19 +2,19 @@ package main
 
 import (
 	"image"
-	"image/draw"
 	"log"
 
 	"github.com/muesli/streamdeck"
-	"github.com/nfnt/resize"
 )
 
 // RecentWindowWidget is a widget displaying a recently activated window.
 type RecentWindowWidget struct {
 	BaseWidget
-	window uint8
 
-	lastClass string
+	window    uint8
+	showTitle bool
+
+	lastID uint32
 }
 
 // NewRecentWindowWidget returns a new RecentWindowWidget.
@@ -23,17 +23,20 @@ func NewRecentWindowWidget(bw BaseWidget, opts WidgetConfig) (*RecentWindowWidge
 	if err := ConfigValue(opts.Config["window"], &window); err != nil {
 		return nil, err
 	}
+	var showTitle bool
+	_ = ConfigValue(opts.Config["showTitle"], &showTitle)
 
 	return &RecentWindowWidget{
 		BaseWidget: bw,
 		window:     uint8(window),
+		showTitle:  showTitle,
 	}, nil
 }
 
 // RequiresUpdate returns true when the widget wants to be repainted.
 func (w *RecentWindowWidget) RequiresUpdate() bool {
 	if int(w.window) < len(recentWindows) {
-		return w.lastClass != recentWindows[w.window].Class
+		return w.lastID != recentWindows[w.window].ID
 	}
 
 	return w.BaseWidget.RequiresUpdate()
@@ -43,15 +46,26 @@ func (w *RecentWindowWidget) RequiresUpdate() bool {
 func (w *RecentWindowWidget) Update(dev *streamdeck.Device) error {
 	img := image.NewRGBA(image.Rect(0, 0, int(dev.Pixels), int(dev.Pixels)))
 
-	size := int(dev.Pixels)
 	if int(w.window) < len(recentWindows) {
-		if w.lastClass == recentWindows[w.window].Class {
+		if w.lastID == recentWindows[w.window].ID {
 			return nil
 		}
-		w.lastClass = recentWindows[w.window].Class
+		w.lastID = recentWindows[w.window].ID
 
-		icon := resize.Resize(uint(size-8), uint(size-8), recentWindows[w.window].Icon, resize.Bilinear)
-		draw.Draw(img, image.Rect(4, 4, size-4, size-4), icon, image.Point{0, 0}, draw.Src)
+		var name string
+		if w.showTitle {
+			name = recentWindows[w.window].Name
+			if len(name) > 10 {
+				name = name[:10]
+			}
+		}
+
+		bw := ButtonWidget{
+			BaseWidget: w.BaseWidget,
+			icon:       recentWindows[w.window].Icon,
+			label:      name,
+		}
+		return bw.Update(dev)
 	}
 
 	return w.render(dev, img)

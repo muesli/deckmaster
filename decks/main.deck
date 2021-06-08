@@ -89,6 +89,7 @@
     id = "recentWindow"
     [keys.widget.config]
       window = 1
+      showTitle = true
 
 [[keys]]
   index = 11
@@ -96,6 +97,7 @@
     id = "recentWindow"
     [keys.widget.config]
       window = 2
+      showTitle = true
 
 [[keys]]
   index = 12
@@ -103,6 +105,7 @@
     id = "recentWindow"
     [keys.widget.config]
       window = 3
+      showTitle = true
 
 [[keys]]
   index = 13
@@ -110,6 +113,7 @@
     id = "recentWindow"
     [keys.widget.config]
       window = 4
+      showTitle = true
 
 [[keys]]
   index = 14
@@ -117,3 +121,4 @@
     id = "recentWindow"
     [keys.widget.config]
       window = 5
+      showTitle = true
