@@ -153,6 +153,11 @@ func (x Xorg) RequestActivation(w Window) error {
 	return ewmh.ActiveWindowReq(x.util, xproto.Window(w.ID))
 }
 
+// CloseWindow closes a window.
+func (x Xorg) CloseWindow(w Window) error {
+	return ewmh.CloseWindow(x.util, xproto.Window(w.ID))
+}
+
 func (x Xorg) atom(aname string) *xproto.InternAtomReply {
 	a, err := xproto.InternAtom(x.conn, true, uint16(len(aname)), aname).Reply()
 	if err != nil {
