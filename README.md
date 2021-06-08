@@ -63,7 +63,9 @@ should be good to go.
 
 ### Starting deckmaster automatically
 
-If you want deckmaster to be started automatically upon device plugin, you can use systemd path activation, adding `streamdeck.path` and `streamdeck.service` files to `$HOME/.config/systemd/user`.
+If you want deckmaster to be started automatically upon device plugin, you can
+use systemd path activation, adding `streamdeck.path` and `streamdeck.service`
+files to `$HOME/.config/systemd/user`.
 
 `streamdeck.path` contents:
 
@@ -117,9 +119,10 @@ Any widget is build up the following way:
   interval = 500 # optional
 ```
 
-`index` needs to be present in every widget and describes the position of the widget on the streamdeck.
-`index` is 0-indexed and counted from top to bottom and left to right.
-The attribute `interval` defines the time in `ms` between two consecutive updates of the widget.
+`index` needs to be present in every widget and describes the position of the
+widget on the streamdeck. `index` is 0-indexed and counted from top to bottom
+and left to right. The attribute `interval` defines the time in `ms` between two
+consecutive updates of the widget.
 
 #### Button
 
