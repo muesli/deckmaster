@@ -107,7 +107,7 @@ func ConfigValue(v interface{}, dst interface{}) error {
 			*d = int64(vt)
 		case string:
 			x, _ := strconv.ParseInt(vt, 0, 64)
-			*d = int64(x)
+			*d = x
 		default:
 			return fmt.Errorf("unhandled type %+v for uint8 conversion", reflect.TypeOf(vt))
 		}
@@ -120,7 +120,7 @@ func ConfigValue(v interface{}, dst interface{}) error {
 			*d = vt
 		case string:
 			x, _ := strconv.ParseFloat(vt, 64)
-			*d = float64(x)
+			*d = x
 		default:
 			return fmt.Errorf("unhandled type %+v for float64 conversion", reflect.TypeOf(vt))
 		}
