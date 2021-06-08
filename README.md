@@ -97,7 +97,7 @@ WantedBy=default.target
 
 Then enable and start the `streamdeck.path` unit:
 
-```
+```bash
 systemctl --user enable streamdeck.path
 systemctl --user start streamdeck.path
 ```
@@ -111,38 +111,36 @@ directory. Edit them to your needs!
 
 Any widget is build up the following way:
 
-```
+```toml
 [[keys]]
   index = 0
-  interval = 500
+  interval = 500 # optional
 ```
 
 `index` needs to be present in every widget and describes the position of the widget on the streamdeck.
 `index` is 0-indexed and counted from top to bottom and left to right.
-The attribute `interval` is optional and defines the time in `ms` between two consecutive updates of the widget.
+The attribute `interval` defines the time in `ms` between two consecutive updates of the widget.
 
 #### Button
 
 A simple button that can display an image and/or a label.
 
-```
+```toml
 [keys.widget]
   id = "button"
   [keys.widget.config]
-    icon = "/some/image.png"
-    label = "My Button"
-    fontsize = 10.0
-    color = "#fefefe"
+    icon = "/some/image.png" # optional
+    label = "My Button" # optional
+    fontsize = 10.0 # optional
+    color = "#fefefe" # optional
 ```
-
-The config options `icon`, `label`, and `fontsize` are optional.
 
 #### Recent Window (requires X11)
 
 Displays the icon of a recently used window/application. Pressing the button
 activates the window.
 
-```
+```toml
 [keys.widget]
   id = "recentWindow"
   [keys.widget.config]
@@ -153,13 +151,13 @@ activates the window.
 
 A flexible widget that can display the current time or date.
 
-```
+```toml
 [keys.widget]
   id = "time"
   [keys.widget.config]
     format = "%H;%i;%s"
-    font = "bold;regular;thin"
-    color = "#fefefe"
+    font = "bold;regular;thin" # optional
+    color = "#fefefe" # optional
 ```
 
 Values for `format` are:
@@ -185,28 +183,28 @@ Values for `format` are:
 
 This widget shows the current CPU or memory utilization as a bar graph.
 
-```
+```toml
 [keys.widget]
   id = "top"
   [keys.widget.config]
     mode = "cpu"
-    color = "#fefefe"
-    fillColor = "#d497de"
+    color = "#fefefe" # optional
+    fillColor = "#d497de" # optional
 ```
 
-There are two values for `mode`: `cpu` and `memory`. The config option
-`fillColor` is optional.
+There are two values for `mode`: `cpu` and `memory`.
 
 #### Command
 
 A widget that displays the output of commands.
 
-```
+```toml
 [keys.widget]
   id = "command"
   [keys.widget.config]
     command = "echo 'Files:'; ls -a ~ | wc -l"
-    font = "regular;bold"
+    font = "regular;bold" # optional
+    color = "#fefefe" # optional
 ```
 
 ### Background Image
@@ -214,7 +212,7 @@ A widget that displays the output of commands.
 You can configure each deck to display an individual wallpaper behind its
 widgets:
 
-```
+```toml
 background = "/some/image.png"
 ```
 
@@ -224,21 +222,21 @@ You can hook up any key with several actions:
 
 #### Run a command
 
-```
+```toml
 [keys.action]
   exec = "some_command --with-parameters"
 ```
 
 #### Emulate key-presses
 
-```
+```toml
 [keys.action]
   keycode = "Leftctrl-C"
 ```
 
 Emulate a series of key-presses with delay in between:
 
-```
+```toml
 [keys.action]
   keycode = "Leftctrl-X+500 / Leftctrl-V / Num1"
 ```
@@ -247,14 +245,14 @@ A list of available keycodes can be found here: [keycodes](https://github.com/mu
 
 #### Paste to clipboard
 
-```
+```toml
 [keys.action]
   paste = "a text"
 ```
 
 #### Trigger a dbus call
 
-```
+```toml
 [keys.action]
   [dbus]
     object = "object"

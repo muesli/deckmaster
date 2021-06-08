@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"image/color"
 	"io/ioutil"
-	"math"
 	"reflect"
 	"strconv"
 
@@ -130,18 +129,6 @@ func ConfigValue(v interface{}, dst interface{}) error {
 
 	case *color.Color:
 		switch vt := v.(type) {
-		case int64:
-			x := math.Min(1.0, math.Max(0.0, float64(vt)/255))
-			*d = colorful.Color{x, x, x}
-		case float64:
-			x := math.Min(1.0, math.Max(0.0, vt/255))
-			*d = colorful.Color{x, x, x}
-		case bool:
-			if vt {
-				*d = colorful.Color{1.0, 1.0, 1.0}
-			} else {
-				*d = colorful.Color{0.0, 0.0, 0.0}
-			}
 		case string:
 			x, _ := colorful.Hex(vt)
 			*d = x
