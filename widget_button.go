@@ -3,6 +3,7 @@ package main
 import (
 	"image"
 	"image/color"
+	"image/draw"
 
 	"github.com/muesli/streamdeck"
 )
@@ -15,6 +16,7 @@ type ButtonWidget struct {
 	label    string
 	fontsize float64
 	color    color.Color
+	flatten  bool
 }
 
 // NewButtonWidget returns a new ButtonWidget.
@@ -28,12 +30,19 @@ func NewButtonWidget(bw BaseWidget, opts WidgetConfig) (*ButtonWidget, error) {
 	_ = ConfigValue(opts.Config["fontsize"], &fontsize)
 	var color color.Color
 	_ = ConfigValue(opts.Config["color"], &color)
+	var flatten bool
+	_ = ConfigValue(opts.Config["flatten"], &flatten)
+
+	if color == nil {
+		color = DefaultColor
+	}
 
 	w := &ButtonWidget{
 		BaseWidget: bw,
 		label:      label,
 		fontsize:   fontsize,
 		color:      color,
+		flatten:    flatten,
 	}
 
 	if icon != "" {
@@ -44,6 +53,9 @@ func NewButtonWidget(bw BaseWidget, opts WidgetConfig) (*ButtonWidget, error) {
 		w.icon, err = loadImage(path)
 		if err != nil {
 			return nil, err
+		}
+		if w.flatten {
+			w.icon = flattenImage(w.icon, w.color)
 		}
 	}
 
@@ -74,9 +86,6 @@ func (w *ButtonWidget) Update(dev *streamdeck.Device) error {
 			bounds.Min.Y += iconsize + margin
 			bounds.Max.Y -= margin
 		}
-		if w.color == nil {
-			w.color = DefaultColor
-		}
 
 		drawString(img,
 			bounds,
@@ -98,4 +107,23 @@ func (w *ButtonWidget) Update(dev *streamdeck.Device) error {
 	}
 
 	return w.render(dev, img)
+}
+
+func flattenImage(img image.Image, clr color.Color) image.Image {
+	bounds := img.Bounds()
+	flatten := image.NewRGBA(image.Rect(0, 0, bounds.Dx(), bounds.Dy()))
+	draw.Draw(flatten, flatten.Bounds(), img, image.Point{}, draw.Src)
+	alphaThreshold := uint32(20000)
+
+	for x := 0; x < bounds.Dx(); x++ {
+		for y := 0; y < bounds.Dy(); y++ {
+			_, _, _, alpha := flatten.At(x, y).RGBA()
+			if alpha > alphaThreshold {
+				flatten.Set(x, y, clr)
+			} else {
+				flatten.Set(x, y, color.RGBA{0, 0, 0, 0})
+			}
+		}
+	}
+	return flatten
 }
