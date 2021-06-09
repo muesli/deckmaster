@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/muesli/streamdeck"
 )
@@ -15,14 +17,95 @@ import (
 type WeatherWidget struct {
 	BaseWidget
 
+	data  WeatherData
+	color color.Color
+}
+
+// WeatherData handles fetches and parsing weather data.
+type WeatherData struct {
 	location string
 	unit     string
-	color    color.Color
+
+	refresh time.Time
+
+	response      string
+	responseMutex sync.RWMutex
+}
+
+// Condition returns the current condition.
+func (w *WeatherData) Condition() (string, error) {
+	w.responseMutex.RLock()
+	defer w.responseMutex.RUnlock()
+
+	if strings.Contains(w.response, "Unknown location") {
+		return "", fmt.Errorf("unknown location: %s", w.location)
+	}
+
+	wttr := strings.Split(w.response, " ")
+	if len(wttr) != 2 {
+		return "", fmt.Errorf("can't parse weather response: %s", w.response)
+	}
+
+	return wttr[0], nil
+}
+
+// Temperature returns the current temperature.
+func (w *WeatherData) Temperature() (string, error) {
+	w.responseMutex.RLock()
+	defer w.responseMutex.RUnlock()
+
+	if strings.Contains(w.response, "Unknown location") {
+		return "", fmt.Errorf("unknown location: %s", w.location)
+	}
+
+	wttr := strings.Split(w.response, " ")
+	if len(wttr) != 2 {
+		return "", fmt.Errorf("can't parse weather response: %s", w.response)
+	}
+
+	return strings.Replace(wttr[1], "+", "", 1), nil
+}
+
+// Ready returns true when weather data is available.
+func (w *WeatherData) Ready() bool {
+	w.responseMutex.RLock()
+	defer w.responseMutex.RUnlock()
+
+	return len(w.response) > 0
+}
+
+// Fetch retrieves weather data when required.
+func (w *WeatherData) Fetch() {
+	w.responseMutex.Lock()
+	defer w.responseMutex.Unlock()
+
+	if time.Since(w.refresh) < time.Minute*15 {
+		return
+	}
+	// fmt.Println("Refreshing weather data...")
+
+	url := "http://wttr.in/" + w.location + "?format=%x+%t" + formatUnit(w.unit)
+
+	resp, err := http.Get(url) //nolint:gosec
+	if err != nil {
+		fmt.Println("Can't fetch weather data:", err)
+		return
+	}
+	defer resp.Body.Close() //nolint:errcheck
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Can't read weather data:", err)
+		return
+	}
+
+	w.refresh = time.Now()
+	w.response = string(body)
 }
 
 // NewWeatherWidget returns a new WeatherWidget.
 func NewWeatherWidget(bw BaseWidget, opts WidgetConfig) *WeatherWidget {
-	bw.setInterval(opts.Interval, 300000)
+	bw.setInterval(opts.Interval, 1000)
 
 	var location, unit string
 	_ = ConfigValue(opts.Config["location"], &location)
@@ -32,31 +115,30 @@ func NewWeatherWidget(bw BaseWidget, opts WidgetConfig) *WeatherWidget {
 
 	return &WeatherWidget{
 		BaseWidget: bw,
-		location:   location,
-		unit:       unit,
-		color:      color,
+		data: WeatherData{
+			location: location,
+			unit:     unit,
+		},
+		color: color,
 	}
 }
 
 // Update renders the widget.
 func (w *WeatherWidget) Update(dev *streamdeck.Device) error {
-	url := "http://wttr.in/" + w.location + "?format=%x+%t" + formatUnit(w.unit)
-	resp, err := http.Get(url)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-	if strings.Contains(string(body), "Unknown location") {
-		return fmt.Errorf("unknown location: %s", w.location)
+	go w.data.Fetch()
+	if !w.data.Ready() {
+		return nil
 	}
 
-	wttr := strings.Split(string(body), " ")
-	cond := wttr[0]
-	temp := strings.Replace(wttr[1], "+", "", 1)
+	cond, err := w.data.Condition()
+	if err != nil {
+		return err
+	}
+	temp, err := w.data.Temperature()
+	if err != nil {
+		return err
+	}
+
 	if w.color == nil {
 		w.color = DefaultColor
 	}
@@ -107,7 +189,7 @@ func (w *WeatherWidget) Update(dev *streamdeck.Device) error {
 		} else {
 			for i := 0; i < int(pix)-halfMax; i++ {
 				img.Set(index%pixels+offset, index/pixels+offset, w.color)
-				index += 1
+				index++
 			}
 		}
 	}
@@ -128,7 +210,7 @@ func formatUnit(unit string) string {
 	switch unit {
 	case "f", "fahrenheit":
 		return "&u"
-	case "c", "celcius":
+	case "c", "celsius":
 		return "&u"
 	default:
 		return ""
