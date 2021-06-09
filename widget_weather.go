@@ -36,8 +36,9 @@ func weatherImage(name string) image.Image {
 type WeatherWidget struct {
 	BaseWidget
 
-	data  WeatherData
-	color color.Color
+	data    WeatherData
+	color   color.Color
+	flatten bool
 }
 
 // WeatherData handles fetches and parsing weather data.
@@ -131,6 +132,8 @@ func NewWeatherWidget(bw BaseWidget, opts WidgetConfig) *WeatherWidget {
 	_ = ConfigValue(opts.Config["unit"], &unit)
 	var color color.Color
 	_ = ConfigValue(opts.Config["color"], &color)
+	var flatten bool
+	_ = ConfigValue(opts.Config["flatten"], &flatten)
 
 	if color == nil {
 		color = DefaultColor
@@ -142,7 +145,8 @@ func NewWeatherWidget(bw BaseWidget, opts WidgetConfig) *WeatherWidget {
 			location: location,
 			unit:     unit,
 		},
-		color: color,
+		color:   color,
+		flatten: flatten,
 	}
 }
 
@@ -162,49 +166,43 @@ func (w *WeatherWidget) Update(dev *streamdeck.Device) error {
 		return err
 	}
 
-	var weatherIcon image.Image
-	/*
-		The serialized conditions are formatted the following way:
-		Every entry is an unsigned 8 bit value
-		 if the first bit (msd) is not set this 8 bit value resembles a series of transparent pixels
-		  the number of transparent pixels is defined by the lower 7 pixels
-		 if the first bit is set this bit-string resembles a series of opaque pixels
-		  analog the lower 7 pixels define the number of opaque pixels
-		The image is sampled as follows: top to bottom and left to right
-	*/
+	var iconName string
 	switch cond {
 	case "mm", "mmm": // cloudy
-		weatherIcon = weatherImage("assets/weather/cloudy.png")
+		iconName = "cloudy"
 	case "m": // partly cloudy
-		weatherIcon = weatherImage("assets/weather/partly_cloudy.png")
+		iconName = "partly_cloudy"
 	case "=": // fog
-		weatherIcon = weatherImage("assets/weather/fog.png")
+		iconName = "fog"
 	case "///", "//", "x", "x/": // rain
-		weatherIcon = weatherImage("assets/weather/rain.png")
+		iconName = "rain"
 	case "/", ".": // light rain
-		weatherIcon = weatherImage("assets/weather/rain.png")
+		iconName = "rain"
 	case "**", "*/*": // heavy snow
-		weatherIcon = weatherImage("assets/weather/snow.png")
+		iconName = "snow"
 	case "*", "*/": // light snow
-		weatherIcon = weatherImage("assets/weather/snow.png")
+		iconName = "snow"
 	case "/!/": // thunder
-		weatherIcon = weatherImage("assets/weather/lightning.png")
+		iconName = "lightning"
 	case "!/", "*!*": // thunder rain
-		weatherIcon = weatherImage("assets/weather/thunder_rain.png")
+		iconName = "thunder_rain"
 	// case "o": // sunny
 	default:
 		if time.Now().Hour() < 7 || time.Now().Hour() > 21 {
-			weatherIcon = weatherImage("assets/weather/moon.png")
+			iconName = "moon"
 		} else {
-			weatherIcon = weatherImage("assets/weather/sun.png")
+			iconName = "sun"
 		}
 	}
+
+	weatherIcon := weatherImage("assets/weather/" + iconName + ".png")
 
 	bw := ButtonWidget{
 		BaseWidget: w.BaseWidget,
 		color:      w.color,
 		icon:       weatherIcon,
 		label:      temp,
+		flatten:    w.flatten,
 	}
 	return bw.Update(dev)
 }
@@ -214,7 +212,7 @@ func formatUnit(unit string) string {
 	case "f", "fahrenheit":
 		return "&u"
 	case "c", "celsius":
-		return "&u"
+		return "&m"
 	default:
 		return ""
 	}
