@@ -3,7 +3,6 @@ package main
 import (
 	"image"
 	"image/color"
-	"image/draw"
 
 	"github.com/muesli/streamdeck"
 )
@@ -54,6 +53,9 @@ func NewButtonWidget(bw BaseWidget, opts WidgetConfig) (*ButtonWidget, error) {
 		if err != nil {
 			return nil, err
 		}
+		if w.icon != nil && w.flatten {
+			w.icon = flattenImage(w.icon, w.color)
+		}
 	}
 
 	return w, nil
@@ -66,9 +68,6 @@ func (w *ButtonWidget) Update(dev *streamdeck.Device) error {
 	height := size - (margin * 2)
 	img := image.NewRGBA(image.Rect(0, 0, size, size))
 
-	if w.icon != nil && w.flatten {
-		w.icon = flattenImage(w.icon, w.color)
-	}
 	if w.label != "" {
 		iconsize := int((float64(height) / 3.0) * 2.0)
 		bounds := img.Bounds()
@@ -107,23 +106,4 @@ func (w *ButtonWidget) Update(dev *streamdeck.Device) error {
 	}
 
 	return w.render(dev, img)
-}
-
-func flattenImage(img image.Image, clr color.Color) image.Image {
-	bounds := img.Bounds()
-	flatten := image.NewRGBA(image.Rect(0, 0, bounds.Dx(), bounds.Dy()))
-	draw.Draw(flatten, flatten.Bounds(), img, image.Point{}, draw.Src)
-	alphaThreshold := uint32(20000)
-
-	for x := 0; x < bounds.Dx(); x++ {
-		for y := 0; y < bounds.Dy(); y++ {
-			_, _, _, alpha := flatten.At(x, y).RGBA()
-			if alpha > alphaThreshold {
-				flatten.Set(x, y, clr)
-			} else {
-				flatten.Set(x, y, color.RGBA{0, 0, 0, 0})
-			}
-		}
-	}
-	return flatten
 }

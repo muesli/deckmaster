@@ -7,7 +7,9 @@ import (
 	"image"
 	"image/color"
 	"io/ioutil"
+	"log"
 	"net/http"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -38,6 +40,7 @@ type WeatherWidget struct {
 
 	data    WeatherData
 	color   color.Color
+	theme   string
 	flatten bool
 }
 
@@ -58,7 +61,8 @@ func (w *WeatherData) Condition() (string, error) {
 	defer w.responseMutex.RUnlock()
 
 	if strings.Contains(w.response, "Unknown location") {
-		return "", fmt.Errorf("unknown location: %s", w.location)
+		fmt.Println("unknown location:", w.location)
+		return "", nil
 	}
 
 	wttr := strings.Split(w.response, " ")
@@ -75,7 +79,8 @@ func (w *WeatherData) Temperature() (string, error) {
 	defer w.responseMutex.RUnlock()
 
 	if strings.Contains(w.response, "Unknown location") {
-		return "", fmt.Errorf("unknown location: %s", w.location)
+		fmt.Println("unknown location:", w.location)
+		return "", nil
 	}
 
 	wttr := strings.Split(w.response, " ")
@@ -108,14 +113,14 @@ func (w *WeatherData) Fetch() {
 
 	resp, err := http.Get(url) //nolint:gosec
 	if err != nil {
-		fmt.Println("Can't fetch weather data:", err)
+		fmt.Println("can't fetch weather data:", err)
 		return
 	}
 	defer resp.Body.Close() //nolint:errcheck
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("Can't read weather data:", err)
+		fmt.Println("can't read weather data:", err)
 		return
 	}
 
@@ -127,9 +132,10 @@ func (w *WeatherData) Fetch() {
 func NewWeatherWidget(bw BaseWidget, opts WidgetConfig) *WeatherWidget {
 	bw.setInterval(opts.Interval, 60000)
 
-	var location, unit string
+	var location, unit, theme string
 	_ = ConfigValue(opts.Config["location"], &location)
 	_ = ConfigValue(opts.Config["unit"], &unit)
+	_ = ConfigValue(opts.Config["theme"], &theme)
 	var color color.Color
 	_ = ConfigValue(opts.Config["color"], &color)
 	var flatten bool
@@ -146,6 +152,7 @@ func NewWeatherWidget(bw BaseWidget, opts WidgetConfig) *WeatherWidget {
 			unit:     unit,
 		},
 		color:   color,
+		theme:   theme,
 		flatten: flatten,
 	}
 }
@@ -177,26 +184,41 @@ func (w *WeatherWidget) Update(dev *streamdeck.Device) error {
 	case "///", "//", "x", "x/": // rain
 		iconName = "rain"
 	case "/", ".": // light rain
-		iconName = "rain"
+		iconName = "light_rain"
 	case "**", "*/*": // heavy snow
-		iconName = "snow"
+		iconName = "heavy_snow"
 	case "*", "*/": // light snow
-		iconName = "snow"
+		iconName = "light_snow"
 	case "/!/": // thunder
-		iconName = "lightning"
+		iconName = "thunder"
 	case "!/", "*!*": // thunder rain
 		iconName = "thunder_rain"
-	// case "o": // sunny
-	default:
+	case "o": // sunny
 		if time.Now().Hour() < 7 || time.Now().Hour() > 21 {
 			iconName = "moon"
 		} else {
 			iconName = "sun"
 		}
+	default:
+		return w.render(dev, nil)
 	}
 
-	weatherIcon := weatherImage("assets/weather/" + iconName + ".png")
+	var weatherIcon image.Image
+	imagePath := filepath.Join("assets", "weather", iconName+".png")
+	if w.theme != "" {
+		var err error
+		weatherIcon, err = loadThemeImage(w.theme, iconName)
+		if err != nil {
+			log.Println("using fallback icons")
+			weatherIcon = weatherImage(imagePath)
+		}
+	} else {
+		weatherIcon = weatherImage(imagePath)
+	}
 
+	if w.flatten {
+		weatherIcon = flattenImage(weatherIcon, w.color)
+	}
 	bw := ButtonWidget{
 		BaseWidget: w.BaseWidget,
 		color:      w.color,

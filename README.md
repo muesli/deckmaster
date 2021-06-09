@@ -222,6 +222,7 @@ A widget that displays the weather condition and teamperature.
     unit = "celsius" # optional
     color = "#fefefe" # optional
     flatten = true # optional
+    theme = "openmoji" # optional
 ```
 
 The supported location types can be found [here](http://wttr.in/:help).
