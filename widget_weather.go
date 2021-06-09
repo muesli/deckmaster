@@ -125,7 +125,7 @@ func (w *WeatherData) Fetch() {
 
 // NewWeatherWidget returns a new WeatherWidget.
 func NewWeatherWidget(bw BaseWidget, opts WidgetConfig) *WeatherWidget {
-	bw.setInterval(opts.Interval, 1000)
+	bw.setInterval(opts.Interval, 60000)
 
 	var location, unit string
 	_ = ConfigValue(opts.Config["location"], &location)

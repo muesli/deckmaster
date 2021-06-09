@@ -54,9 +54,6 @@ func NewButtonWidget(bw BaseWidget, opts WidgetConfig) (*ButtonWidget, error) {
 		if err != nil {
 			return nil, err
 		}
-		if w.flatten {
-			w.icon = flattenImage(w.icon, w.color)
-		}
 	}
 
 	return w, nil
@@ -69,6 +66,9 @@ func (w *ButtonWidget) Update(dev *streamdeck.Device) error {
 	height := size - (margin * 2)
 	img := image.NewRGBA(image.Rect(0, 0, size, size))
 
+	if w.icon != nil && w.flatten {
+		w.icon = flattenImage(w.icon, w.color)
+	}
 	if w.label != "" {
 		iconsize := int((float64(height) / 3.0) * 2.0)
 		bounds := img.Bounds()

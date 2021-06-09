@@ -150,7 +150,10 @@ A simple button that can display an image and/or a label.
     label = "My Button" # optional
     fontsize = 10.0 # optional
     color = "#fefefe" # optional
+    flatten = true # optional
 ```
+
+If `flatten = true` all pixels of the condition icon will have the color `color`.
 
 #### Recent Window (requires X11)
 
@@ -223,6 +226,24 @@ A widget that displays the output of commands.
     font = "regular;bold" # optional
     color = "#fefefe" # optional
 ```
+
+#### Weather
+
+A widget that displays the weather condition and teamperature.
+
+```toml
+[keys.widget]
+  id = "weather"
+  [keys.widget.config]
+    location = "MyCity" # optional
+    unit = "celsius" # optional
+    color = "#fefefe" # optional
+    flatten = true # optional
+```
+
+The supported location types can be found [here](http://wttr.in/:help).
+The unit has to be either `celsius` or `fahrenheit`.
+If `flatten = true` all pixels of the condition icon will have the color `color`.
 
 ### Background Image
 

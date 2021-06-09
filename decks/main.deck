@@ -14,6 +14,11 @@
       mode = "memory"
 
 [[keys]]
+  index = 2
+  [keys.widget]
+    id = "weather"
+
+[[keys]]
   index = 3
   [keys.widget]
     id = "time"
