@@ -6,6 +6,7 @@ import (
 	"image/color"
 	"image/draw"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/golang/freetype"
@@ -160,6 +161,34 @@ func loadImage(path string) (image.Image, error) {
 
 	icon, _, err := image.Decode(f)
 	return icon, err
+}
+
+func loadThemeImage(theme string, img string) (image.Image, error) {
+	path := filepath.Join("~", ".local", "share", "deckmaster", "themes", theme, img+".png")
+	abs, err := expandPath("", path)
+	if err != nil {
+		return nil, err
+	}
+	return loadImage(abs)
+}
+
+func flattenImage(img image.Image, clr color.Color) image.Image {
+	bounds := img.Bounds()
+	flatten := image.NewRGBA(image.Rect(0, 0, bounds.Dx(), bounds.Dy()))
+	draw.Draw(flatten, flatten.Bounds(), img, image.Point{}, draw.Src)
+	alphaThreshold := uint32(20000)
+
+	for x := 0; x < bounds.Dx(); x++ {
+		for y := 0; y < bounds.Dy(); y++ {
+			_, _, _, alpha := flatten.At(x, y).RGBA()
+			if alpha > alphaThreshold {
+				flatten.Set(x, y, clr)
+			} else {
+				flatten.Set(x, y, color.RGBA{0, 0, 0, 0})
+			}
+		}
+	}
+	return flatten
 }
 
 func drawImage(img *image.RGBA, icon image.Image, size int, pt image.Point) error {
