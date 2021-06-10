@@ -5,7 +5,6 @@ import (
 	"embed"
 	"fmt"
 	"image"
-	"image/color"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -38,10 +37,8 @@ func weatherImage(name string) image.Image {
 type WeatherWidget struct {
 	*ButtonWidget
 
-	data    WeatherData
-	color   color.Color
-	theme   string
-	flatten bool
+	data  WeatherData
+	theme string
 }
 
 // WeatherData handles fetches and parsing weather data.

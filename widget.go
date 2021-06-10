@@ -17,6 +17,7 @@ import (
 )
 
 var (
+	// DefaultColor is the standard color for text rendering.
 	DefaultColor = color.RGBA{255, 255, 255, 255}
 )
 
@@ -175,7 +176,7 @@ func loadThemeImage(theme string, img string) (image.Image, error) {
 
 func flattenImage(img image.Image, clr color.Color) image.Image {
 	bounds := img.Bounds()
-	flatten := image.NewRGBA(image.Rect(0, 0, bounds.Dx(), bounds.Dy()))
+	flatten := image.NewRGBA(bounds)
 	draw.Draw(flatten, flatten.Bounds(), img, image.Point{}, draw.Src)
 	alphaThreshold := uint32(20000)
 
@@ -189,6 +190,7 @@ func flattenImage(img image.Image, clr color.Color) image.Image {
 			}
 		}
 	}
+
 	return flatten
 }
 
