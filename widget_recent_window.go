@@ -26,10 +26,15 @@ func NewRecentWindowWidget(bw *BaseWidget, opts WidgetConfig) (*RecentWindowWidg
 	var showTitle bool
 	_ = ConfigValue(opts.Config["showTitle"], &showTitle)
 
+	widget, err := NewButtonWidget(bw, opts)
+	if err != nil {
+		return nil, err
+	}
+
 	return &RecentWindowWidget{
-		BaseWidget: bw,
-		window:     uint8(window),
-		showTitle:  showTitle,
+		ButtonWidget: widget,
+		window:       uint8(window),
+		showTitle:    showTitle,
 	}, nil
 }
 
@@ -60,12 +65,9 @@ func (w *RecentWindowWidget) Update(dev *streamdeck.Device) error {
 			}
 		}
 
-		bw := ButtonWidget{
-			BaseWidget: w.BaseWidget,
-			icon:       recentWindows[w.window].Icon,
-			label:      name,
-		}
-		return bw.Update(dev)
+		w.label = name
+		w.SetImage(recentWindows[w.window].Icon)
+		return w.ButtonWidget.Update(dev)
 	}
 
 	return w.render(dev, img)
