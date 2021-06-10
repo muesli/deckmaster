@@ -129,32 +129,27 @@ func (w *WeatherData) Fetch() {
 }
 
 // NewWeatherWidget returns a new WeatherWidget.
-func NewWeatherWidget(bw BaseWidget, opts WidgetConfig) *WeatherWidget {
+func NewWeatherWidget(bw *BaseWidget, opts WidgetConfig) (*WeatherWidget, error) {
 	bw.setInterval(opts.Interval, 60000)
 
 	var location, unit, theme string
 	_ = ConfigValue(opts.Config["location"], &location)
 	_ = ConfigValue(opts.Config["unit"], &unit)
 	_ = ConfigValue(opts.Config["theme"], &theme)
-	var color color.Color
-	_ = ConfigValue(opts.Config["color"], &color)
-	var flatten bool
-	_ = ConfigValue(opts.Config["flatten"], &flatten)
 
-	if color == nil {
-		color = DefaultColor
+	widget, err := NewButtonWidget(bw, opts)
+	if err != nil {
+		return nil, err
 	}
 
 	return &WeatherWidget{
-		BaseWidget: bw,
+		ButtonWidget: widget,
 		data: WeatherData{
 			location: location,
 			unit:     unit,
 		},
-		color:   color,
-		theme:   theme,
-		flatten: flatten,
-	}
+		theme: theme,
+	}, nil
 }
 
 // Update renders the widget.
@@ -216,17 +211,10 @@ func (w *WeatherWidget) Update(dev *streamdeck.Device) error {
 		weatherIcon = weatherImage(imagePath)
 	}
 
-	if w.flatten {
-		weatherIcon = flattenImage(weatherIcon, w.color)
-	}
-	bw := ButtonWidget{
-		BaseWidget: w.BaseWidget,
-		color:      w.color,
-		icon:       weatherIcon,
-		label:      temp,
-		flatten:    w.flatten,
-	}
-	return bw.Update(dev)
+	w.label = temp
+	w.SetImage(weatherIcon)
+
+	return w.ButtonWidget.Update(dev)
 }
 
 func formatUnit(unit string) string {
