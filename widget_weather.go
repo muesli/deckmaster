@@ -162,22 +162,14 @@ func (w *WeatherWidget) RequiresUpdate() bool {
 // Update renders the widget.
 func (w *WeatherWidget) Update(dev *streamdeck.Device) error {
 	go w.data.Fetch()
-	if !w.data.Ready() {
-		if w.data.response == "" {
-			// show the background image while we wait for initial data
-			return w.render(dev, nil)
-		}
-
-		return nil
-	}
 
 	cond, err := w.data.Condition()
 	if err != nil {
-		return err
+		return w.render(dev, nil)
 	}
 	temp, err := w.data.Temperature()
 	if err != nil {
-		return err
+		return w.render(dev, nil)
 	}
 
 	var iconName string
