@@ -47,6 +47,7 @@ type WeatherData struct {
 	unit     string
 
 	refresh time.Time
+	ready   bool
 
 	response      string
 	responseMutex sync.RWMutex
@@ -57,6 +58,7 @@ func (w *WeatherData) Condition() (string, error) {
 	w.responseMutex.RLock()
 	defer w.responseMutex.RUnlock()
 
+	w.ready = false
 	if strings.Contains(w.response, "Unknown location") {
 		fmt.Println("unknown location:", w.location)
 		return "", nil
@@ -75,6 +77,7 @@ func (w *WeatherData) Temperature() (string, error) {
 	w.responseMutex.RLock()
 	defer w.responseMutex.RUnlock()
 
+	w.ready = false
 	if strings.Contains(w.response, "Unknown location") {
 		fmt.Println("unknown location:", w.location)
 		return "", nil
@@ -93,7 +96,7 @@ func (w *WeatherData) Ready() bool {
 	w.responseMutex.RLock()
 	defer w.responseMutex.RUnlock()
 
-	return len(w.response) > 0
+	return w.ready
 }
 
 // Fetch retrieves weather data when required.
@@ -123,12 +126,11 @@ func (w *WeatherData) Fetch() {
 
 	w.refresh = time.Now()
 	w.response = string(body)
+	w.ready = true
 }
 
 // NewWeatherWidget returns a new WeatherWidget.
 func NewWeatherWidget(bw *BaseWidget, opts WidgetConfig) (*WeatherWidget, error) {
-	bw.setInterval(opts.Interval, 60000)
-
 	var location, unit, theme string
 	_ = ConfigValue(opts.Config["location"], &location)
 	_ = ConfigValue(opts.Config["unit"], &unit)
@@ -138,6 +140,9 @@ func NewWeatherWidget(bw *BaseWidget, opts WidgetConfig) (*WeatherWidget, error)
 	if err != nil {
 		return nil, err
 	}
+	// this needs to be called after NewButtonWidget, otherwise its value gets
+	// overwritten by it.
+	bw.setInterval(opts.Interval, 60000)
 
 	return &WeatherWidget{
 		ButtonWidget: widget,
@@ -149,10 +154,20 @@ func NewWeatherWidget(bw *BaseWidget, opts WidgetConfig) (*WeatherWidget, error)
 	}, nil
 }
 
+// RequiresUpdate returns true when the widget wants to be repainted.
+func (w *WeatherWidget) RequiresUpdate() bool {
+	return w.data.Ready() || w.ButtonWidget.RequiresUpdate()
+}
+
 // Update renders the widget.
 func (w *WeatherWidget) Update(dev *streamdeck.Device) error {
 	go w.data.Fetch()
 	if !w.data.Ready() {
+		if w.data.response == "" {
+			// show the background image while we wait for initial data
+			return w.render(dev, nil)
+		}
+
 		return nil
 	}
 
