@@ -12,7 +12,7 @@ import (
 
 // CommandWidget is a widget displaying the output of command(s).
 type CommandWidget struct {
-	BaseWidget
+	*BaseWidget
 
 	command string
 	font    string
@@ -20,7 +20,7 @@ type CommandWidget struct {
 }
 
 // NewCommandWidget returns a new CommandWidget.
-func NewCommandWidget(bw BaseWidget, opts WidgetConfig) *CommandWidget {
+func NewCommandWidget(bw *BaseWidget, opts WidgetConfig) *CommandWidget {
 	bw.setInterval(opts.Interval, 1000)
 
 	var command, font string
