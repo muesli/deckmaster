@@ -6,6 +6,7 @@ import (
 	"image/color"
 	"image/draw"
 	"strconv"
+	"time"
 
 	"github.com/muesli/streamdeck"
 	"github.com/shirou/gopsutil/cpu"
@@ -25,7 +26,7 @@ type TopWidget struct {
 
 // NewTopWidget returns a new TopWidget.
 func NewTopWidget(bw *BaseWidget, opts WidgetConfig) *TopWidget {
-	bw.setInterval(opts.Interval, 500)
+	bw.setInterval(time.Duration(opts.Interval)*time.Millisecond, time.Second/2)
 
 	var mode string
 	_ = ConfigValue(opts.Config["mode"], &mode)

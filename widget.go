@@ -38,7 +38,7 @@ type BaseWidget struct {
 	actionHold *ActionConfig
 	background image.Image
 	lastUpdate time.Time
-	interval   uint
+	interval   time.Duration
 }
 
 // Key returns the key a widget is mapped to.
@@ -65,7 +65,7 @@ func (w *BaseWidget) TriggerAction(_ bool) {
 func (w *BaseWidget) RequiresUpdate() bool {
 	if !w.lastUpdate.IsZero() && // initial paint done
 		(w.interval == 0 || // never to be repainted
-			time.Since(w.lastUpdate) < time.Duration(w.interval)*time.Millisecond) {
+			time.Since(w.lastUpdate) < w.interval) {
 		return false
 	}
 
@@ -145,7 +145,7 @@ func (w *BaseWidget) render(dev *streamdeck.Device, fg image.Image) error {
 }
 
 // change the interval a widget gets rendered in.
-func (w *BaseWidget) setInterval(interval uint, defaultInterval uint) {
+func (w *BaseWidget) setInterval(interval time.Duration, defaultInterval time.Duration) {
 	if interval == 0 {
 		interval = defaultInterval
 	}

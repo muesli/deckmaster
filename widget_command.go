@@ -6,6 +6,7 @@ import (
 	"image/color"
 	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/muesli/streamdeck"
 )
@@ -21,7 +22,7 @@ type CommandWidget struct {
 
 // NewCommandWidget returns a new CommandWidget.
 func NewCommandWidget(bw *BaseWidget, opts WidgetConfig) *CommandWidget {
-	bw.setInterval(opts.Interval, 1000)
+	bw.setInterval(time.Duration(opts.Interval)*time.Millisecond, time.Second)
 
 	var command, font string
 	_ = ConfigValue(opts.Config["command"], &command)

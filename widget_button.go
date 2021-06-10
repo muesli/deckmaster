@@ -3,6 +3,7 @@ package main
 import (
 	"image"
 	"image/color"
+	"time"
 
 	"github.com/muesli/streamdeck"
 )
@@ -20,7 +21,7 @@ type ButtonWidget struct {
 
 // NewButtonWidget returns a new ButtonWidget.
 func NewButtonWidget(bw *BaseWidget, opts WidgetConfig) (*ButtonWidget, error) {
-	bw.setInterval(opts.Interval, 0)
+	bw.setInterval(time.Duration(opts.Interval)*time.Millisecond, 0)
 
 	var icon, label string
 	_ = ConfigValue(opts.Config["icon"], &icon)
