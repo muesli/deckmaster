@@ -43,22 +43,32 @@ func NewButtonWidget(bw *BaseWidget, opts WidgetConfig) (*ButtonWidget, error) {
 		color:      color,
 		flatten:    flatten,
 	}
-
 	if icon != "" {
-		path, err := expandPath(w.base, icon)
-		if err != nil {
-			return nil, err
-		}
-		w.icon, err = loadImage(path)
-		if err != nil {
-			return nil, err
-		}
-		if w.icon != nil && w.flatten {
-			w.icon = flattenImage(w.icon, w.color)
-		}
+		w.LoadImage(icon)
 	}
 
 	return w, nil
+}
+
+func (w *ButtonWidget) LoadImage(path string) error {
+	path, err := expandPath(w.base, path)
+	if err != nil {
+		return err
+	}
+	icon, err := loadImage(path)
+	if err != nil {
+		return err
+	}
+
+	w.SetImage(icon)
+	return nil
+}
+
+func (w *ButtonWidget) SetImage(img image.Image) {
+	w.icon = img
+	if w.flatten {
+		w.icon = flattenImage(w.icon, w.color)
+	}
 }
 
 // Update renders the widget.
