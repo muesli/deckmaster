@@ -191,6 +191,9 @@ func main() {
 	if err == nil {
 		defer xorg.Close()
 		xorg.TrackWindows(tch, time.Second)
+	} else {
+		fmt.Printf("Could not connect to X server: %s\n", err)
+		fmt.Println("Tracking window manager will be disabled!")
 	}
 
 	// initialize virtual keyboard
