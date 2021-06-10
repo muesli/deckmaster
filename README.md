@@ -229,7 +229,7 @@ A widget that displays the output of commands.
 
 #### Weather
 
-A widget that displays the weather condition and teamperature.
+A widget that displays the weather condition and temperature.
 
 ```toml
 [keys.widget]
@@ -242,9 +242,9 @@ A widget that displays the weather condition and teamperature.
     theme = "openmoji" # optional
 ```
 
-The supported location types can be found [here](http://wttr.in/:help).
-The unit has to be either `celsius` or `fahrenheit`.
-If `flatten = true` all pixels of the condition icon will have the color `color`.
+The supported location types can be found [here](http://wttr.in/:help). The unit
+has to be either `celsius` or `fahrenheit`. If `flatten` is `true` all pixels of
+the condition icon will have the color `color`.
 
 ### Background Image
 
