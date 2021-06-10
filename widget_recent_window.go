@@ -9,7 +9,7 @@ import (
 
 // RecentWindowWidget is a widget displaying a recently activated window.
 type RecentWindowWidget struct {
-	BaseWidget
+	*ButtonWidget
 
 	window    uint8
 	showTitle bool
@@ -18,7 +18,7 @@ type RecentWindowWidget struct {
 }
 
 // NewRecentWindowWidget returns a new RecentWindowWidget.
-func NewRecentWindowWidget(bw BaseWidget, opts WidgetConfig) (*RecentWindowWidget, error) {
+func NewRecentWindowWidget(bw *BaseWidget, opts WidgetConfig) (*RecentWindowWidget, error) {
 	var window int64
 	if err := ConfigValue(opts.Config["window"], &window); err != nil {
 		return nil, err

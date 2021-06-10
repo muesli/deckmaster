@@ -12,7 +12,7 @@ import (
 
 // TimeWidget is a widget displaying the current time/date.
 type TimeWidget struct {
-	BaseWidget
+	*BaseWidget
 
 	format string
 	font   string
@@ -20,7 +20,7 @@ type TimeWidget struct {
 }
 
 // NewTimeWidget returns a new TimeWidget.
-func NewTimeWidget(bw BaseWidget, opts WidgetConfig) *TimeWidget {
+func NewTimeWidget(bw *BaseWidget, opts WidgetConfig) *TimeWidget {
 	bw.setInterval(opts.Interval, 500)
 
 	var format, font string

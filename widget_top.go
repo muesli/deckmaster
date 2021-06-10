@@ -14,7 +14,7 @@ import (
 
 // TopWidget is a widget displaying the current CPU/MEM usage as a bar.
 type TopWidget struct {
-	BaseWidget
+	*BaseWidget
 
 	mode      string
 	color     color.Color
@@ -24,7 +24,7 @@ type TopWidget struct {
 }
 
 // NewTopWidget returns a new TopWidget.
-func NewTopWidget(bw BaseWidget, opts WidgetConfig) *TopWidget {
+func NewTopWidget(bw *BaseWidget, opts WidgetConfig) *TopWidget {
 	bw.setInterval(opts.Interval, 500)
 
 	var mode string

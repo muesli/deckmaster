@@ -36,7 +36,7 @@ func weatherImage(name string) image.Image {
 
 // WeatherWidget is a widget displaying the current weather.
 type WeatherWidget struct {
-	BaseWidget
+	*ButtonWidget
 
 	data    WeatherData
 	color   color.Color

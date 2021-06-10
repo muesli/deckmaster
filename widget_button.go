@@ -9,7 +9,7 @@ import (
 
 // ButtonWidget is a simple widget displaying an icon and/or label.
 type ButtonWidget struct {
-	BaseWidget
+	*BaseWidget
 
 	icon     image.Image
 	label    string
@@ -19,7 +19,7 @@ type ButtonWidget struct {
 }
 
 // NewButtonWidget returns a new ButtonWidget.
-func NewButtonWidget(bw BaseWidget, opts WidgetConfig) (*ButtonWidget, error) {
+func NewButtonWidget(bw *BaseWidget, opts WidgetConfig) (*ButtonWidget, error) {
 	bw.setInterval(opts.Interval, 0)
 
 	var icon, label string

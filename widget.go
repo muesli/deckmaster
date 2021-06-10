@@ -93,34 +93,34 @@ func NewWidget(base string, kc KeyConfig, bg image.Image) (Widget, error) {
 
 	switch kc.Widget.ID {
 	case "button":
-		return NewButtonWidget(*bw, kc.Widget)
+		return NewButtonWidget(bw, kc.Widget)
 
 	case "clock":
 		kc.Widget.Config = make(map[string]interface{})
 		kc.Widget.Config["format"] = "%H;%i;%s"
 		kc.Widget.Config["font"] = "bold;regular;thin"
-		return NewTimeWidget(*bw, kc.Widget), nil
+		return NewTimeWidget(bw, kc.Widget), nil
 
 	case "date":
 		kc.Widget.Config = make(map[string]interface{})
 		kc.Widget.Config["format"] = "%l;%d;%M"
 		kc.Widget.Config["font"] = "regular;bold;regular"
-		return NewTimeWidget(*bw, kc.Widget), nil
+		return NewTimeWidget(bw, kc.Widget), nil
 
 	case "time":
-		return NewTimeWidget(*bw, kc.Widget), nil
+		return NewTimeWidget(bw, kc.Widget), nil
 
 	case "recentWindow":
-		return NewRecentWindowWidget(*bw, kc.Widget)
+		return NewRecentWindowWidget(bw, kc.Widget)
 
 	case "top":
-		return NewTopWidget(*bw, kc.Widget), nil
+		return NewTopWidget(bw, kc.Widget), nil
 
 	case "command":
-		return NewCommandWidget(*bw, kc.Widget), nil
+		return NewCommandWidget(bw, kc.Widget), nil
 
 	case "weather":
-		return NewWeatherWidget(*bw, kc.Widget), nil
+		return NewWeatherWidget(bw, kc.Widget)
 	}
 
 	// unknown widget ID
