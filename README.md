@@ -18,6 +18,7 @@ An application to control your Elgato Stream Deck on Linux
     - Buttons
     - Time (with formatting)
     - CPU/Mem usage
+    - Weather
     - Command output
     - Recently used windows (X11-only)
 - Lets you trigger several actions:
