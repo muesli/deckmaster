@@ -44,12 +44,15 @@ func NewButtonWidget(bw *BaseWidget, opts WidgetConfig) (*ButtonWidget, error) {
 		flatten:    flatten,
 	}
 	if icon != "" {
-		w.LoadImage(icon)
+		if err := w.LoadImage(icon); err != nil {
+			return nil, err
+		}
 	}
 
 	return w, nil
 }
 
+// LoadImage loads an image from disk.
 func (w *ButtonWidget) LoadImage(path string) error {
 	path, err := expandPath(w.base, path)
 	if err != nil {
@@ -64,6 +67,7 @@ func (w *ButtonWidget) LoadImage(path string) error {
 	return nil
 }
 
+// SetImage updates the widget's icon.
 func (w *ButtonWidget) SetImage(img image.Image) {
 	w.icon = img
 	if w.flatten {
