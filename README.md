@@ -154,7 +154,7 @@ A simple button that can display an image and/or a label.
     flatten = true # optional
 ```
 
-If `flatten = true` all pixels of the condition icon will have the color `color`.
+If `flatten` is `true` all opaque pixels of the icon will have the color `color`.
 
 #### Recent Window (requires X11)
 
@@ -244,8 +244,11 @@ A widget that displays the weather condition and temperature.
 ```
 
 The supported location types can be found [here](http://wttr.in/:help). The unit
-has to be either `celsius` or `fahrenheit`. If `flatten` is `true` all pixels of
-the condition icon will have the color `color`.
+has to be either `celsius` or `fahrenheit`. If `flatten` is `true` all opaque
+pixels of the condition icon will have the color `color`. In case `theme` is set
+corresponding icons with correct names need to be placed in
+`~/.local/share/deckmaster/themes/[theme]`. The default icons with their
+respective names can be found [here](https://github.com/muesli/deckmaster/tree/master/assets/weather).
 
 ### Background Image
 
