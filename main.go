@@ -48,6 +48,9 @@ func expandPath(base, path string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	if base == "" {
+		return path, nil
+	}
 
 	if !filepath.IsAbs(path) {
 		path = filepath.Join(base, path)
