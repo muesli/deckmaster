@@ -119,6 +119,12 @@ You can control the brightness, in percent:
 deckmaster -brightness 50
 ```
 
+Control a specific streamdeck:
+
+```bash
+deckmaster -device [serial number]
+```
+
 ## Configuration
 
 You can find a few example configurations in the [decks](https://github.com/muesli/deckmaster/tree/master/decks)
