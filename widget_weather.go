@@ -12,8 +12,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/muesli/streamdeck"
 )
 
 //go:embed assets/weather
@@ -160,16 +158,16 @@ func (w *WeatherWidget) RequiresUpdate() bool {
 }
 
 // Update renders the widget.
-func (w *WeatherWidget) Update(dev *streamdeck.Device) error {
+func (w *WeatherWidget) Update() error {
 	go w.data.Fetch()
 
 	cond, err := w.data.Condition()
 	if err != nil {
-		return w.render(dev, nil)
+		return w.render(w.dev, nil)
 	}
 	temp, err := w.data.Temperature()
 	if err != nil {
-		return w.render(dev, nil)
+		return w.render(w.dev, nil)
 	}
 
 	var iconName string
@@ -199,7 +197,7 @@ func (w *WeatherWidget) Update(dev *streamdeck.Device) error {
 			iconName = "sun"
 		}
 	default:
-		return w.render(dev, nil)
+		return w.render(w.dev, nil)
 	}
 
 	var weatherIcon image.Image
@@ -218,7 +216,7 @@ func (w *WeatherWidget) Update(dev *streamdeck.Device) error {
 	w.label = temp
 	w.SetImage(weatherIcon)
 
-	return w.ButtonWidget.Update(dev)
+	return w.ButtonWidget.Update()
 }
 
 func formatUnit(unit string) string {

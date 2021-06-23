@@ -1,79 +1,74 @@
 package main
 
 import (
-	"fmt"
 	"image"
 	"image/color"
 	"strings"
 	"time"
-
-	"github.com/muesli/streamdeck"
 )
 
 // TimeWidget is a widget displaying the current time/date.
 type TimeWidget struct {
 	*BaseWidget
 
-	format string
-	font   string
-	color  color.Color
+	formats []string
+	fonts   []string
+	colors  []color.Color
+	frames  []image.Rectangle
 }
 
 // NewTimeWidget returns a new TimeWidget.
 func NewTimeWidget(bw *BaseWidget, opts WidgetConfig) *TimeWidget {
 	bw.setInterval(time.Duration(opts.Interval)*time.Millisecond, time.Second/2)
 
-	var format, font string
-	_ = ConfigValue(opts.Config["format"], &format)
-	_ = ConfigValue(opts.Config["font"], &font)
-	var color color.Color
-	_ = ConfigValue(opts.Config["color"], &color)
+	var formats, fonts, frameReps []string
+	_ = ConfigValue(opts.Config["format"], &formats)
+	_ = ConfigValue(opts.Config["font"], &fonts)
+	_ = ConfigValue(opts.Config["layout"], &frameReps)
+	var colors []color.Color
+	_ = ConfigValue(opts.Config["color"], &colors)
+
+	layout := NewLayout(int(bw.dev.Pixels))
+	frames := layout.FormatLayout(frameReps, len(formats))
+
+	for i := 0; i < len(formats); i++ {
+		if len(fonts) < i+1 {
+			fonts = append(fonts, "regular")
+		}
+		if len(colors) < i+1 {
+			colors = append(colors, DefaultColor)
+		}
+	}
 
 	return &TimeWidget{
 		BaseWidget: bw,
-		format:     format,
-		font:       font,
-		color:      color,
+		formats:    formats,
+		fonts:      fonts,
+		colors:     colors,
+		frames:     frames,
 	}
 }
 
 // Update renders the widget.
-func (w *TimeWidget) Update(dev *streamdeck.Device) error {
-	size := int(dev.Pixels)
-	margin := size / 18
-	height := size - (margin * 2)
+func (w *TimeWidget) Update() error {
+	size := int(w.dev.Pixels)
 	img := image.NewRGBA(image.Rect(0, 0, size, size))
 
-	formats := strings.Split(w.format, ";")
-	fonts := strings.Split(w.font, ";")
+	for i := 0; i < len(w.formats); i++ {
+		str := formatTime(time.Now(), w.formats[i])
+		font := fontByName(w.fonts[i])
 
-	if len(formats) == 0 || len(w.format) == 0 {
-		return fmt.Errorf("no time format supplied")
-	}
-	for len(fonts) < len(formats) {
-		fonts = append(fonts, "regular")
-	}
-
-	if w.color == nil {
-		w.color = DefaultColor
-	}
-
-	for i := 0; i < len(formats); i++ {
-		str := formatTime(time.Now(), formats[i])
-		font := fontByName(fonts[i])
-		lower := margin + (height/len(formats))*i
-		upper := margin + (height/len(formats))*(i+1)
-
-		drawString(img, image.Rect(0, lower, size, upper),
+		drawString(img,
+			w.frames[i],
 			font,
 			str,
-			dev.DPI,
+			w.dev.DPI,
 			-1,
-			w.color,
+			w.colors[i],
 			image.Pt(-1, -1))
 	}
 
-	return w.render(dev, img)
+	return w.render(w.dev, img)
 }
 
 func formatTime(t time.Time, format string) string {

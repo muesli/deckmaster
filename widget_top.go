@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/muesli/streamdeck"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/mem"
 )
@@ -43,7 +42,7 @@ func NewTopWidget(bw *BaseWidget, opts WidgetConfig) *TopWidget {
 }
 
 // Update renders the widget.
-func (w *TopWidget) Update(dev *streamdeck.Device) error {
+func (w *TopWidget) Update() error {
 	var value float64
 	var label string
 
@@ -81,7 +80,7 @@ func (w *TopWidget) Update(dev *streamdeck.Device) error {
 		w.fillColor = color.RGBA{166, 155, 182, 255}
 	}
 
-	size := int(dev.Pixels)
+	size := int(w.dev.Pixels)
 	margin := size / 18
 	img := image.NewRGBA(image.Rect(0, 0, size, size))
 
@@ -107,7 +106,7 @@ func (w *TopWidget) Update(dev *streamdeck.Device) error {
 		bounds,
 		ttfFont,
 		strconv.FormatInt(int64(value), 10),
-		dev.DPI,
+		w.dev.DPI,
 		13,
 		w.color,
 		image.Pt(-1, -1))
@@ -121,10 +120,10 @@ func (w *TopWidget) Update(dev *streamdeck.Device) error {
 		bounds,
 		ttfFont,
 		"% "+label,
-		dev.DPI,
+		w.dev.DPI,
 		-1,
 		w.color,
 		image.Pt(-1, -1))
 
-	return w.render(dev, img)
+	return w.render(w.dev, img)
 }

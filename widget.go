@@ -24,7 +24,7 @@ var (
 type Widget interface {
 	Key() uint8
 	RequiresUpdate() bool
-	Update(dev *streamdeck.Device) error
+	Update() error
 	Action() *ActionConfig
 	ActionHold() *ActionConfig
 	TriggerAction(hold bool)
@@ -36,6 +36,7 @@ type BaseWidget struct {
 	key        uint8
 	action     *ActionConfig
 	actionHold *ActionConfig
+	dev        *streamdeck.Device
 	background image.Image
 	lastUpdate time.Time
 	interval   time.Duration
@@ -73,24 +74,25 @@ func (w *BaseWidget) RequiresUpdate() bool {
 }
 
 // Update renders the widget.
-func (w *BaseWidget) Update(dev *streamdeck.Device) error {
-	return w.render(dev, nil)
+func (w *BaseWidget) Update() error {
+	return w.render(w.dev, nil)
 }
 
 // NewBaseWidget returns a new BaseWidget.
-func NewBaseWidget(base string, index uint8, action, actionHold *ActionConfig, bg image.Image) *BaseWidget {
+func NewBaseWidget(dev *streamdeck.Device, base string, index uint8, action, actionHold *ActionConfig, bg image.Image) *BaseWidget {
 	return &BaseWidget{
 		base:       base,
 		key:        index,
 		action:     action,
 		actionHold: actionHold,
+		dev:        dev,
 		background: bg,
 	}
 }
 
 // NewWidget initializes a widget.
-func NewWidget(base string, kc KeyConfig, bg image.Image) (Widget, error) {
-	bw := NewBaseWidget(base, kc.Index, kc.Action, kc.ActionHold, bg)
+func NewWidget(dev *streamdeck.Device, base string, kc KeyConfig, bg image.Image) (Widget, error) {
+	bw := NewBaseWidget(dev, base, kc.Index, kc.Action, kc.ActionHold, bg)
 
 	switch kc.Widget.ID {
 	case "button":

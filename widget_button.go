@@ -4,8 +4,6 @@ import (
 	"image"
 	"image/color"
 	"time"
-
-	"github.com/muesli/streamdeck"
 )
 
 // ButtonWidget is a simple widget displaying an icon and/or label.
@@ -77,8 +75,8 @@ func (w *ButtonWidget) SetImage(img image.Image) {
 }
 
 // Update renders the widget.
-func (w *ButtonWidget) Update(dev *streamdeck.Device) error {
-	size := int(dev.Pixels)
+func (w *ButtonWidget) Update() error {
+	size := int(w.dev.Pixels)
 	margin := size / 18
 	height := size - (margin * 2)
 	img := image.NewRGBA(image.Rect(0, 0, size, size))
@@ -105,7 +103,7 @@ func (w *ButtonWidget) Update(dev *streamdeck.Device) error {
 			bounds,
 			ttfFont,
 			w.label,
-			dev.DPI,
+			w.dev.DPI,
 			w.fontsize,
 			w.color,
 			image.Pt(-1, -1))
@@ -120,5 +118,5 @@ func (w *ButtonWidget) Update(dev *streamdeck.Device) error {
 		}
 	}
 
-	return w.render(dev, img)
+	return w.render(w.dev, img)
 }

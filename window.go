@@ -27,10 +27,10 @@ func handleActiveWindowChanged(dev *streamdeck.Device, event ActiveWindowChanged
 	if len(recentWindows) > keys {
 		recentWindows = recentWindows[0:keys]
 	}
-	deck.updateWidgets(dev)
+	deck.updateWidgets()
 }
 
-func handleWindowClosed(dev *streamdeck.Device, event WindowClosedEvent) {
+func handleWindowClosed(event WindowClosedEvent) {
 	i := 0
 	for _, rw := range recentWindows {
 		if rw.ID == event.Window.ID {
@@ -41,5 +41,5 @@ func handleWindowClosed(dev *streamdeck.Device, event WindowClosedEvent) {
 		i++
 	}
 	recentWindows = recentWindows[:i]
-	deck.updateWidgets(dev)
+	deck.updateWidgets()
 }

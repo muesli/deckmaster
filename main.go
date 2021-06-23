@@ -70,7 +70,7 @@ func eventLoop(dev *streamdeck.Device, tch chan interface{}) {
 	for {
 		select {
 		case <-time.After(100 * time.Millisecond):
-			deck.updateWidgets(dev)
+			deck.updateWidgets()
 
 		case k, ok := <-kch:
 			if !ok {
@@ -112,7 +112,7 @@ func eventLoop(dev *streamdeck.Device, tch chan interface{}) {
 		case e := <-tch:
 			switch event := e.(type) {
 			case WindowClosedEvent:
-				handleWindowClosed(dev, event)
+				handleWindowClosed(event)
 
 			case ActiveWindowChangedEvent:
 				handleActiveWindowChanged(dev, event)
@@ -213,7 +213,7 @@ func main() {
 	if err != nil {
 		fatal(err)
 	}
-	deck.updateWidgets(dev)
+	deck.updateWidgets()
 
 	eventLoop(dev, tch)
 }

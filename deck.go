@@ -59,12 +59,12 @@ func LoadDeck(dev *streamdeck.Device, base string, deck string) (*Deck, error) {
 
 		var w Widget
 		if k, found := keyMap[i]; found {
-			w, err = NewWidget(filepath.Dir(path), k, bg)
+			w, err = NewWidget(dev, filepath.Dir(path), k, bg)
 			if err != nil {
 				return nil, err
 			}
 		} else {
-			w = NewBaseWidget(filepath.Dir(path), i, nil, nil, bg)
+			w = NewBaseWidget(dev, filepath.Dir(path), i, nil, nil, bg)
 		}
 
 		d.Widgets = append(d.Widgets, w)
@@ -223,7 +223,7 @@ func (d *Deck) triggerAction(dev *streamdeck.Device, index uint8, hold bool) {
 					}
 
 					deck = d
-					deck.updateWidgets(dev)
+					deck.updateWidgets()
 				}
 				if a.Keycode != "" {
 					emulateKeyPresses(a.Keycode)
@@ -245,14 +245,14 @@ func (d *Deck) triggerAction(dev *streamdeck.Device, index uint8, hold bool) {
 }
 
 // updateWidgets updates/repaints all the widgets.
-func (d *Deck) updateWidgets(dev *streamdeck.Device) {
+func (d *Deck) updateWidgets() {
 	for _, w := range d.Widgets {
 		if !w.RequiresUpdate() {
 			continue
 		}
 
 		// fmt.Println("Repaint", w.Key())
-		if err := w.Update(dev); err != nil {
+		if err := w.Update(); err != nil {
 			fatalf("error: %v\n", err)
 		}
 	}

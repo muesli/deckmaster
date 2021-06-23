@@ -185,7 +185,10 @@ A flexible widget that can display the current time or date.
     format = "%H;%i;%s"
     font = "bold;regular;thin" # optional
     color = "#fefefe" # optional
+    layout = "0x0+72x24;0x24+72x24;0x48+72x24" # optional
 ```
+
+With `layout` custom layouts can be definded in the format `[posX]x[posY]+[width]x[height]`.
 
 Values for `format` are:
 
@@ -232,6 +235,7 @@ A widget that displays the output of commands.
     command = "echo 'Files:'; ls -a ~ | wc -l"
     font = "regular;bold" # optional
     color = "#fefefe" # optional
+    layout = "0x0+72x20;0x20+72x52" # optional
 ```
 
 #### Weather
