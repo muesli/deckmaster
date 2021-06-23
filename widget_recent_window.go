@@ -3,8 +3,6 @@ package main
 import (
 	"fmt"
 	"image"
-
-	"github.com/muesli/streamdeck"
 )
 
 // RecentWindowWidget is a widget displaying a recently activated window.
@@ -48,8 +46,8 @@ func (w *RecentWindowWidget) RequiresUpdate() bool {
 }
 
 // Update renders the widget.
-func (w *RecentWindowWidget) Update(dev *streamdeck.Device) error {
-	img := image.NewRGBA(image.Rect(0, 0, int(dev.Pixels), int(dev.Pixels)))
+func (w *RecentWindowWidget) Update() error {
+	img := image.NewRGBA(image.Rect(0, 0, int(w.dev.Pixels), int(w.dev.Pixels)))
 
 	if int(w.window) < len(recentWindows) {
 		if w.lastID == recentWindows[w.window].ID {
@@ -67,10 +65,10 @@ func (w *RecentWindowWidget) Update(dev *streamdeck.Device) error {
 
 		w.label = name
 		w.SetImage(recentWindows[w.window].Icon)
-		return w.ButtonWidget.Update(dev)
+		return w.ButtonWidget.Update()
 	}
 
-	return w.render(dev, img)
+	return w.render(w.dev, img)
 }
 
 // TriggerAction gets called when a button is pressed.

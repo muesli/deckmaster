@@ -1,83 +1,77 @@
 package main
 
 import (
-	"fmt"
 	"image"
 	"image/color"
 	"os/exec"
 	"strings"
 	"time"
-
-	"github.com/muesli/streamdeck"
 )
 
 // CommandWidget is a widget displaying the output of command(s).
 type CommandWidget struct {
 	*BaseWidget
 
-	command string
-	font    string
-	color   color.Color
+	commands []string
+	fonts    []string
+	frames   []image.Rectangle
+	colors   []color.Color
 }
 
 // NewCommandWidget returns a new CommandWidget.
 func NewCommandWidget(bw *BaseWidget, opts WidgetConfig) *CommandWidget {
 	bw.setInterval(time.Duration(opts.Interval)*time.Millisecond, time.Second)
 
-	var command, font string
-	_ = ConfigValue(opts.Config["command"], &command)
-	_ = ConfigValue(opts.Config["font"], &font)
-	var color color.Color
-	_ = ConfigValue(opts.Config["color"], &color)
+	var commands, fonts, frameReps []string
+	_ = ConfigValue(opts.Config["command"], &commands)
+	_ = ConfigValue(opts.Config["font"], &fonts)
+	_ = ConfigValue(opts.Config["layout"], &frameReps)
+	var colors []color.Color
+	_ = ConfigValue(opts.Config["color"], &colors)
+
+	layout := NewLayout(int(bw.dev.Pixels))
+	frames := layout.FormatLayout(frameReps, len(commands))
+
+	for i := 0; i < len(commands); i++ {
+		if len(fonts) < i+1 {
+			fonts = append(fonts, "regular")
+		}
+		if len(colors) < i+1 {
+			colors = append(colors, DefaultColor)
+		}
+	}
 
 	return &CommandWidget{
 		BaseWidget: bw,
-		command:    command,
-		font:       font,
-		color:      color,
+		commands:   commands,
+		fonts:      fonts,
+		frames:     frames,
+		colors:     colors,
 	}
 }
 
 // Update renders the widget.
-func (w *CommandWidget) Update(dev *streamdeck.Device) error {
-	size := int(dev.Pixels)
-	margin := size / 18
-	height := size - (margin * 2)
+func (w *CommandWidget) Update() error {
+	size := int(w.dev.Pixels)
 	img := image.NewRGBA(image.Rect(0, 0, size, size))
 
-	commands := strings.Split(w.command, ";")
-	fonts := strings.Split(w.font, ";")
-
-	if len(commands) == 0 || len(w.command) == 0 {
-		return fmt.Errorf("no command(s) supplied")
-	}
-	for len(fonts) < len(commands) {
-		fonts = append(fonts, "regular")
-	}
-
-	if w.color == nil {
-		w.color = DefaultColor
-	}
-
-	for i := 0; i < len(commands); i++ {
-		str, err := runCommand(commands[i])
+	for i := 0; i < len(w.commands); i++ {
+		str, err := runCommand(w.commands[i])
 		if err != nil {
 			return err
 		}
-		font := fontByName(fonts[i])
-		lower := margin + (height/len(commands))*i
-		upper := margin + (height/len(commands))*(i+1)
+		font := fontByName(w.fonts[i])
 
-		drawString(img, image.Rect(0, lower, size, upper),
+		drawString(img,
+			w.frames[i],
 			font,
 			str,
-			dev.DPI,
+			w.dev.DPI,
 			-1,
-			w.color,
+			w.colors[i],
 			image.Pt(-1, -1))
 	}
-
-	return w.render(dev, img)
+	return w.render(w.dev, img)
 }
 
 func runCommand(command string) (string, error) {
