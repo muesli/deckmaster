@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"reflect"
 	"strconv"
+	"strings"
 
 	"github.com/BurntSushi/toml"
 	colorful "github.com/lucasb-eyer/go-colorful"
@@ -134,6 +135,28 @@ func ConfigValue(v interface{}, dst interface{}) error {
 			*d = x
 		default:
 			return fmt.Errorf("unhandled type %+v for color.Color conversion", reflect.TypeOf(vt))
+		}
+
+	case *[]string:
+		switch vt := v.(type) {
+		case string:
+			*d = strings.Split(vt, ";")
+		default:
+			return fmt.Errorf("unhandled type %+v for []string conversion", reflect.TypeOf(vt))
+		}
+
+	case *[]color.Color:
+		switch vt := v.(type) {
+		case string:
+			cls := strings.Split(vt, ";")
+			var clrs []color.Color
+			for _, cl := range cls {
+				clr, _ := colorful.Hex(cl)
+				clrs = append(clrs, clr)
+			}
+			*d = clrs
+		default:
+			return fmt.Errorf("unhandled type %+v for []color.Color conversion", reflect.TypeOf(vt))
 		}
 
 	default:
