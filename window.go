@@ -22,7 +22,7 @@ func handleActiveWindowChanged(dev *streamdeck.Device, event ActiveWindowChanged
 	}
 	recentWindows = recentWindows[:i]
 
-	keys := int(dev.Rows * dev.Columns)
+	keys := int(dev.Keys)
 	recentWindows = append([]Window{event.Window}, recentWindows...)
 	if len(recentWindows) > keys {
 		recentWindows = recentWindows[0:keys]
