@@ -17,9 +17,9 @@ require (
 	github.com/jezek/xgbutil v0.0.0-20210302171758-530099784e66
 	github.com/lucasb-eyer/go-colorful v1.2.0
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/muesli/streamdeck v0.2.1-0.20210621143110-f4204010563d
+	github.com/muesli/streamdeck v0.2.2-0.20210705154802-91a7f4efcdfd
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/shirou/gopsutil v2.18.12+incompatible
-	golang.org/x/image v0.0.0-20210504121937-7319ad40d33e
+	golang.org/x/image v0.0.0-20210628002857-a66eb6448b8d
 	golang.org/x/sys v0.0.0-20190813064441-fde4db37ae7a // indirect
 )

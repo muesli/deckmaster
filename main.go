@@ -143,7 +143,7 @@ func initDevice() (*streamdeck.Device, error) {
 		if !found {
 			fmt.Println("Can't find device. Available devices:")
 			for _, v := range d {
-				fmt.Printf("Serial %s (%d buttons)\n", v.Serial, v.Columns*v.Rows)
+				fmt.Printf("Serial %s (%d buttons)\n", v.Serial, dev.Keys)
 			}
 			os.Exit(1)
 		}
@@ -157,7 +157,7 @@ func initDevice() (*streamdeck.Device, error) {
 		return nil, err
 	}
 	fmt.Printf("Found device with serial %s (%d buttons, firmware %s)\n",
-		dev.Serial, dev.Columns*dev.Rows, ver)
+		dev.Serial, dev.Keys, ver)
 
 	if err := dev.Reset(); err != nil {
 		return nil, err

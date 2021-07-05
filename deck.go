@@ -54,7 +54,7 @@ func LoadDeck(dev *streamdeck.Device, base string, deck string) (*Deck, error) {
 		keyMap[k.Index] = k
 	}
 
-	for i := uint8(0); i < dev.Columns*dev.Rows; i++ {
+	for i := uint8(0); i < dev.Keys; i++ {
 		bg := d.backgroundForKey(dev, i)
 
 		var w Widget
