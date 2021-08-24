@@ -145,7 +145,7 @@ and left to right.
 
 #### Update interval for widgets
 
-A widget can optionally be set to update at a defined interval.
+Optionally, you can configure an update `interval` for each widget:
 
 ```toml
 [keys.widget]
@@ -153,7 +153,8 @@ A widget can optionally be set to update at a defined interval.
   interval = 500 # optional
 ```
 
-The attribute `interval` defines the time in `ms` between two consecutive updates of the widget. The default interval in `500`
+The attribute `interval` defines the time in `ms` between two consecutive
+updates of a widget.
 
 #### Button
 
