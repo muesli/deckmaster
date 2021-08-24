@@ -138,13 +138,24 @@ Any widget is build up the following way:
 ```toml
 [[keys]]
   index = 0
-  interval = 500 # optional
 ```
 
 `index` needs to be present in every widget and describes the position of the
 widget on the streamdeck. `index` is 0-indexed and counted from top to bottom
-and left to right. The attribute `interval` defines the time in `ms` between two
-consecutive updates of the widget.
+and left to right.
+
+#### Update interval for widgets
+
+Optionally, you can configure an update `interval` for each widget:
+
+```toml
+[keys.widget]
+  id = "button"
+  interval = 500 # optional
+```
+
+The attribute `interval` defines the time in `ms` between two consecutive
+updates of a widget.
 
 #### Button
 
