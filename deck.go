@@ -12,9 +12,9 @@ import (
 	"time"
 
 	"github.com/atotto/clipboard"
+	"github.com/fsnotify/fsnotify"
 	"github.com/godbus/dbus"
 	"github.com/muesli/streamdeck"
-        "github.com/fsnotify/fsnotify"
 )
 
 // Deck is a set of widgets.
@@ -72,32 +72,31 @@ func LoadDeck(dev *streamdeck.Device, base string, deckName string) (*Deck, erro
 		d.Widgets = append(d.Widgets, w)
 	}
 
-        watcher, err := fsnotify.NewWatcher()
-        err = watcher.Add(path)
+	watcher, err := fsnotify.NewWatcher()
+	err = watcher.Add(path)
 
-        go func() {
+	go func() {
 		for {
 			select {
-				case event := <-watcher.Events:
-					if currentDeck == path {
-						fmt.Println("Change:  %s: %s", event.Op, event.Name)
-        	                                d, err := LoadDeck(dev, base, deckName)
-                	                        if err != nil {
-                        	                        fatal(err)
-                                	        }
-                                        	err = dev.Clear()
-                               	        	if err != nil {
-                                                	fatal(err)
-                                        	}
-
-                                        	deck = d
-                                        	deck.updateWidgets()
-						return
+			case event := <-watcher.Events:
+				if currentDeck == path {
+					fmt.Printf("Change:  %s: %s\n", event.Op, event.Name)
+					d, err := LoadDeck(dev, base, deckName)
+					if err != nil {
+						fatal(err)
 					}
-                        }
+					err = dev.Clear()
+					if err != nil {
+						fatal(err)
+					}
+
+					deck = d
+					deck.updateWidgets()
+					return
+				}
+			}
 		}
 	}()
-
 
 	return &d, nil
 }
