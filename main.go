@@ -15,7 +15,8 @@ import (
 )
 
 var (
-	deck *Deck
+	deck        *Deck
+	currentDeck string
 
 	dbusConn *dbus.Conn
 	keyboard uinput.Keyboard
