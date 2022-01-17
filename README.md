@@ -339,7 +339,14 @@ A list of available keycodes can be found here: [keycodes](https://github.com/mu
   deck = "relative/path/to/deck"
 ```
 
-If the value of `deck` is `"SLEEP"`, the screen will blank as if the timeout had occurred.
+#### Special actions
+
+Cause the deck to "sleep", blanking the screen as if the timeout had occurred.
+
+```toml
+[keys.action]
+  special = "sleep"
+```
 
 ## More Decks!
 

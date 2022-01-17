@@ -130,7 +130,7 @@ func eventLoop(dev *streamdeck.Device, tch chan interface{}) {
 				handleActiveWindowChanged(dev, event)
 			}
 
-		case <- sigs:
+		case <-sigs:
 			return
 		}
 	}

@@ -202,7 +202,7 @@ func executeCommand(cmd string) {
 // triggerAction triggers an action.
 func (d *Deck) triggerAction(dev *streamdeck.Device, index uint8, hold bool) {
 	lastActionTime = time.Now()
-	if (asleep) {
+	if asleep {
 		// wake up
 		asleep = false
 		if err := dev.SetBrightness(uint8(*brightness)); err != nil {
@@ -222,22 +222,26 @@ func (d *Deck) triggerAction(dev *streamdeck.Device, index uint8, hold bool) {
 
 				if a != nil {
 					// fmt.Println("Executing overloaded action")
+					switch a.Special {
+					case "":
+						// ignore
+					case "sleep":
+						d.sleep(dev)
+					default:
+						fmt.Printf("Unrecognized special action")
+					}
 					if a.Deck != "" {
-						if a.Deck == "SLEEP" {
-							d.sleep(dev)
-						} else {
-							d, err := LoadDeck(dev, filepath.Dir(d.File), a.Deck)
-							if err != nil {
-								fatal(err)
-							}
-							err = dev.Clear()
-							if err != nil {
-								fatal(err)
-							}
-
-							deck = d
-							deck.updateWidgets()
+						d, err := LoadDeck(dev, filepath.Dir(d.File), a.Deck)
+						if err != nil {
+							fatal(err)
 						}
+						err = dev.Clear()
+						if err != nil {
+							fatal(err)
+						}
+
+						deck = d
+						deck.updateWidgets()
 					}
 					if a.Keycode != "" {
 						emulateKeyPresses(a.Keycode)
