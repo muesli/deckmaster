@@ -4,8 +4,10 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/bendahl/uinput"
@@ -26,6 +28,10 @@ var (
 	deckFile   = flag.String("deck", "main.deck", "path to deck config file")
 	device     = flag.String("device", "", "which device to use (serial number)")
 	brightness = flag.Uint("brightness", 80, "brightness in percent")
+	timeout    = flag.Uint("timeout", 30, "timeout in minutes")
+
+	asleep         bool
+	lastActionTime time.Time
 )
 
 const (
@@ -34,12 +40,12 @@ const (
 
 func fatal(v ...interface{}) {
 	fmt.Fprintln(os.Stderr, v...)
-	os.Exit(1)
+	panic(fmt.Sprintln(v...))
 }
 
 func fatalf(format string, a ...interface{}) {
 	fmt.Fprintf(os.Stderr, format, a...)
-	os.Exit(1)
+	panic(fmt.Sprintf(format, a...))
 }
 
 func expandPath(base, path string) (string, error) {
@@ -60,8 +66,14 @@ func expandPath(base, path string) (string, error) {
 }
 
 func eventLoop(dev *streamdeck.Device, tch chan interface{}) {
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
 	var keyStates sync.Map
 	keyTimestamps := make(map[uint8]time.Time)
+
+	asleep = false
+	lastActionTime = time.Now()
 
 	kch, err := dev.ReadKeys()
 	if err != nil {
@@ -70,7 +82,7 @@ func eventLoop(dev *streamdeck.Device, tch chan interface{}) {
 	for {
 		select {
 		case <-time.After(100 * time.Millisecond):
-			deck.updateWidgets()
+			deck.tick(dev)
 
 		case k, ok := <-kch:
 			if !ok {
@@ -117,8 +129,16 @@ func eventLoop(dev *streamdeck.Device, tch chan interface{}) {
 			case ActiveWindowChangedEvent:
 				handleActiveWindowChanged(dev, event)
 			}
+
+		case <- sigs:
+			return
 		}
 	}
+}
+
+func closeDevice(dev *streamdeck.Device) {
+	dev.Reset()
+	dev.Close()
 }
 
 func initDevice() (*streamdeck.Device, error) {
@@ -154,12 +174,14 @@ func initDevice() (*streamdeck.Device, error) {
 	}
 	ver, err := dev.FirmwareVersion()
 	if err != nil {
+		closeDevice(&dev)
 		return nil, err
 	}
 	fmt.Printf("Found device with serial %s (%d buttons, firmware %s)\n",
 		dev.Serial, dev.Keys, ver)
 
 	if err := dev.Reset(); err != nil {
+		closeDevice(&dev)
 		return nil, err
 	}
 
@@ -167,6 +189,7 @@ func initDevice() (*streamdeck.Device, error) {
 		*brightness = 100
 	}
 	if err = dev.SetBrightness(uint8(*brightness)); err != nil {
+		closeDevice(&dev)
 		return nil, err
 	}
 
@@ -181,6 +204,7 @@ func main() {
 	if err != nil {
 		fatal(err)
 	}
+	defer closeDevice(dev)
 
 	// initialize dbus connection
 	dbusConn, err = dbus.SessionBus()
