@@ -137,8 +137,12 @@ func eventLoop(dev *streamdeck.Device, tch chan interface{}) {
 }
 
 func closeDevice(dev *streamdeck.Device) {
-	dev.Reset()
-	dev.Close()
+	if err := dev.Reset(); err != nil {
+		fmt.Fprintln(os.Stderr, "unable to reset Stream Deck")
+	}
+	if err := dev.Close(); err != nil {
+		fmt.Fprintln(os.Stderr, "unable to close Stream Deck")
+	}
 }
 
 func initDevice() (*streamdeck.Device, error) {

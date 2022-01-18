@@ -33,22 +33,22 @@ func NewSmartButtonDependencyBase(toBeReplaced string) *SmartButtonDependencyBas
 	}
 }
 
-// ToBeReplaced returns the string that will be replaced by the dependency value
+// ToBeReplaced returns the string that will be replaced by the dependency value.
 func (d *SmartButtonDependencyBase) ToBeReplaced() string {
 	return d.toBeReplaced
 }
 
-// IsChanged returns true if the dependency value has changed
+// IsChanged returns true if the dependency value has changed.
 func (d *SmartButtonDependencyBase) IsChanged() bool {
 	return false
 }
 
-// Value returns the value of the dependency
+// Value returns the value of the dependency.
 func (d *SmartButtonDependencyBase) Value() string {
 	return ""
 }
 
-// SmartButtonBrightnessDependency is a dependency based on the brightness setting
+// SmartButtonBrightnessDependency is a dependency based on the brightness setting.
 type SmartButtonBrightnessDependency struct {
 	*SmartButtonDependencyBase
 
@@ -63,12 +63,12 @@ func NewSmartButtonBrightnessDependency() *SmartButtonBrightnessDependency {
 	}
 }
 
-// IsChanged returns true if the brightness has changed
+// IsChanged returns true if the brightness has changed.
 func (d *SmartButtonBrightnessDependency) IsChanged() bool {
 	return d.brightness != *brightness
 }
 
-// Value returns the brightness as a string
+// Value returns the brightness as a string.
 func (d *SmartButtonBrightnessDependency) Value() string {
 	d.brightness = *brightness
 	return fmt.Sprintf("%d", d.brightness)

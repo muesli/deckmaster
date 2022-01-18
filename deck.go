@@ -288,7 +288,7 @@ func (d *Deck) updateWidgets() {
 	}
 }
 
-// causes the device to go into "sleep" mode (dim and blank)
+// sleep causes the device to go into "sleep" mode (dim and blank).
 func (d *Deck) sleep(dev *streamdeck.Device) {
 	asleep = true
 	if err := dev.SetBrightness(0); err != nil {
@@ -299,7 +299,7 @@ func (d *Deck) sleep(dev *streamdeck.Device) {
 	}
 }
 
-// called on each clock tick to update the device
+// tick is to be called on each clock tick to update the device.
 func (d *Deck) tick(dev *streamdeck.Device) {
 	if !asleep {
 		if time.Since(lastActionTime).Minutes() < float64(*timeout) {
@@ -310,7 +310,7 @@ func (d *Deck) tick(dev *streamdeck.Device) {
 	}
 }
 
-// adjusts the brightness
+// adjustBrightness adjusts the brightness.
 func (d *Deck) adjustBrightness(dev *streamdeck.Device, value string) {
 	newBrightness := int64(math.MinInt64)
 	failed := false
