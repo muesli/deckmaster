@@ -180,6 +180,30 @@ A simple button that can display an image and/or a label.
 
 If `flatten` is `true` all opaque pixels of the icon will have the color `color`.
 
+#### Smart Button
+
+A button that can alter its label dynamically.  Takes the same configuration as
+`button`.
+
+```toml
+[keys.widget]
+  id = "smartButton"
+  [keys.widget.config]
+    icon = "/some/image.png" # optional
+    label = "${brightness}" # optional
+    fontsize = 10.0 # optional
+    color = "#fefefe" # optional
+    flatten = true # optional
+```
+
+In the `label`, the following substitutions will be made:
+
+| substitution  | gets replaced with                                        |
+| ------------- | --------------------------------------------------------- |
+| ${brightness} | the brightness of the Stream Deck                         |
+
+If `flatten` is `true` all opaque pixels of the icon will have the color `color`.
+
 #### Recent Window (requires X11)
 
 Displays the icon of a recently used window/application. Pressing the button
