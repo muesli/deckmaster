@@ -344,6 +344,29 @@ A list of available `keycodes` can be found here: [keycodes](https://github.com/
     value = "value"
 ```
 
+#### Device actions
+
+Increase the brightness. If no value is specified, it will be increased by 10%.
+
+```toml
+[keys.action]
+  device = "brightness+5"
+```
+
+Decrease the brightness. If no value is specified, it will be decreased by 10%.
+
+```toml
+[keys.action]
+  device = "brightness-5"
+```
+
+Set the brightness to a specific value between 0 and 100.
+
+```toml
+[keys.action]
+  device = "brightness=50"
+```
+
 ## More Decks!
 
 [deckmaster-emojis](https://github.com/muesli/deckmaster-emojis), an Emoji keyboard deck
