@@ -28,7 +28,7 @@ var (
 	deckFile   = flag.String("deck", "main.deck", "path to deck config file")
 	device     = flag.String("device", "", "which device to use (serial number)")
 	brightness = flag.Uint("brightness", 80, "brightness in percent")
-	timeout    = flag.Uint("timeout", 30, "timeout in minutes")
+	timeout    = flag.Uint("timeout", 0, "timeout in minutes (0 = disabled)")
 
 	asleep         bool
 	lastActionTime time.Time

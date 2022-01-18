@@ -302,7 +302,7 @@ func (d *Deck) sleep(dev *streamdeck.Device) {
 // tick is to be called on each clock tick to update the device.
 func (d *Deck) tick(dev *streamdeck.Device) {
 	if !asleep {
-		if time.Since(lastActionTime).Minutes() < float64(*timeout) {
+		if *timeout == 0 || time.Since(lastActionTime).Minutes() < float64(*timeout) {
 			d.updateWidgets()
 		} else {
 			d.sleep(dev)
