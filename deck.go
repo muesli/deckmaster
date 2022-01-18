@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"image/draw"
+	"math"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -249,6 +250,15 @@ func (d *Deck) triggerAction(dev *streamdeck.Device, index uint8, hold bool) {
 		if a.Exec != "" {
 			go executeCommand(a.Exec)
 		}
+		if a.Device != "" {
+			switch {
+			case strings.HasPrefix(a.Device, "brightness"):
+				d.adjustBrightness(dev, strings.TrimPrefix(a.Device, "brightness"))
+
+			default:
+				fmt.Fprintln(os.Stderr, "Unrecognized special action:", a.Device)
+			}
+		}
 	}
 }
 
@@ -264,4 +274,52 @@ func (d *Deck) updateWidgets() {
 			fatalf("error: %v", err)
 		}
 	}
+}
+
+// adjustBrightness adjusts the brightness.
+func (d *Deck) adjustBrightness(dev *streamdeck.Device, value string) {
+	if len(value) == 0 {
+		fmt.Fprintln(os.Stderr, "No brightness value specified")
+		return
+	}
+
+	v := int64(math.MinInt64)
+	if len(value) > 1 {
+		nv, err := strconv.ParseInt(value[1:], 10, 64)
+		if err == nil {
+			v = nv
+		}
+	}
+
+	switch value[0] {
+	case '=': // brightness=[n]:
+	case '-': // brightness-[n]:
+		if v == math.MinInt64 {
+			v = 10
+		}
+		v = int64(*brightness) - v
+	case '+': // brightness+[n]:
+		if v == math.MinInt64 {
+			v = 10
+		}
+		v = int64(*brightness) + v
+	default:
+		v = math.MinInt64
+	}
+
+	if v == math.MinInt64 {
+		fmt.Fprintf(os.Stderr, "Could not grok the brightness from value '%s'\n", value)
+		return
+	}
+
+	if v < 1 {
+		v = 1
+	} else if v > 100 {
+		v = 100
+	}
+	if err := dev.SetBrightness(uint8(v)); err != nil {
+		fatalf("error: %v\n", err)
+	}
+
+	*brightness = uint(v)
 }

@@ -27,6 +27,7 @@ type ActionConfig struct {
 	Keycode string     `toml:"keycode,omitempty"`
 	Exec    string     `toml:"exec,omitempty"`
 	Paste   string     `toml:"paste,omitempty"`
+	Device  string     `toml:"device,omitempty"`
 	DBus    DBusConfig `toml:"dbus,omitempty"`
 }
 
