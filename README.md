@@ -326,6 +326,36 @@ A list of available keycodes can be found here: [keycodes](https://github.com/mu
     value = "value"
 ```
 
+#### Switch to another deck
+
+```toml
+[keys.action]
+  deck = "relative/path/to/deck"
+```
+
+#### Special actions
+
+Increase the brightness.  If a value is not specified, defaults to 10.
+
+```toml
+[keys.action]
+  special = "bright+5"
+```
+
+Decrease the brightness.  If a value is not specified, defaults to 10.
+
+```toml
+[keys.action]
+  special = "bright-5"
+```
+
+Set the brightness to an specific value from 0 to 100.
+
+```toml
+[keys.action]
+  special = "bright=50"
+```
+
 ## More Decks!
 
 [deckmaster-emojis](https://github.com/muesli/deckmaster-emojis), an Emoji keyboard deck

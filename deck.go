@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"image/draw"
+	"math"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -212,6 +213,15 @@ func (d *Deck) triggerAction(dev *streamdeck.Device, index uint8, hold bool) {
 
 			if a != nil {
 				// fmt.Println("Executing overloaded action")
+				v := a.Special
+				switch {
+				case v == "":
+					// ignore
+				case strings.HasPrefix(v, "bright"):
+					d.adjustBrightness(dev, v)
+				default:
+					fmt.Printf("Unrecognized special action %s\n", v)
+				}
 				if a.Deck != "" {
 					d, err := LoadDeck(dev, filepath.Dir(d.File), a.Deck)
 					if err != nil {
@@ -253,6 +263,51 @@ func (d *Deck) updateWidgets() {
 
 		// fmt.Println("Repaint", w.Key())
 		if err := w.Update(); err != nil {
+			fatalf("error: %v\n", err)
+		}
+	}
+}
+
+// adjustBrightness adjusts the brightness.
+func (d *Deck) adjustBrightness(dev *streamdeck.Device, value string) {
+	newBrightness := int64(math.MinInt64)
+	failed := false
+	length := len(value)
+	if length >= 7 {
+		if length > 7 {
+			var err error
+			newBrightness, err = strconv.ParseInt(value[7:], 10, 32)
+			failed = err != nil
+		}
+		switch value[6] {
+		case '=': // bright=n
+			if newBrightness == math.MinInt64 {
+				failed = true
+			}
+		case '-': // bright+[n]
+			if newBrightness == math.MinInt64 {
+				newBrightness = 10
+			}
+			newBrightness = int64(*brightness) - newBrightness
+		case '+': // bright-[n]
+			if newBrightness == math.MinInt64 {
+				newBrightness = 10
+			}
+			newBrightness = int64(*brightness) + newBrightness
+		default:
+			failed = true
+		}
+	}
+	if failed {
+		fmt.Printf("Could not grok the brightness from %s\n", value)
+	} else {
+		if newBrightness < 0 {
+			newBrightness = 0
+		} else if newBrightness > 100 {
+			newBrightness = 100
+		}
+		*brightness = uint(newBrightness)
+		if err := dev.SetBrightness(uint8(*brightness)); err != nil {
 			fatalf("error: %v\n", err)
 		}
 	}
