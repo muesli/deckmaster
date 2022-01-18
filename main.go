@@ -4,8 +4,10 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/bendahl/uinput"
@@ -34,12 +36,12 @@ const (
 
 func fatal(v ...interface{}) {
 	fmt.Fprintln(os.Stderr, v...)
-	os.Exit(1)
+	panic(fmt.Sprintln(v...))
 }
 
 func fatalf(format string, a ...interface{}) {
 	fmt.Fprintf(os.Stderr, format, a...)
-	os.Exit(1)
+	panic(fmt.Sprintf(format, a...))
 }
 
 func expandPath(base, path string) (string, error) {
@@ -60,6 +62,9 @@ func expandPath(base, path string) (string, error) {
 }
 
 func eventLoop(dev *streamdeck.Device, tch chan interface{}) {
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
 	var keyStates sync.Map
 	keyTimestamps := make(map[uint8]time.Time)
 
@@ -117,7 +122,19 @@ func eventLoop(dev *streamdeck.Device, tch chan interface{}) {
 			case ActiveWindowChangedEvent:
 				handleActiveWindowChanged(dev, event)
 			}
+
+		case <-sigs:
+			return
 		}
+	}
+}
+
+func closeDevice(dev *streamdeck.Device) {
+	if err := dev.Reset(); err != nil {
+		fmt.Fprintln(os.Stderr, "unable to reset Stream Deck")
+	}
+	if err := dev.Close(); err != nil {
+		fmt.Fprintln(os.Stderr, "unable to close Stream Deck")
 	}
 }
 
@@ -154,12 +171,14 @@ func initDevice() (*streamdeck.Device, error) {
 	}
 	ver, err := dev.FirmwareVersion()
 	if err != nil {
+		closeDevice(&dev)
 		return nil, err
 	}
 	fmt.Printf("Found device with serial %s (%d buttons, firmware %s)\n",
 		dev.Serial, dev.Keys, ver)
 
 	if err := dev.Reset(); err != nil {
+		closeDevice(&dev)
 		return nil, err
 	}
 
@@ -167,6 +186,7 @@ func initDevice() (*streamdeck.Device, error) {
 		*brightness = 100
 	}
 	if err = dev.SetBrightness(uint8(*brightness)); err != nil {
+		closeDevice(&dev)
 		return nil, err
 	}
 
@@ -181,6 +201,7 @@ func main() {
 	if err != nil {
 		fatal(err)
 	}
+	defer closeDevice(dev)
 
 	// initialize dbus connection
 	dbusConn, err = dbus.SessionBus()
