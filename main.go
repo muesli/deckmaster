@@ -171,23 +171,20 @@ func initDevice() (*streamdeck.Device, error) {
 	}
 	ver, err := dev.FirmwareVersion()
 	if err != nil {
-		closeDevice(&dev)
-		return nil, err
+		return &dev, err
 	}
 	fmt.Printf("Found device with serial %s (%d buttons, firmware %s)\n",
 		dev.Serial, dev.Keys, ver)
 
 	if err := dev.Reset(); err != nil {
-		closeDevice(&dev)
-		return nil, err
+		return &dev, err
 	}
 
 	if *brightness > 100 {
 		*brightness = 100
 	}
 	if err = dev.SetBrightness(uint8(*brightness)); err != nil {
-		closeDevice(&dev)
-		return nil, err
+		return &dev, err
 	}
 
 	return &dev, nil
@@ -198,10 +195,12 @@ func main() {
 
 	// initialize device
 	dev, err := initDevice()
+	if dev != nil {
+		defer closeDevice(dev)
+	}
 	if err != nil {
 		fatal(err)
 	}
-	defer closeDevice(dev)
 
 	// initialize dbus connection
 	dbusConn, err = dbus.SessionBus()
