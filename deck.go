@@ -201,59 +201,108 @@ func executeCommand(cmd string) {
 
 // triggerAction triggers an action.
 func (d *Deck) triggerAction(dev *streamdeck.Device, index uint8, hold bool) {
-	for _, w := range d.Widgets {
-		if w.Key() == index {
-			var a *ActionConfig
-			if hold {
-				a = w.ActionHold()
-			} else {
-				a = w.Action()
-			}
+	lastActionTime = time.Now()
+	if asleep {
+		// wake up
+		asleep = false
+		if err := dev.SetBrightness(uint8(*brightness)); err != nil {
+			fatalf("error: %v\n", err)
+		}
+		deck.forceUpdateWidgets(true)
+		// don't perform the action!
+	} else {
+		for _, w := range d.Widgets {
+			if w.Key() == index {
+				var a *ActionConfig
+				if hold {
+					a = w.ActionHold()
+				} else {
+					a = w.Action()
+				}
 
-			if a != nil {
-				// fmt.Println("Executing overloaded action")
-				if a.Deck != "" {
-					d, err := LoadDeck(dev, filepath.Dir(d.File), a.Deck)
-					if err != nil {
-						fatal(err)
+				if a != nil {
+					// fmt.Println("Executing overloaded action")
+					v := a.Special
+					switch {
+					case v == "":
+						// ignore
+					case v == "sleep":
+						d.sleep(dev)
+					default:
+						fmt.Printf("Unrecognized special action %s\n", v)
 					}
-					err = dev.Clear()
-					if err != nil {
-						fatal(err)
-					}
+					if a.Deck != "" {
+						d, err := LoadDeck(dev, filepath.Dir(d.File), a.Deck)
+						if err != nil {
+							fatal(err)
+						}
+						err = dev.Clear()
+						if err != nil {
+							fatal(err)
+						}
 
-					deck = d
-					deck.updateWidgets()
+						deck = d
+						deck.updateWidgets()
+					}
+					if a.Keycode != "" {
+						emulateKeyPresses(a.Keycode)
+					}
+					if a.Paste != "" {
+						emulateClipboard(a.Paste)
+					}
+					if a.DBus.Method != "" {
+						executeDBusMethod(a.DBus.Object, a.DBus.Path, a.DBus.Method, a.DBus.Value)
+					}
+					if a.Exec != "" {
+						go executeCommand(a.Exec)
+					}
+				} else {
+					w.TriggerAction(hold)
 				}
-				if a.Keycode != "" {
-					emulateKeyPresses(a.Keycode)
-				}
-				if a.Paste != "" {
-					emulateClipboard(a.Paste)
-				}
-				if a.DBus.Method != "" {
-					executeDBusMethod(a.DBus.Object, a.DBus.Path, a.DBus.Method, a.DBus.Value)
-				}
-				if a.Exec != "" {
-					go executeCommand(a.Exec)
-				}
-			} else {
-				w.TriggerAction(hold)
 			}
 		}
 	}
 }
 
-// updateWidgets updates/repaints all the widgets.
-func (d *Deck) updateWidgets() {
+// forceUpdateWidgets updates/repaints all the widgets, optionally forcing them to update.
+func (d *Deck) forceUpdateWidgets(all bool) {
 	for _, w := range d.Widgets {
-		if !w.RequiresUpdate() {
+		if !all && !w.RequiresUpdate() {
 			continue
 		}
 
 		// fmt.Println("Repaint", w.Key())
 		if err := w.Update(); err != nil {
 			fatalf("error: %v\n", err)
+		}
+	}
+}
+
+// updateWidgets updates/repaints all the widgets.
+func (d *Deck) updateWidgets() {
+	if !asleep {
+		d.forceUpdateWidgets(false)
+	}
+}
+
+// sleep causes the device to go into "sleep" mode (dim and blank).
+func (d *Deck) sleep(dev *streamdeck.Device) {
+	asleep = true
+	if err := dev.SetBrightness(0); err != nil {
+		fatalf("error: %v\n", err)
+	}
+	if err := dev.Clear(); err != nil {
+		fatalf("error: %v\n", err)
+	}
+}
+
+// tick is to be called on each clock tick to update the device.
+func (d *Deck) tick(dev *streamdeck.Device) {
+	if !asleep {
+		if *timeout == 0 || time.Since(lastActionTime).Minutes() < float64(*timeout) {
+			d.updateWidgets()
+		} else {
+			d.sleep(dev)
 		}
 	}
 }

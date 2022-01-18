@@ -126,6 +126,12 @@ Control a specific streamdeck:
 deckmaster -device [serial number]
 ```
 
+Set a timeout for the screen to blank, in minutes:
+
+```bash
+deckmaster -timeout 60
+```
+
 ## Configuration
 
 You can find a few example configurations in the [decks](https://github.com/muesli/deckmaster/tree/master/decks)
@@ -324,6 +330,22 @@ A list of available keycodes can be found here: [keycodes](https://github.com/mu
     path = "path"
     method = "method"
     value = "value"
+```
+
+#### Switch to another deck
+
+```toml
+[keys.action]
+  deck = "relative/path/to/deck"
+```
+
+#### Special actions
+
+Cause the deck to "sleep", blanking the screen as if the timeout had occurred.
+
+```toml
+[keys.action]
+  special = "sleep"
 ```
 
 ## More Decks!
