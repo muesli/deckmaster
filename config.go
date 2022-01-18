@@ -28,6 +28,7 @@ type ActionConfig struct {
 	Exec    string     `toml:"exec,omitempty"`
 	Paste   string     `toml:"paste,omitempty"`
 	DBus    DBusConfig `toml:"dbus,omitempty"`
+	Special string     `toml:"special,omitempty"`
 }
 
 // WidgetConfig describes configuration data for widgets.

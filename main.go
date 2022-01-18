@@ -26,6 +26,10 @@ var (
 	deckFile   = flag.String("deck", "main.deck", "path to deck config file")
 	device     = flag.String("device", "", "which device to use (serial number)")
 	brightness = flag.Uint("brightness", 80, "brightness in percent")
+	timeout    = flag.Uint("timeout", 0, "timeout in minutes (0 = disabled)")
+
+	asleep         bool
+	lastActionTime time.Time
 )
 
 const (
@@ -63,6 +67,9 @@ func eventLoop(dev *streamdeck.Device, tch chan interface{}) {
 	var keyStates sync.Map
 	keyTimestamps := make(map[uint8]time.Time)
 
+	asleep = false
+	lastActionTime = time.Now()
+
 	kch, err := dev.ReadKeys()
 	if err != nil {
 		fatal(err)
@@ -70,7 +77,7 @@ func eventLoop(dev *streamdeck.Device, tch chan interface{}) {
 	for {
 		select {
 		case <-time.After(100 * time.Millisecond):
-			deck.updateWidgets()
+			deck.tick(dev)
 
 		case k, ok := <-kch:
 			if !ok {
