@@ -176,8 +176,7 @@ If `flatten` is `true` all opaque pixels of the icon will have the color `color`
 
 #### Smart Button
 
-A button that can alter its label dynamically.  Takes the same configuration as
-`button`.
+A button that can alter its label dynamically.
 
 ```toml
 [keys.widget]
@@ -188,15 +187,28 @@ A button that can alter its label dynamically.  Takes the same configuration as
     fontsize = 10.0 # optional
     color = "#fefefe" # optional
     flatten = true # optional
+    command = "date +%s"
+    commandInterval = 2000
+    commandRegexp = ".*"
 ```
 
 In the `label`, the following substitutions will be made:
 
-| substitution  | gets replaced with                                        |
-| ------------- | --------------------------------------------------------- |
-| ${brightness} | the brightness of the Stream Deck                         |
+| substitution    | gets replaced with                                        |
+| --------------- | --------------------------------------------------------- |
+| ${brightness}   | the brightness of the Stream Deck                         |
+| ${command[...]} | value from running the command
 
 If `flatten` is `true` all opaque pixels of the icon will have the color `color`.
+
+If `command` is specified, it will be run every `commandInterval` (in
+milliseconds, default 2000 ms) and be scanned using `commandRegexp` (default
+`(.*)`).  The captures from the regular expression will be substituted for
+`${command[...]}` in the label where `...` is either the capture group name or
+number.  The regular expressions must use the
+[Go regular expression syntax](https://github.com/google/re2/wiki/Syntax)
+and a capture group name may only be composed of ASCII letters, numbers,
+and/or the underscore.
 
 #### Recent Window (requires X11)
 

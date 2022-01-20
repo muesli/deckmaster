@@ -3,7 +3,17 @@ package main
 import (
 	"fmt"
 	"math"
+	"regexp"
 	"strings"
+	"time"
+)
+
+var (
+	commandSubstitutionRE = regexp.MustCompile(`\${command\[[a-zA-Z0-9_]+\]}`)
+)
+
+const (
+	commandSubstitutionExpandSentinel = "!@!REGEXP_EXPAND!@!"
 )
 
 // SmartButtonWidget is a button widget that can change dynamically.
@@ -64,7 +74,8 @@ type SmartButtonBrightnessDependency struct {
 func NewSmartButtonBrightnessDependency() *SmartButtonBrightnessDependency {
 	return &SmartButtonBrightnessDependency{
 		SmartButtonDependencyBase: NewSmartButtonDependencyBase("${brightness}"),
-		brightness:                math.MaxUint,
+
+		brightness: math.MaxUint,
 	}
 }
 
@@ -77,13 +88,82 @@ func (d *SmartButtonBrightnessDependency) IsChanged() bool {
 func (d *SmartButtonBrightnessDependency) ReplaceValue(template string) string {
 	d.brightness = *brightness
 	value := fmt.Sprintf("%d", d.brightness)
-	return strings.Replace(template, d.toBeReplaced[0], value, -1)
+	return strings.ReplaceAll(template, d.toBeReplaced[0], value)
+}
+
+// SmartButtonCommandDependency is a dependency based on running a command.
+type SmartButtonCommandDependency struct {
+	command    string
+	re         *regexp.Regexp
+	interval   int64
+	lastRun    time.Time
+	lastRender time.Time
+	value      string
+}
+
+// NewSmartButtonCommandDependency returns a new SmartButtonCommandDependency.
+func NewSmartButtonCommandDependency(
+	command string,
+	re *regexp.Regexp,
+	interval int64,
+) *SmartButtonCommandDependency {
+	return &SmartButtonCommandDependency{
+		command:  command,
+		re:       re,
+		interval: interval,
+	}
+}
+
+// IsNecessary returns whether the dependency is necessary for the template.
+func (d *SmartButtonCommandDependency) IsNecessary(template string) bool {
+	return commandSubstitutionRE.MatchString(template)
+}
+
+// IsChanged returns true if the dependency value has changed.
+func (d *SmartButtonCommandDependency) IsChanged() bool {
+	if d.lastRun.IsZero() || time.Since(d.lastRun).Milliseconds() >= d.interval {
+		// run it
+		str, err := runCommand(d.command)
+		if err == nil {
+			d.lastRun = time.Now()
+			d.value = str
+		}
+	}
+
+	return d.lastRender.Before(d.lastRun)
+}
+
+// ReplaceValue replaces the value of the dependency into the template.
+func (d *SmartButtonCommandDependency) ReplaceValue(template string) string {
+	template = commandSubstitutionRE.ReplaceAllStringFunc(
+		template,
+		func(m string) string {
+			return commandSubstitutionExpandSentinel + "{" + m[10:len(m)-2] + "}"
+		},
+	)
+	template = strings.ReplaceAll(
+		strings.ReplaceAll(template, "$", "$$"),
+		commandSubstitutionExpandSentinel,
+		"$",
+	)
+	result := []byte{}
+	result = d.re.ExpandString(
+		result,
+		template,
+		d.value,
+		d.re.FindStringSubmatchIndex(d.value),
+	)
+	return string(result)
 }
 
 // NewSmartButtonWidget returns a new SmartButtonWidget.
 func NewSmartButtonWidget(bw *BaseWidget, opts WidgetConfig) (*SmartButtonWidget, error) {
-	var label string
+	var label, command, commandRegexp string
 	_ = ConfigValue(opts.Config["label"], &label)
+	_ = ConfigValue(opts.Config["command"], &command)
+	_ = ConfigValue(opts.Config["commandRegexp"], &commandRegexp)
+	var commandInterval int64
+	_ = ConfigValue(opts.Config["commandInterval"], &commandInterval)
 
 	parent, err := NewButtonWidget(bw, opts)
 	if err != nil {
@@ -96,6 +176,24 @@ func NewSmartButtonWidget(bw *BaseWidget, opts WidgetConfig) (*SmartButtonWidget
 	}
 	w.label = ""
 	w.appendDependencyIfNecessary(NewSmartButtonBrightnessDependency())
+
+	if command != "" {
+		if commandInterval <= 0 {
+			commandInterval = 2000
+		}
+		if commandRegexp == "" {
+			commandRegexp = `(.*)`
+		}
+		if re, err := regexp.Compile(commandRegexp); err == nil {
+			w.appendDependencyIfNecessary(NewSmartButtonCommandDependency(
+				command,
+				re,
+				commandInterval,
+			))
+		} else {
+			fmt.Printf("Regexp /%s/ error %v\n", commandRegexp, err)
+		}
+	}
 
 	return &w, nil
 }
