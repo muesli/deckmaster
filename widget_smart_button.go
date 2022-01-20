@@ -20,8 +20,10 @@ const (
 type SmartButtonWidget struct {
 	*ButtonWidget
 
-	unformattedLabel string
-	dependencies     []SmartButtonDependency
+	iconTemplate  string
+	labelTemplate string
+	currentIcon   string
+	dependencies  []SmartButtonDependency
 }
 
 // SmartButtonDependency is some dependency of the smart button.
@@ -93,12 +95,11 @@ func (d *SmartButtonBrightnessDependency) ReplaceValue(template string) string {
 
 // SmartButtonCommandDependency is a dependency based on running a command.
 type SmartButtonCommandDependency struct {
-	command    string
-	re         *regexp.Regexp
-	interval   int64
-	lastRun    time.Time
-	lastRender time.Time
-	value      string
+	command  string
+	re       *regexp.Regexp
+	interval int64
+	lastRun  time.Time
+	value    string
 }
 
 // NewSmartButtonCommandDependency returns a new SmartButtonCommandDependency.
@@ -122,15 +123,17 @@ func (d *SmartButtonCommandDependency) IsNecessary(template string) bool {
 // IsChanged returns true if the dependency value has changed.
 func (d *SmartButtonCommandDependency) IsChanged() bool {
 	if d.lastRun.IsZero() || time.Since(d.lastRun).Milliseconds() >= d.interval {
-		// run it
 		str, err := runCommand(d.command)
 		if err == nil {
 			d.lastRun = time.Now()
-			d.value = str
+			if d.value != str {
+				d.value = str
+				return true
+			}
 		}
 	}
 
-	return d.lastRender.Before(d.lastRun)
+	return false
 }
 
 // ReplaceValue replaces the value of the dependency into the template.
@@ -158,21 +161,25 @@ func (d *SmartButtonCommandDependency) ReplaceValue(template string) string {
 
 // NewSmartButtonWidget returns a new SmartButtonWidget.
 func NewSmartButtonWidget(bw *BaseWidget, opts WidgetConfig) (*SmartButtonWidget, error) {
-	var label, command, commandRegexp string
+	var icon, label, command, commandRegexp string
+	_ = ConfigValue(opts.Config["icon"], &icon)
 	_ = ConfigValue(opts.Config["label"], &label)
 	_ = ConfigValue(opts.Config["command"], &command)
 	_ = ConfigValue(opts.Config["commandRegexp"], &commandRegexp)
 	var commandInterval int64
 	_ = ConfigValue(opts.Config["commandInterval"], &commandInterval)
 
+	opts.Config["icon"] = ""
+	opts.Config["label"] = ""
 	parent, err := NewButtonWidget(bw, opts)
 	if err != nil {
 		return nil, err
 	}
 
 	w := SmartButtonWidget{
-		ButtonWidget:     parent,
-		unformattedLabel: label,
+		ButtonWidget:  parent,
+		iconTemplate:  icon,
+		labelTemplate: label,
 	}
 	w.label = ""
 	w.appendDependencyIfNecessary(NewSmartButtonBrightnessDependency())
@@ -200,7 +207,7 @@ func NewSmartButtonWidget(bw *BaseWidget, opts WidgetConfig) (*SmartButtonWidget
 
 // appendDependency appends the dependency if the label requires it.
 func (w *SmartButtonWidget) appendDependencyIfNecessary(d SmartButtonDependency) {
-	if d.IsNecessary(w.unformattedLabel) {
+	if d.IsNecessary(w.labelTemplate) || d.IsNecessary(w.iconTemplate) {
 		w.dependencies = append(w.dependencies, d)
 	}
 }
@@ -216,12 +223,19 @@ func (w *SmartButtonWidget) RequiresUpdate() bool {
 
 // Update renders the widget.
 func (w *SmartButtonWidget) Update() error {
-	label := w.unformattedLabel
+	label := w.labelTemplate
+	icon := w.iconTemplate
 	for _, d := range w.dependencies {
 		label = d.ReplaceValue(label)
+		icon = d.ReplaceValue(icon)
 	}
 
 	w.label = label
+	if icon != w.currentIcon {
+		if err := w.LoadImage(icon); err == nil {
+			w.currentIcon = icon
+		}
+	}
 
 	return w.ButtonWidget.Update()
 }
