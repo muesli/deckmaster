@@ -16,26 +16,31 @@ type SmartButtonWidget struct {
 
 // SmartButtonDependency is some dependency of the smart button.
 type SmartButtonDependency interface {
-	ToBeReplaced() string
+	IsNecessary(label string) bool
 	IsChanged() bool
-	Value() string
+	ReplaceValue(label string) string
 }
 
 // SmartButtonDependencyBase is the base structure of a dependency.
 type SmartButtonDependencyBase struct {
-	toBeReplaced string
+	toBeReplaced []string
 }
 
 // NewSmartButtonDependencyBase returns a new SmartButtonDependencyBase.
-func NewSmartButtonDependencyBase(toBeReplaced string) *SmartButtonDependencyBase {
+func NewSmartButtonDependencyBase(toBeReplaced ...string) *SmartButtonDependencyBase {
 	return &SmartButtonDependencyBase{
 		toBeReplaced: toBeReplaced,
 	}
 }
 
-// ToBeReplaced returns the string that will be replaced by the dependency value.
-func (d *SmartButtonDependencyBase) ToBeReplaced() string {
-	return d.toBeReplaced
+// IsNecessary returns whether the dependency is necessary for the template.
+func (d *SmartButtonDependencyBase) IsNecessary(template string) bool {
+	for _, r := range d.toBeReplaced {
+		if strings.Contains(template, r) {
+			return true
+		}
+	}
+	return false
 }
 
 // IsChanged returns true if the dependency value has changed.
@@ -43,9 +48,9 @@ func (d *SmartButtonDependencyBase) IsChanged() bool {
 	return false
 }
 
-// Value returns the value of the dependency.
-func (d *SmartButtonDependencyBase) Value() string {
-	return ""
+// ReplaceValue replaces the value of the dependency into the template.
+func (d *SmartButtonDependencyBase) ReplaceValue(template string) string {
+	return template
 }
 
 // SmartButtonBrightnessDependency is a dependency based on the brightness setting.
@@ -68,10 +73,11 @@ func (d *SmartButtonBrightnessDependency) IsChanged() bool {
 	return d.brightness != *brightness
 }
 
-// Value returns the brightness as a string.
-func (d *SmartButtonBrightnessDependency) Value() string {
+// ReplaceValue replaces the value of the dependency into the template.
+func (d *SmartButtonBrightnessDependency) ReplaceValue(template string) string {
 	d.brightness = *brightness
-	return fmt.Sprintf("%d", d.brightness)
+	value := fmt.Sprintf("%d", d.brightness)
+	return strings.Replace(template, d.toBeReplaced[0], value, -1)
 }
 
 // NewSmartButtonWidget returns a new SmartButtonWidget.
@@ -96,7 +102,7 @@ func NewSmartButtonWidget(bw *BaseWidget, opts WidgetConfig) (*SmartButtonWidget
 
 // appendDependency appends the dependency if the label requires it.
 func (w *SmartButtonWidget) appendDependencyIfNecessary(d SmartButtonDependency) {
-	if strings.Contains(w.unformattedLabel, d.ToBeReplaced()) {
+	if d.IsNecessary(w.unformattedLabel) {
 		w.dependencies = append(w.dependencies, d)
 	}
 }
@@ -114,7 +120,7 @@ func (w *SmartButtonWidget) RequiresUpdate() bool {
 func (w *SmartButtonWidget) Update() error {
 	label := w.unformattedLabel
 	for _, d := range w.dependencies {
-		label = strings.Replace(label, d.ToBeReplaced(), d.Value(), -1)
+		label = d.ReplaceValue(label)
 	}
 
 	w.label = label
