@@ -176,18 +176,18 @@ If `flatten` is `true` all opaque pixels of the icon will have the color `color`
 
 #### Smart Button
 
-A button that can alter its label dynamically.
+A button that can alter its label and icon dynamically.
 
 ```toml
 [keys.widget]
   id = "smartButton"
   [keys.widget.config]
-    icon = "/some/image.png" # optional
+    icon = "/some/image${command[0]}.png" # optional
     label = "${brightness}" # optional
     fontsize = 10.0 # optional
     color = "#fefefe" # optional
     flatten = true # optional
-    command = "date +%s"
+    command = "get-telemetry"
     commandInterval = 2000
     commandRegexp = ".*"
 ```
