@@ -2,11 +2,9 @@ package main
 
 import (
 	"fmt"
-
-	"github.com/muesli/streamdeck"
 )
 
-func handleActiveWindowChanged(dev *streamdeck.Device, event ActiveWindowChangedEvent) {
+func handleActiveWindowChanged(dev *DeviceWrapper, event ActiveWindowChangedEvent) {
 	fmt.Printf("Active window changed to %s (%d, %s)\n",
 		event.Window.Class, event.Window.ID, event.Window.Name)
 
@@ -22,15 +20,14 @@ func handleActiveWindowChanged(dev *streamdeck.Device, event ActiveWindowChanged
 	}
 	recentWindows = recentWindows[:i]
 
-	keys := int(dev.Keys)
 	recentWindows = append([]Window{event.Window}, recentWindows...)
-	if len(recentWindows) > keys {
+	if keys := int(dev.Keys); len(recentWindows) > keys {
 		recentWindows = recentWindows[0:keys]
 	}
-	deck.updateWidgets()
+	deck.updateWidgets(dev)
 }
 
-func handleWindowClosed(event WindowClosedEvent) {
+func handleWindowClosed(dev *DeviceWrapper, event WindowClosedEvent) {
 	i := 0
 	for _, rw := range recentWindows {
 		if rw.ID == event.Window.ID {
@@ -41,5 +38,5 @@ func handleWindowClosed(event WindowClosedEvent) {
 		i++
 	}
 	recentWindows = recentWindows[:i]
-	deck.updateWidgets()
+	deck.updateWidgets(dev)
 }

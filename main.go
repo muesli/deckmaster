@@ -31,9 +31,6 @@ var (
 	device     = flag.String("device", "", "which device to use (serial number)")
 	brightness = flag.Uint("brightness", 80, "brightness in percent")
 	timeout    = flag.Uint("timeout", 0, "timeout in minutes (0 = disabled)")
-
-	asleep         bool
-	lastActionTime time.Time
 )
 
 const (
@@ -65,15 +62,14 @@ func expandPath(base, path string) (string, error) {
 	return filepath.Abs(path)
 }
 
-func eventLoop(dev *streamdeck.Device, tch chan interface{}) error {
+func eventLoop(dev *DeviceWrapper, tch chan interface{}) error {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
 	var keyStates sync.Map
 	keyTimestamps := make(map[uint8]time.Time)
 
-	asleep = false
-	lastActionTime = time.Now()
+	dev.startTimer()
 
 	kch, err := dev.ReadKeys()
 	if err != nil {
@@ -82,7 +78,7 @@ func eventLoop(dev *streamdeck.Device, tch chan interface{}) error {
 	for {
 		select {
 		case <-time.After(100 * time.Millisecond):
-			deck.tick(dev)
+			dev.tick(deck)
 
 		case k, ok := <-kch:
 			if !ok {
@@ -102,7 +98,7 @@ func eventLoop(dev *streamdeck.Device, tch chan interface{}) error {
 				// key was released
 				if time.Since(keyTimestamps[k.Index]) < longPressDuration {
 					// fmt.Println("Triggering short action")
-					deck.triggerAction(dev, k.Index, false)
+					dev.triggerAction(deck, k.Index, false)
 				}
 			}
 			if !state && k.Pressed {
@@ -114,7 +110,7 @@ func eventLoop(dev *streamdeck.Device, tch chan interface{}) error {
 					if state, ok := keyStates.Load(k.Index); ok && state.(bool) {
 						// key still pressed
 						// fmt.Println("Triggering long action")
-						deck.triggerAction(dev, k.Index, true)
+						dev.triggerAction(deck, k.Index, true)
 					}
 				}()
 			}
@@ -123,7 +119,7 @@ func eventLoop(dev *streamdeck.Device, tch chan interface{}) error {
 		case e := <-tch:
 			switch event := e.(type) {
 			case WindowClosedEvent:
-				handleWindowClosed(event)
+				handleWindowClosed(dev, event)
 
 			case ActiveWindowChangedEvent:
 				handleActiveWindowChanged(dev, event)
@@ -139,7 +135,7 @@ func eventLoop(dev *streamdeck.Device, tch chan interface{}) error {
 	}
 }
 
-func closeDevice(dev *streamdeck.Device) {
+func closeDevice(dev *DeviceWrapper) {
 	if err := dev.Reset(); err != nil {
 		fmt.Fprintln(os.Stderr, "Unable to reset Stream Deck")
 	}
@@ -148,7 +144,7 @@ func closeDevice(dev *streamdeck.Device) {
 	}
 }
 
-func initDevice() (*streamdeck.Device, error) {
+func initDevice() (*DeviceWrapper, error) {
 	d, err := streamdeck.Devices()
 	if err != nil {
 		return nil, err
@@ -157,12 +153,12 @@ func initDevice() (*streamdeck.Device, error) {
 		return nil, fmt.Errorf("no Stream Deck devices found")
 	}
 
-	dev := d[0]
+	unwrapped := d[0]
 	if len(*device) > 0 {
 		found := false
 		for _, v := range d {
 			if v.Serial == *device {
-				dev = v
+				unwrapped = v
 				found = true
 				break
 			}
@@ -170,34 +166,36 @@ func initDevice() (*streamdeck.Device, error) {
 		if !found {
 			fmt.Println("Can't find device. Available devices:")
 			for _, v := range d {
-				fmt.Printf("Serial %s (%d buttons)\n", v.Serial, dev.Keys)
+				fmt.Printf("Serial %s (%d buttons)\n", v.Serial, unwrapped.Keys)
 			}
 			os.Exit(1)
 		}
 	}
+
+	dev := WrapDevice(&unwrapped)
 
 	if err := dev.Open(); err != nil {
 		return nil, err
 	}
 	ver, err := dev.FirmwareVersion()
 	if err != nil {
-		return &dev, err
+		return dev, err
 	}
 	fmt.Printf("Found device with serial %s (%d buttons, firmware %s)\n",
 		dev.Serial, dev.Keys, ver)
 
 	if err := dev.Reset(); err != nil {
-		return &dev, err
+		return dev, err
 	}
 
 	if *brightness > 100 {
 		*brightness = 100
 	}
 	if err = dev.SetBrightness(uint8(*brightness)); err != nil {
-		return &dev, err
+		return dev, err
 	}
 
-	return &dev, nil
+	return dev, nil
 }
 
 func run() error {
@@ -241,7 +239,7 @@ func run() error {
 	if err != nil {
 		return fmt.Errorf("Can't load deck: %s", err)
 	}
-	deck.updateWidgets()
+	deck.forceUpdateWidgets(true)
 
 	return eventLoop(dev, tch)
 }

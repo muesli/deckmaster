@@ -11,7 +11,6 @@ import (
 
 	"github.com/golang/freetype"
 	"github.com/golang/freetype/truetype"
-	"github.com/muesli/streamdeck"
 	"github.com/nfnt/resize"
 )
 
@@ -36,7 +35,7 @@ type BaseWidget struct {
 	key        uint8
 	action     *ActionConfig
 	actionHold *ActionConfig
-	dev        *streamdeck.Device
+	dev        *DeviceWrapper
 	background image.Image
 	lastUpdate time.Time
 	interval   time.Duration
@@ -79,7 +78,7 @@ func (w *BaseWidget) Update() error {
 }
 
 // NewBaseWidget returns a new BaseWidget.
-func NewBaseWidget(dev *streamdeck.Device, base string, index uint8, action, actionHold *ActionConfig, bg image.Image) *BaseWidget {
+func NewBaseWidget(dev *DeviceWrapper, base string, index uint8, action, actionHold *ActionConfig, bg image.Image) *BaseWidget {
 	return &BaseWidget{
 		base:       base,
 		key:        index,
@@ -91,7 +90,7 @@ func NewBaseWidget(dev *streamdeck.Device, base string, index uint8, action, act
 }
 
 // NewWidget initializes a widget.
-func NewWidget(dev *streamdeck.Device, base string, kc KeyConfig, bg image.Image) (Widget, error) {
+func NewWidget(dev *DeviceWrapper, base string, kc KeyConfig, bg image.Image) (Widget, error) {
 	bw := NewBaseWidget(dev, base, kc.Index, kc.Action, kc.ActionHold, bg)
 
 	switch kc.Widget.ID {
@@ -131,7 +130,7 @@ func NewWidget(dev *streamdeck.Device, base string, kc KeyConfig, bg image.Image
 }
 
 // renders the widget including its background image.
-func (w *BaseWidget) render(dev *streamdeck.Device, fg image.Image) error {
+func (w *BaseWidget) render(dev *DeviceWrapper, fg image.Image) error {
 	w.lastUpdate = time.Now()
 
 	pixels := int(dev.Pixels)
