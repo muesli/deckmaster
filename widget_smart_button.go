@@ -58,7 +58,7 @@ type SmartButtonBrightnessDependency struct {
 func NewSmartButtonBrightnessDependency() *SmartButtonBrightnessDependency {
 	return &SmartButtonBrightnessDependency{
 		SmartButtonDependencyBase: NewSmartButtonDependencyBase("${brightness}"),
-		brightness:                9999, // out of range value to force an update
+		brightness:                *brightness,
 	}
 }
 
