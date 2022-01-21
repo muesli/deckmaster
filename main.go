@@ -134,10 +134,10 @@ func eventLoop(dev *streamdeck.Device, tch chan interface{}) error {
 
 func closeDevice(dev *streamdeck.Device) {
 	if err := dev.Reset(); err != nil {
-		fmt.Fprintln(os.Stderr, "unable to reset Stream Deck")
+		fmt.Fprintln(os.Stderr, "Unable to reset Stream Deck")
 	}
 	if err := dev.Close(); err != nil {
-		fmt.Fprintln(os.Stderr, "unable to close Stream Deck")
+		fmt.Fprintln(os.Stderr, "Unable to close Stream Deck")
 	}
 }
 
@@ -216,15 +216,15 @@ func run() error {
 		defer xorg.Close()
 		xorg.TrackWindows(tch, time.Second)
 	} else {
-		fmt.Printf("Could not connect to X server: %s\n", err)
-		fmt.Println("Tracking window manager will be disabled!")
+		fmt.Fprintf(os.Stderr, "Could not connect to X server: %s\n", err)
+		fmt.Fprintln(os.Stderr, "Tracking window manager will be disabled!")
 	}
 
 	// initialize virtual keyboard
 	keyboard, err = uinput.CreateKeyboard("/dev/uinput", []byte("Deckmaster"))
 	if err != nil {
-		fmt.Printf("Could not create virtual input device (/dev/uinput): %s\n", err)
-		fmt.Println("Emulating keyboard events will be disabled!")
+		fmt.Fprintf(os.Stderr, "Could not create virtual input device (/dev/uinput): %s\n", err)
+		fmt.Fprintln(os.Stderr, "Emulating keyboard events will be disabled!")
 	} else {
 		defer keyboard.Close() //nolint:errcheck
 	}

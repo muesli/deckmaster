@@ -50,7 +50,7 @@ func (w *TopWidget) Update() error {
 	case "cpu":
 		cpuUsage, err := cpu.Percent(0, false)
 		if err != nil {
-			fatal(err)
+			return fmt.Errorf("can't retrieve CPU usage: %s", err)
 		}
 
 		value = cpuUsage[0]
@@ -59,7 +59,7 @@ func (w *TopWidget) Update() error {
 	case "memory":
 		memory, err := mem.VirtualMemory()
 		if err != nil {
-			fatal(err)
+			return fmt.Errorf("can't retrieve memory usage: %s", err)
 		}
 		value = memory.UsedPercent
 		label = "MEM"
