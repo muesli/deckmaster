@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"math"
 	"regexp"
 	"strings"
 )
@@ -74,7 +73,7 @@ func NewSmartButtonBrightnessDependency() *SmartButtonBrightnessDependency {
 	return &SmartButtonBrightnessDependency{
 		SmartButtonDependencyBase: NewSmartButtonDependencyBase("${brightness}"),
 
-		brightness: math.MaxUint,
+		brightness: 9999, // out of range value to force an initial update
 	}
 }
 
