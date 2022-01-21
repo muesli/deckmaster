@@ -5,15 +5,10 @@ import (
 	"math"
 	"regexp"
 	"strings"
-	"time"
 )
 
 var (
-	commandSubstitutionRE = regexp.MustCompile(`\${command\[[a-zA-Z0-9_]+\]}`)
-)
-
-const (
-	commandSubstitutionExpandSentinel = "!@!REGEXP_EXPAND!@!"
+	telemetrySubstitutionRE = regexp.MustCompile(`\${telemetry\[([^\]]+)\]}`)
 )
 
 // SmartButtonWidget is a button widget that can change dynamically.
@@ -28,9 +23,9 @@ type SmartButtonWidget struct {
 
 // SmartButtonDependency is some dependency of the smart button.
 type SmartButtonDependency interface {
-	IsNecessary(label string) bool
+	IsNecessary(templates ...string) bool
 	IsChanged() bool
-	ReplaceValue(label string) string
+	ReplaceValue(template string) string
 }
 
 // SmartButtonDependencyBase is the base structure of a dependency.
@@ -46,10 +41,12 @@ func NewSmartButtonDependencyBase(toBeReplaced ...string) *SmartButtonDependency
 }
 
 // IsNecessary returns whether the dependency is necessary for the template.
-func (d *SmartButtonDependencyBase) IsNecessary(template string) bool {
-	for _, r := range d.toBeReplaced {
-		if strings.Contains(template, r) {
-			return true
+func (d *SmartButtonDependencyBase) IsNecessary(templates ...string) bool {
+	for _, t := range templates {
+		for _, r := range d.toBeReplaced {
+			if strings.Contains(t, r) {
+				return true
+			}
 		}
 	}
 	return false
@@ -93,81 +90,58 @@ func (d *SmartButtonBrightnessDependency) ReplaceValue(template string) string {
 	return strings.ReplaceAll(template, d.toBeReplaced[0], value)
 }
 
-// SmartButtonCommandDependency is a dependency based on running a command.
-type SmartButtonCommandDependency struct {
-	command  string
-	re       *regexp.Regexp
-	interval int64
-	lastRun  time.Time
-	value    string
+// SmartButtonTelemetryDependency is a dependency based on running a command.
+type SmartButtonTelemetryDependency struct {
+	values map[string]string
 }
 
-// NewSmartButtonCommandDependency returns a new SmartButtonCommandDependency.
-func NewSmartButtonCommandDependency(
-	command string,
-	re *regexp.Regexp,
-	interval int64,
-) *SmartButtonCommandDependency {
-	return &SmartButtonCommandDependency{
-		command:  command,
-		re:       re,
-		interval: interval,
+// NewSmartButtonTelemetryDependency returns a new SmartButtonTelemetryDependency.
+func NewSmartButtonTelemetryDependency() *SmartButtonTelemetryDependency {
+	return &SmartButtonTelemetryDependency{
+		values: make(map[string]string),
 	}
 }
 
 // IsNecessary returns whether the dependency is necessary for the template.
-func (d *SmartButtonCommandDependency) IsNecessary(template string) bool {
-	return commandSubstitutionRE.MatchString(template)
+func (d *SmartButtonTelemetryDependency) IsNecessary(templates ...string) bool {
+	for _, t := range templates {
+		for _, v := range telemetrySubstitutionRE.FindAllStringSubmatch(t, -1) {
+			d.values[v[1]] = ""
+		}
+	}
+	return len(d.values) != 0
 }
 
 // IsChanged returns true if the dependency value has changed.
-func (d *SmartButtonCommandDependency) IsChanged() bool {
-	if d.lastRun.IsZero() || time.Since(d.lastRun).Milliseconds() >= d.interval {
-		str, err := runCommand(d.command)
-		if err == nil {
-			d.lastRun = time.Now()
-			if d.value != str {
-				d.value = str
-				return true
-			}
+func (d *SmartButtonTelemetryDependency) IsChanged() bool {
+	changed := false
+
+	for key, value := range d.values {
+		newValue := telemetry[key]
+		if value != newValue {
+			d.values[key] = newValue
+			changed = true
 		}
 	}
 
-	return false
+	return changed
 }
 
 // ReplaceValue replaces the value of the dependency into the template.
-func (d *SmartButtonCommandDependency) ReplaceValue(template string) string {
-	template = commandSubstitutionRE.ReplaceAllStringFunc(
+func (d *SmartButtonTelemetryDependency) ReplaceValue(template string) string {
+	return telemetrySubstitutionRE.ReplaceAllStringFunc(
 		template,
 		func(m string) string {
-			return commandSubstitutionExpandSentinel + "{" + m[10:len(m)-2] + "}"
+			return d.values[m[12:len(m)-2]]
 		},
 	)
-	template = strings.ReplaceAll(
-		strings.ReplaceAll(template, "$", "$$"),
-		commandSubstitutionExpandSentinel,
-		"$",
-	)
-	result := []byte{}
-	result = d.re.ExpandString(
-		result,
-		template,
-		d.value,
-		d.re.FindStringSubmatchIndex(d.value),
-	)
-	return string(result)
 }
 
 // NewSmartButtonWidget returns a new SmartButtonWidget.
 func NewSmartButtonWidget(bw *BaseWidget, opts WidgetConfig) (*SmartButtonWidget, error) {
-	var icon, label, command, commandRegexp string
+	var icon, label string
 	_ = ConfigValue(opts.Config["icon"], &icon)
 	_ = ConfigValue(opts.Config["label"], &label)
-	_ = ConfigValue(opts.Config["command"], &command)
-	_ = ConfigValue(opts.Config["commandRegexp"], &commandRegexp)
-	var commandInterval int64
-	_ = ConfigValue(opts.Config["commandInterval"], &commandInterval)
 
 	opts.Config["icon"] = ""
 	opts.Config["label"] = ""
@@ -183,31 +157,14 @@ func NewSmartButtonWidget(bw *BaseWidget, opts WidgetConfig) (*SmartButtonWidget
 	}
 	w.label = ""
 	w.appendDependencyIfNecessary(NewSmartButtonBrightnessDependency())
-
-	if command != "" {
-		if commandInterval <= 0 {
-			commandInterval = 2000
-		}
-		if commandRegexp == "" {
-			commandRegexp = `(.*)`
-		}
-		if re, err := regexp.Compile(commandRegexp); err == nil {
-			w.appendDependencyIfNecessary(NewSmartButtonCommandDependency(
-				command,
-				re,
-				commandInterval,
-			))
-		} else {
-			fmt.Printf("Regexp /%s/ error %v\n", commandRegexp, err)
-		}
-	}
+	w.appendDependencyIfNecessary(NewSmartButtonTelemetryDependency())
 
 	return &w, nil
 }
 
 // appendDependency appends the dependency if the label requires it.
 func (w *SmartButtonWidget) appendDependencyIfNecessary(d SmartButtonDependency) {
-	if d.IsNecessary(w.labelTemplate) || d.IsNecessary(w.iconTemplate) {
+	if d.IsNecessary(w.labelTemplate, w.iconTemplate) {
 		w.dependencies = append(w.dependencies, d)
 	}
 }
