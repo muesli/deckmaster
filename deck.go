@@ -253,7 +253,7 @@ func (d *Deck) updateWidgets() {
 
 		// fmt.Println("Repaint", w.Key())
 		if err := w.Update(); err != nil {
-			fatalf("error: %v\n", err)
+			fatalf("error: %v", err)
 		}
 	}
 }
