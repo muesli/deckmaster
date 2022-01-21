@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -25,6 +26,7 @@ var (
 
 	dbusConn *dbus.Conn
 	keyboard uinput.Keyboard
+	shutdown = make(chan error)
 
 	xorg          *Xorg
 	recentWindows []Window
@@ -32,7 +34,7 @@ var (
 	deckFile     = flag.String("deck", "main.deck", "path to deck config file")
 	device       = flag.String("device", "", "which device to use (serial number)")
 	brightness   = flag.Uint("brightness", 80, "brightness in percent")
-	timeout    = flag.Uint("timeout", 0, "timeout in minutes (0 = disabled)")
+	timeout      = flag.Uint("timeout", 0, "timeout in minutes (0 = disabled)")
 	telemetryCmd = flag.String("telemetry", "", "command that produces telemetry")
 
 	telemetry = make(map[string]string)
@@ -46,13 +48,11 @@ const (
 )
 
 func fatal(v ...interface{}) {
-	fmt.Fprintln(os.Stderr, v...)
-	panic(fmt.Sprintln(v...))
+	go func() { shutdown <- errors.New(fmt.Sprint(v...)) }()
 }
 
 func fatalf(format string, a ...interface{}) {
-	fmt.Fprintf(os.Stderr, format, a...)
-	panic(fmt.Sprintf(format, a...))
+	go func() { shutdown <- fmt.Errorf(format, a...) }()
 }
 
 func expandPath(base, path string) (string, error) {
@@ -72,7 +72,7 @@ func expandPath(base, path string) (string, error) {
 	return filepath.Abs(path)
 }
 
-func eventLoop(dev *streamdeck.Device, tch chan interface{}) {
+func eventLoop(dev *streamdeck.Device, tch chan interface{}) error {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
@@ -84,7 +84,7 @@ func eventLoop(dev *streamdeck.Device, tch chan interface{}) {
 
 	kch, err := dev.ReadKeys()
 	if err != nil {
-		fatal(err)
+		return err
 	}
 	for {
 		select {
@@ -93,9 +93,8 @@ func eventLoop(dev *streamdeck.Device, tch chan interface{}) {
 
 		case k, ok := <-kch:
 			if !ok {
-				err = dev.Open()
-				if err != nil {
-					fatal(err)
+				if err = dev.Open(); err != nil {
+					return err
 				}
 				continue
 			}
@@ -137,25 +136,29 @@ func eventLoop(dev *streamdeck.Device, tch chan interface{}) {
 				handleActiveWindowChanged(dev, event)
 			}
 
+		case err := <-shutdown:
+			return err
+
 		case <-sigs:
-			return
+			fmt.Println("Shutting down...")
+			return nil
 		}
 	}
 }
 
 func closeDevice(dev *streamdeck.Device) {
 	if err := dev.Reset(); err != nil {
-		fmt.Fprintln(os.Stderr, "unable to reset Stream Deck")
+		fmt.Fprintln(os.Stderr, "Unable to reset Stream Deck")
 	}
 	if err := dev.Close(); err != nil {
-		fmt.Fprintln(os.Stderr, "unable to close Stream Deck")
+		fmt.Fprintln(os.Stderr, "Unable to close Stream Deck")
 	}
 }
 
 func initDevice() (*streamdeck.Device, error) {
 	d, err := streamdeck.Devices()
 	if err != nil {
-		fatal(err)
+		return nil, err
 	}
 	if len(d) == 0 {
 		return nil, fmt.Errorf("no Stream Deck devices found")
@@ -247,22 +250,20 @@ func readTelemetry() {
 	}
 }
 
-func main() {
-	flag.Parse()
-
+func run() error {
 	// initialize device
 	dev, err := initDevice()
 	if dev != nil {
 		defer closeDevice(dev)
 	}
 	if err != nil {
-		fatal(err)
+		return fmt.Errorf("Unable to initialize Stream Deck: %s", err)
 	}
 
 	// initialize dbus connection
 	dbusConn, err = dbus.SessionBus()
 	if err != nil {
-		fatal(err)
+		return fmt.Errorf("Unable to connect to dbus: %s", err)
 	}
 
 	// initialize xorg connection and track window focus
@@ -272,15 +273,15 @@ func main() {
 		defer xorg.Close()
 		xorg.TrackWindows(tch, time.Second)
 	} else {
-		fmt.Printf("Could not connect to X server: %s\n", err)
-		fmt.Println("Tracking window manager will be disabled!")
+		fmt.Fprintf(os.Stderr, "Could not connect to X server: %s\n", err)
+		fmt.Fprintln(os.Stderr, "Tracking window manager will be disabled!")
 	}
 
 	// initialize virtual keyboard
 	keyboard, err = uinput.CreateKeyboard("/dev/uinput", []byte("Deckmaster"))
 	if err != nil {
-		fmt.Printf("Could not create virtual input device (/dev/uinput): %s\n", err)
-		fmt.Println("Emulating keyboard events will be disabled!")
+		fmt.Fprintf(os.Stderr, "Could not create virtual input device (/dev/uinput): %s\n", err)
+		fmt.Fprintln(os.Stderr, "Emulating keyboard events will be disabled!")
 	} else {
 		defer keyboard.Close() //nolint:errcheck
 	}
@@ -290,9 +291,18 @@ func main() {
 	// load deck
 	deck, err = LoadDeck(dev, ".", *deckFile)
 	if err != nil {
-		fatal(err)
+		return fmt.Errorf("Can't load deck: %s", err)
 	}
 	deck.updateWidgets()
 
-	eventLoop(dev, tch)
+	return eventLoop(dev, tch)
+}
+
+func main() {
+	flag.Parse()
+
+	if err := run(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
 }
