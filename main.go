@@ -1,9 +1,13 @@
 package main
 
 import (
+	"bufio"
+	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sync"
 	"time"
@@ -23,9 +27,12 @@ var (
 	xorg          *Xorg
 	recentWindows []Window
 
-	deckFile   = flag.String("deck", "main.deck", "path to deck config file")
-	device     = flag.String("device", "", "which device to use (serial number)")
-	brightness = flag.Uint("brightness", 80, "brightness in percent")
+	deckFile     = flag.String("deck", "main.deck", "path to deck config file")
+	device       = flag.String("device", "", "which device to use (serial number)")
+	brightness   = flag.Uint("brightness", 80, "brightness in percent")
+	telemetryCmd = flag.String("telemetry", "", "command that produces telemetry")
+
+	telemetry = make(map[string]string)
 )
 
 const (
@@ -173,6 +180,49 @@ func initDevice() (*streamdeck.Device, error) {
 	return &dev, nil
 }
 
+func readTelemetry() {
+	if *telemetryCmd != "" {
+		c := *telemetryCmd
+		cmd := exec.Command("sh", "-c", c)
+		stdout, err := cmd.StdoutPipe()
+		if err != nil {
+			fatal(err)
+		}
+
+		stderr, err := cmd.StderrPipe()
+		if err != nil {
+			fatal(err)
+		}
+
+		if err := cmd.Start(); err != nil {
+			fatal(err)
+		}
+
+		go func() {
+			decoder := json.NewDecoder(stdout)
+			for {
+				var data map[string]string
+				if err := decoder.Decode(&data); err == io.EOF {
+					break
+				} else if err != nil {
+					fmt.Fprintln(os.Stderr, err)
+				} else {
+					for key, value := range data {
+						telemetry[key] = value
+					}
+				}
+			}
+		}()
+
+		go func() {
+			scanner := bufio.NewScanner(stderr)
+			for scanner.Scan() {
+				fmt.Fprintln(os.Stderr, scanner.Text())
+			}
+		}()
+	}
+}
+
 func main() {
 	flag.Parse()
 
@@ -207,6 +257,8 @@ func main() {
 	} else {
 		defer keyboard.Close() //nolint:errcheck
 	}
+
+	go readTelemetry()
 
 	// load deck
 	deck, err = LoadDeck(dev, ".", *deckFile)

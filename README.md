@@ -126,6 +126,12 @@ Control a specific streamdeck:
 deckmaster -device [serial number]
 ```
 
+Specify a command that produces telemetry:
+
+```bash
+deckmaster -telemetry telemetry_command]
+```
+
 ## Configuration
 
 You can find a few example configurations in the [decks](https://github.com/muesli/deckmaster/tree/master/decks)
@@ -182,33 +188,21 @@ A button that can alter its label and icon dynamically.
 [keys.widget]
   id = "smartButton"
   [keys.widget.config]
-    icon = "/some/image${command[0]}.png" # optional
+    icon = "/some/${telemetry[icon]}.png" # optional
     label = "${brightness}" # optional
     fontsize = 10.0 # optional
     color = "#fefefe" # optional
     flatten = true # optional
-    command = "get-telemetry"
-    commandInterval = 2000
-    commandRegexp = ".*"
 ```
 
 In the `label`, the following substitutions will be made:
 
-| substitution    | gets replaced with                                        |
-| --------------- | --------------------------------------------------------- |
-| ${brightness}   | the brightness of the Stream Deck                         |
-| ${command[...]} | value from running the command
+| substitution      | gets replaced with                                      |
+| ----------------- | ------------------------------------------------------- |
+| ${brightness}     | the brightness of the Stream Deck                       |
+| ${telemetry[...]} | value from telemetry                                    |
 
 If `flatten` is `true` all opaque pixels of the icon will have the color `color`.
-
-If `command` is specified, it will be run every `commandInterval` (in
-milliseconds, default 2000 ms) and be scanned using `commandRegexp` (default
-`(.*)`).  The captures from the regular expression will be substituted for
-`${command[...]}` in the label where `...` is either the capture group name or
-number.  The regular expressions must use the
-[Go regular expression syntax](https://github.com/google/re2/wiki/Syntax)
-and a capture group name may only be composed of ASCII letters, numbers,
-and/or the underscore.
 
 #### Recent Window (requires X11)
 
@@ -361,6 +355,15 @@ A list of available keycodes can be found here: [keycodes](https://github.com/mu
     method = "method"
     value = "value"
 ```
+
+### Telemetry
+
+If a command is specified with the `-telemetry` parameter, it will be run by
+deckmaster and the output will be interpreted as a stream of concatenated
+JSON-encoded objects with string values.  The name/value pairs from the
+JSON-encoded objects will represent a set of telemetry data points that can be
+used in the `smartButton` widget by putting `${template[...]}` substitutions in
+the label and/or icon, where the `...` is the name of the data point.
 
 ## More Decks!
 
