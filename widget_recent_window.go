@@ -58,8 +58,9 @@ func (w *RecentWindowWidget) Update() error {
 		var name string
 		if w.showTitle {
 			name = recentWindows[w.window].Name
-			if len(name) > 10 {
-				name = name[:10]
+			runes := []rune(name)
+			if len(runes) > 10 {
+				name = string(runes[:10])
 			}
 		}
 
