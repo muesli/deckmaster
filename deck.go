@@ -142,7 +142,7 @@ func emulateKeyPresses(keys string) {
 // emulates a (multi-)key press.
 func emulateKeyPress(keys string) {
 	if keyboard == nil {
-		fmt.Println("Keyboard emulation is disabled!")
+		fmt.Fprintln(os.Stderr, "Keyboard emulation is disabled!")
 		return
 	}
 
@@ -151,7 +151,7 @@ func emulateKeyPress(keys string) {
 		k = formatKeycodes(strings.TrimSpace(k))
 		kc, err := strconv.Atoi(k)
 		if err != nil {
-			fatalf("%s is not a valid keycode: %s\n", k, err)
+			fmt.Fprintf(os.Stderr, "%s is not a valid keycode: %s\n", k, err)
 		}
 
 		if i+1 < len(kk) {
@@ -167,7 +167,7 @@ func emulateKeyPress(keys string) {
 func emulateClipboard(text string) {
 	err := clipboard.WriteAll(text)
 	if err != nil {
-		fatalf("Pasting to clipboard failed: %s\n", err)
+		fmt.Fprintf(os.Stderr, "Pasting to clipboard failed: %s\n", err)
 	}
 
 	// paste the string
@@ -178,7 +178,7 @@ func emulateClipboard(text string) {
 func executeDBusMethod(object, path, method, args string) {
 	call := dbusConn.Object(object, dbus.ObjectPath(path)).Call(method, 0, args)
 	if call.Err != nil {
-		fmt.Printf("dbus call failed: %s\n", call.Err)
+		fmt.Fprintf(os.Stderr, "dbus call failed: %s\n", call.Err)
 	}
 }
 
@@ -191,12 +191,12 @@ func executeCommand(cmd string) {
 	args := strings.Split(cmd, " ")
 	c := exec.Command(args[0], args[1:]...) //nolint:gosec
 	if err := c.Start(); err != nil {
-		fmt.Printf("command failed: %s\n", err)
+		fmt.Fprintf(os.Stderr, "Command failed: %s\n", err)
 		return
 	}
 
 	if err := c.Wait(); err != nil {
-		fmt.Printf("command failed: %s\n", err)
+		fmt.Fprintf(os.Stderr, "Command failed: %s\n", err)
 	}
 }
 
@@ -225,11 +225,12 @@ func (d *Deck) triggerAction(dev *streamdeck.Device, index uint8, hold bool) {
 				if a.Deck != "" {
 					d, err := LoadDeck(dev, filepath.Dir(d.File), a.Deck)
 					if err != nil {
-						fatal(err)
+						fmt.Fprintln(os.Stderr, "Can't load deck:", err)
+						return
 					}
-					err = dev.Clear()
-					if err != nil {
+					if err := dev.Clear(); err != nil {
 						fatal(err)
+						return
 					}
 
 					deck = d
@@ -263,7 +264,7 @@ func (d *Deck) updateWidgets() {
 
 		// fmt.Println("Repaint", w.Key())
 		if err := w.Update(); err != nil {
-			fatalf("error: %v\n", err)
+			fatalf("error: %v", err)
 		}
 	}
 }
