@@ -242,6 +242,7 @@ func drawString(img *image.RGBA, bounds image.Rectangle, ttf *truetype.Font, tex
 
 	c.SetSrc(image.NewUniform(color))
 	if _, err := c.DrawString(text, freetype.Pt(pt.X, pt.Y)); err != nil {
-		fatal(err)
+		fmt.Fprintf(os.Stderr, "Can't render string: %s\n", err)
+		return
 	}
 }
