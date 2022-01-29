@@ -272,6 +272,24 @@ corresponding icons with correct names need to be placed in
 `~/.local/share/deckmaster/themes/[theme]`. The default icons with their
 respective names can be found [here](https://github.com/muesli/deckmaster/tree/master/assets/weather).
 
+#### Timer
+
+A widget that implements a timer and displays its remaining time.
+
+```toml
+[keys.widget]
+  id = "timer"
+  [keys.widget.config]
+    times = "5:00;10:00;30:00" # optional
+    font = "bold" # optional
+    color = "#fefefe" # optional
+    underflow = "false" # optional
+```
+
+The timer can be started and stopped by short pressing the button.
+When triggering the hold action the next timer in the times list is selected.
+The setting underflow determines whether the timer keeps running into negative values or not.
+
 ### Background Image
 
 You can configure each deck to display an individual wallpaper behind its
