@@ -280,7 +280,7 @@ A widget that implements a timer and displays its remaining time.
 [keys.widget]
   id = "timer"
   [keys.widget.config]
-    times = "5:00;10:00;30:00" # optional
+    times = "30;10:00;30:00;1:0:0" # optional
     font = "bold" # optional
     color = "#fefefe" # optional
     underflow = "false" # optional

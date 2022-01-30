@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"math"
 	"regexp"
 	"strconv"
 	"strings"
@@ -35,7 +36,7 @@ func NewTimerWidget(bw *BaseWidget, opts WidgetConfig) *TimerWidget {
 	var underflow bool
 	_ = ConfigValue(opts.Config["underflow"], &underflow)
 
-	re := regexp.MustCompile(`^\d{1,2}:\d{1,2}$`)
+	re := regexp.MustCompile(`^(\d{1,2}:){0,2}\d{1,2}$`)
 	for i := 0; i < len(times); i++ {
 		if !re.MatchString(times[i]) {
 			times = append(times[:i], times[i+1:]...)
@@ -64,28 +65,29 @@ func NewTimerWidget(bw *BaseWidget, opts WidgetConfig) *TimerWidget {
 
 // Update renders the widget.
 func (w *TimerWidget) Update() error {
-	size := int(w.dev.Pixels)
-	img := image.NewRGBA(image.Rect(0, 0, size, size))
-	font := fontByName(w.font)
-	str := ""
 	split := strings.Split(w.times[w.currIndex], ":")
+	seconds := int64(0)
+	for i := 0; i < len(split); i++ {
+		val, _ := strconv.ParseInt(split[len(split)-(i+1)], 10, 64)
+		seconds += val * int64(math.Pow(60, float64(i)))
+	}
 
+	str := ""
 	if w.startTime.IsZero() {
-		// drop errors since we ensured the format of times above
-		mins, _ := strconv.ParseInt(split[0], 10, 64)
-		secs, _ := strconv.ParseInt(split[1], 10, 64)
-		str = timerRep(mins, secs)
+		str = timerRep(seconds)
 	} else {
-		duration, _ := time.ParseDuration(split[0] + "m" + split[1] + "s")
+		duration, _ := time.ParseDuration(strconv.FormatInt(seconds, 10) + "s")
 		remaining := time.Until(w.startTime.Add(duration))
 		if remaining < 0 && !w.underflow {
-			str = timerRep(0, 0)
+			str = timerRep(0)
 		} else {
-			seconds := int64(remaining.Seconds())
-			str = timerRep(seconds/60, seconds%60)
+			str = timerRep(int64(remaining.Seconds()))
 		}
 	}
 
+	size := int(w.dev.Pixels)
+	img := image.NewRGBA(image.Rect(0, 0, size, size))
+	font := fontByName(w.font)
 	drawString(img,
 		image.Rect(0, 0, size, size),
 		font,
@@ -110,13 +112,26 @@ func (w *TimerWidget) TriggerAction(hold bool) {
 	}
 }
 
-func timerRep(minutes int64, seconds int64) string {
-	sec_str := fmt.Sprintf("%02d", Abs(seconds))
-	min_str := fmt.Sprintf("%d", Abs(minutes))
-	if minutes < 0 || seconds < 0 {
-		return "-" + min_str + ":" + sec_str
+func timerRep(seconds int64) string {
+	secs := Abs(seconds % 60)
+	mins := Abs(seconds / 60 % 60)
+	hrs := Abs(seconds / 60 / 60)
+
+	str := ""
+	if seconds < 0 {
+		str += "-"
 	}
-	return min_str + ":" + sec_str
+	if hrs != 0 {
+		str += fmt.Sprintf("%d", hrs) + ":" + fmt.Sprintf("%02d", mins) + ":" + fmt.Sprintf("%02d", secs)
+	} else {
+		if mins != 0 {
+			str += fmt.Sprintf("%d", mins) + ":" + fmt.Sprintf("%02d", secs)
+		} else {
+			str += fmt.Sprintf("%d", secs)
+		}
+	}
+
+	return str
 }
 
 func Abs(x int64) int64 {
