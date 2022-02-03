@@ -274,21 +274,37 @@ respective names can be found [here](https://github.com/muesli/deckmaster/tree/m
 
 #### Timer
 
-A widget that implements a timer and displays its remaining time.
+A flexible widget that can display a timer/countdown and displays its remaining time.
 
 ```toml
 [keys.widget]
   id = "timer"
   [keys.widget.config]
-    times = "30;10:00;30:00;1:0:0" # optional
-    font = "bold" # optional
-    color = "#fefefe" # optional
+    times = "5s;10m;30m;1h5m" # optional
+    font = "bold;regular;thin" # optional
+    color = "#fefefe;#0f0f0f;#00ff00;" # optional
     underflow = "false" # optional
+    underflowColor = "#ff0000;#ff0000;#ff0000" # optional
 ```
 
-The timer can be started and stopped by short pressing the button.
-When triggering the hold action the next timer in the times list is selected.
-The setting underflow determines whether the timer keeps running into negative values or not.
+With `layout` custom layouts can be definded in the format `[posX]x[posY]+[width]x[height]`.
+
+Values for `format` are:
+
+| %   | gets replaced with                                                 |
+| --- | ------------------------------------------------------------------ |
+| %h  | 12-hour format of an hour with leading zeros                       |
+| %H  | 24-hour format of an hour with leading zeros                       |
+| %i  | Minutes with leading zeros                                         |
+| %I  | Minutes without leading zeros                                      |
+| %s  | Seconds with leading zeros                                         |
+| %S  | Seconds without leading zeros                                      |
+| %a  | Lowercase Ante meridiem and Post meridiem                          |
+
+The timer can be started and paused by short pressing the button.
+When triggering the hold action the next timer in the times list is selected if
+no timer is running. If the timer is paused, it will be reset.
+The setting underflow determines whether the timer keeps ticking after exceeding its deadline.
 
 ### Background Image
 
