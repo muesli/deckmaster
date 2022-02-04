@@ -18,6 +18,7 @@ type TimerWidget struct {
 	colors  []color.Color
 	frames  []image.Rectangle
 
+	adaptive        bool
 	underflow       bool
 	underflowColors []color.Color
 	currIndex       int
@@ -54,7 +55,7 @@ func NewTimerWidget(bw *BaseWidget, opts WidgetConfig) *TimerWidget {
 	var times []time.Duration
 	var formats, fonts, frameReps []string
 	var colors, underflowColors []color.Color
-	var underflow bool
+	var adaptive, underflow bool
 
 	_ = ConfigValue(opts.Config["times"], &times)
 
@@ -63,6 +64,7 @@ func NewTimerWidget(bw *BaseWidget, opts WidgetConfig) *TimerWidget {
 	_ = ConfigValue(opts.Config["color"], &colors)
 	_ = ConfigValue(opts.Config["layout"], &frameReps)
 
+	_ = ConfigValue(opts.Config["adaptive"], &adaptive)
 	_ = ConfigValue(opts.Config["underflow"], &underflow)
 	_ = ConfigValue(opts.Config["underflowColor"], &underflowColors)
 
@@ -93,6 +95,7 @@ func NewTimerWidget(bw *BaseWidget, opts WidgetConfig) *TimerWidget {
 		fonts:           fonts,
 		colors:          colors,
 		frames:          frames,
+		adaptive:        adaptive,
 		underflow:       underflow,
 		underflowColors: underflowColors,
 		currIndex:       0,
@@ -116,17 +119,17 @@ func (w *TimerWidget) Update() error {
 		var fontColor = w.colors[i]
 
 		if !w.data.HasDeadline() {
-			str = Timespan(w.times[w.currIndex]).Format(w.formats[i])
+			str = Timespan(w.times[w.currIndex]).Format(w.formats[i], w.adaptive)
 		} else {
 			remainingDuration := time.Until(w.data.startTime.Add(w.times[w.currIndex]))
 			if remainingDuration < 0 && !w.underflow {
-				str = Timespan(w.times[w.currIndex]).Format(w.formats[i])
+				str = Timespan(w.times[w.currIndex]).Format(w.formats[i], w.adaptive)
 				w.data.Clear()
 			} else if remainingDuration < 0 && w.underflow {
 				fontColor = w.underflowColors[i]
-				str = Timespan(remainingDuration * -1).Format(w.formats[i])
+				str = Timespan(remainingDuration*-1).Format(w.formats[i], w.adaptive)
 			} else {
-				str = Timespan(remainingDuration).Format(w.formats[i])
+				str = Timespan(remainingDuration).Format(w.formats[i], w.adaptive)
 			}
 		}
 		font := fontByName(w.fonts[i])
@@ -146,7 +149,8 @@ func (w *TimerWidget) Update() error {
 
 type Timespan time.Duration
 
-func (t Timespan) Format(format string) string {
+func (t Timespan) Format(format string, adaptive bool) string {
+	formatStr := format
 	tm := map[string]string{
 		"%h": "03",
 		"%H": "15",
@@ -154,15 +158,46 @@ func (t Timespan) Format(format string) string {
 		"%s": "05",
 		"%I": "4",
 		"%S": "5",
-		"%a": "PM",
-	}
-
-	for k, v := range tm {
-		format = strings.ReplaceAll(format, k, v)
 	}
 
 	z := time.Unix(0, 0).UTC()
-	return z.Add(time.Duration(t)).Format(format)
+	current := z.Add(time.Duration(t))
+	foundNonZero := false
+	timeStr := ""
+	if adaptive {
+		for i := 0; i < len(formatStr); i++ {
+			if formatStr[i:i+1] == "%" && len(formatStr) > i+1 {
+				format := ReplaceAll(formatStr[i:i+2], tm)
+				str := strings.TrimLeft(current.Format(format), "0")
+				timeStr += str
+				if str != "" {
+					format = ReplaceAll(formatStr[i+2:], tm)
+					timeStr += current.Format(format)
+					break
+				}
+				foundNonZero = true
+				i++
+			} else {
+				if !foundNonZero {
+					timeStr += formatStr[i : i+1]
+				}
+			}
+		}
+		if timeStr == "" {
+			timeStr = "0"
+		}
+	} else {
+		format := ReplaceAll(format, tm)
+		timeStr = current.Format(format)
+	}
+	return timeStr
+}
+
+func ReplaceAll(str string, tm map[string]string) string {
+	for k, v := range tm {
+		str = strings.ReplaceAll(str, k, v)
+	}
+	return str
 }
 
 func (w *TimerWidget) TriggerAction(hold bool) {
