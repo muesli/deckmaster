@@ -202,45 +202,47 @@ func executeCommand(cmd string) {
 // triggerAction triggers an action.
 func (d *Deck) triggerAction(dev *streamdeck.Device, index uint8, hold bool) {
 	for _, w := range d.Widgets {
-		if w.Key() == index {
-			var a *ActionConfig
-			if hold {
-				a = w.ActionHold()
-			} else {
-				a = w.Action()
+		if w.Key() != index {
+			continue
+		}
+
+		var a *ActionConfig
+		if hold {
+			a = w.ActionHold()
+		} else {
+			a = w.Action()
+		}
+
+		if a == nil {
+			w.TriggerAction(hold)
+			continue
+		}
+
+		if a.Deck != "" {
+			d, err := LoadDeck(dev, filepath.Dir(d.File), a.Deck)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "Can't load deck:", err)
+				return
+			}
+			if err := dev.Clear(); err != nil {
+				fatal(err)
+				return
 			}
 
-			if a != nil {
-				// fmt.Println("Executing overloaded action")
-				if a.Deck != "" {
-					d, err := LoadDeck(dev, filepath.Dir(d.File), a.Deck)
-					if err != nil {
-						fmt.Fprintln(os.Stderr, "Can't load deck:", err)
-						return
-					}
-					if err := dev.Clear(); err != nil {
-						fatal(err)
-						return
-					}
-
-					deck = d
-					deck.updateWidgets()
-				}
-				if a.Keycode != "" {
-					emulateKeyPresses(a.Keycode)
-				}
-				if a.Paste != "" {
-					emulateClipboard(a.Paste)
-				}
-				if a.DBus.Method != "" {
-					executeDBusMethod(a.DBus.Object, a.DBus.Path, a.DBus.Method, a.DBus.Value)
-				}
-				if a.Exec != "" {
-					go executeCommand(a.Exec)
-				}
-			} else {
-				w.TriggerAction(hold)
-			}
+			deck = d
+			deck.updateWidgets()
+		}
+		if a.Keycode != "" {
+			emulateKeyPresses(a.Keycode)
+		}
+		if a.Paste != "" {
+			emulateClipboard(a.Paste)
+		}
+		if a.DBus.Method != "" {
+			executeDBusMethod(a.DBus.Object, a.DBus.Path, a.DBus.Method, a.DBus.Value)
+		}
+		if a.Exec != "" {
+			go executeCommand(a.Exec)
 		}
 	}
 }
