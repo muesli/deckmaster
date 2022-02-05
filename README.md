@@ -48,8 +48,8 @@ To install deckmaster, simply run:
 
 ## System Setup
 
-On Linux you need to set up some udev rules to be able to access the device as a
-regular user. Edit `/etc/udev/rules.d/99-streamdeck.rules` and add these lines:
+On Linux you need to set up some `udev` rules to be able to access the device as
+a regular user. Edit `/etc/udev/rules.d/99-streamdeck.rules` and add these lines:
 
 ```
 SUBSYSTEM=="usb", ATTRS{idVendor}=="0fd9", ATTRS{idProduct}=="0060", MODE:="666", GROUP="plugdev", SYMLINK+="streamdeck"
@@ -60,7 +60,7 @@ SUBSYSTEM=="usb", ATTRS{idVendor}=="0fd9", ATTRS{idProduct}=="006c", MODE:="666"
 ```
 
 Make sure your user is part of the `plugdev` group and reload the rules with
-`sudo udevadm control --reload-rules`. Unplug and replug the device and you
+`sudo udevadm control --reload-rules`. Unplug and re-plug the device, and you
 should be good to go.
 
 ### Starting deckmaster automatically
@@ -291,6 +291,13 @@ background = "/some/image.png"
 
 You can hook up any key with several actions:
 
+#### Switch deck
+
+```toml
+[keys.action]
+  deck = "relative/path/to/another.deck"
+```
+
 #### Run a command
 
 ```toml
@@ -312,7 +319,7 @@ Emulate a series of key-presses with delay in between:
   keycode = "Leftctrl-X+500 / Leftctrl-V / Num1"
 ```
 
-A list of available keycodes can be found here: [keycodes](https://github.com/muesli/deckmaster/blob/master/keycodes.go)
+A list of available `keycodes` can be found here: [keycodes](https://github.com/muesli/deckmaster/blob/master/keycodes.go)
 
 #### Paste to clipboard
 
