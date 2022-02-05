@@ -126,6 +126,12 @@ Control a specific streamdeck:
 deckmaster -device [serial number]
 ```
 
+Set a sleep timeout after which the screen gets turned off:
+
+```bash
+deckmaster -sleep 10m
+```
+
 ## Configuration
 
 You can find a few example configurations in the [decks](https://github.com/muesli/deckmaster/tree/master/decks)
