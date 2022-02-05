@@ -30,6 +30,7 @@ var (
 	deckFile   = flag.String("deck", "main.deck", "path to deck config file")
 	device     = flag.String("device", "", "which device to use (serial number)")
 	brightness = flag.Uint("brightness", 80, "brightness in percent")
+	sleep      = flag.String("sleep", "", "sleep timeout")
 )
 
 const (
@@ -188,6 +189,15 @@ func initDevice() (*streamdeck.Device, error) {
 	}
 	if err = dev.SetBrightness(uint8(*brightness)); err != nil {
 		return &dev, err
+	}
+
+	if len(*sleep) > 0 {
+		timeout, err := time.ParseDuration(*sleep)
+		if err != nil {
+			return &dev, err
+		}
+
+		dev.SetSleepTimeout(timeout)
 	}
 
 	return &dev, nil
