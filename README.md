@@ -38,7 +38,7 @@ An application to control your Elgato Stream Deck on Linux
 ### From source
 
 Make sure you have a working Go environment (Go 1.16 or higher is required).
-See the [installation instructions](https://golang.org/doc/install.html).
+See the [install instructions](https://golang.org/doc/install.html).
 
 To install deckmaster, simply run:
 
@@ -48,8 +48,8 @@ To install deckmaster, simply run:
 
 ## System Setup
 
-On Linux you need to set up some `udev` rules to be able to access the device as a
-regular user. Edit `/etc/udev/rules.d/99-streamdeck.rules` and add these lines:
+On Linux you need to set up some `udev` rules to be able to access the device as
+a regular user. Edit `/etc/udev/rules.d/99-streamdeck.rules` and add these lines:
 
 ```
 SUBSYSTEM=="usb", ATTRS{idVendor}=="0fd9", ATTRS{idProduct}=="0060", MODE:="666", GROUP="plugdev", SYMLINK+="streamdeck"
@@ -289,7 +289,7 @@ You can hook up any key with several actions:
 
 ```toml
 [keys.action]
-  deck= "another.deck"
+  deck = "relative/path/to/another.deck"
 ```
 
 #### Run a command
