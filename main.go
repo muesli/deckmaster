@@ -18,6 +18,14 @@ import (
 )
 
 var (
+	// Version contains the application version number. It's set via ldflags
+	// when building.
+	Version = ""
+
+	// CommitSHA contains the SHA of the commit that this application was built
+	// against. It's set via ldflags when building.
+	CommitSHA = ""
+
 	deck *Deck
 
 	dbusConn *dbus.Conn
@@ -32,6 +40,7 @@ var (
 	brightness = flag.Uint("brightness", 80, "brightness in percent")
 	sleep      = flag.String("sleep", "", "sleep timeout")
 	verbose    = flag.Bool("verbose", false, "verbose output")
+	version    = flag.Bool("version", false, "display version")
 )
 
 const (
@@ -260,6 +269,23 @@ func run() error {
 
 func main() {
 	flag.Parse()
+
+	if *version {
+		if len(CommitSHA) > 7 {
+			CommitSHA = CommitSHA[:7]
+		}
+		if Version == "" {
+			Version = "(built from source)"
+		}
+
+		fmt.Printf("deckmaster %s", Version)
+		if len(CommitSHA) > 0 {
+			fmt.Printf(" (%s)", CommitSHA)
+		}
+
+		fmt.Println()
+		os.Exit(0)
+	}
 
 	if err := run(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
