@@ -61,6 +61,15 @@
     keycode = "Mute"
 
 [[keys]]
+  index = 7
+  [keys.widget]
+    id = "button"
+    [keys.widget.config]
+      label = "Sleep"
+  [keys.action]
+    device = "sleep"
+
+[[keys]]
   index = 8
   [keys.widget]
     id = "button"

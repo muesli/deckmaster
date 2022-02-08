@@ -252,6 +252,11 @@ func (d *Deck) triggerAction(dev *streamdeck.Device, index uint8, hold bool) {
 		}
 		if a.Device != "" {
 			switch {
+			case a.Device == "sleep":
+				if err := dev.Sleep(); err != nil {
+					fatalf("error: %v\n", err)
+				}
+
 			case strings.HasPrefix(a.Device, "brightness"):
 				d.adjustBrightness(dev, strings.TrimPrefix(a.Device, "brightness"))
 
