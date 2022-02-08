@@ -61,6 +61,19 @@
     keycode = "Mute"
 
 [[keys]]
+  index = 7
+  [keys.widget]
+    id = "timer"
+    [keys.widget.config]
+      times = "5s;10m;30m;1h5m" # optional
+      format = "%Hh;%Im;%Ss"
+      font = "bold;regular;thin" # optional
+      #color = "#fefefe" # optional
+      underflow = "false" # optional
+      underflowColor = "#ff0000;#ff0000;#ff0000" # optional
+
+
+[[keys]]
   index = 8
   [keys.widget]
     id = "button"
