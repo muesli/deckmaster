@@ -31,6 +31,7 @@ var (
 	device     = flag.String("device", "", "which device to use (serial number)")
 	brightness = flag.Uint("brightness", 80, "brightness in percent")
 	sleep      = flag.String("sleep", "", "sleep timeout")
+	verbose    = flag.Bool("verbose", false, "verbose output")
 )
 
 const (
@@ -43,6 +44,14 @@ func fatal(v ...interface{}) {
 
 func fatalf(format string, a ...interface{}) {
 	go func() { shutdown <- fmt.Errorf(format, a...) }()
+}
+
+func verbosef(format string, a ...interface{}) {
+	if !*verbose {
+		return
+	}
+
+	fmt.Printf(format+"\n", a...)
 }
 
 func expandPath(base, path string) (string, error) {
@@ -95,7 +104,7 @@ func eventLoop(dev *streamdeck.Device, tch chan interface{}) error {
 			if state && !k.Pressed {
 				// key was released
 				if time.Since(keyTimestamps[k.Index]) < longPressDuration {
-					// fmt.Println("Triggering short action")
+					verbosef("Triggering short action for key %d", k.Index)
 					deck.triggerAction(dev, k.Index, false)
 				}
 			}
@@ -107,7 +116,7 @@ func eventLoop(dev *streamdeck.Device, tch chan interface{}) error {
 
 					if state, ok := keyStates.Load(k.Index); ok && state.(bool) {
 						// key still pressed
-						// fmt.Println("Triggering long action")
+						verbosef("Triggering long action for key %d", k.Index)
 						deck.triggerAction(dev, k.Index, true)
 					}
 				}()
@@ -162,9 +171,9 @@ func initDevice() (*streamdeck.Device, error) {
 			}
 		}
 		if !found {
-			fmt.Println("Can't find device. Available devices:")
+			fmt.Fprintln(os.Stderr, "Can't find device. Available devices:")
 			for _, v := range d {
-				fmt.Printf("Serial %s (%d buttons)\n", v.Serial, dev.Keys)
+				fmt.Fprintf(os.Stderr, "Serial %s (%d buttons)\n", v.Serial, dev.Keys)
 			}
 			os.Exit(1)
 		}
@@ -177,7 +186,7 @@ func initDevice() (*streamdeck.Device, error) {
 	if err != nil {
 		return &dev, err
 	}
-	fmt.Printf("Found device with serial %s (%d buttons, firmware %s)\n",
+	verbosef("Found device with serial %s (%d buttons, firmware %s)",
 		dev.Serial, dev.Keys, ver)
 
 	if err := dev.Reset(); err != nil {
