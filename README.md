@@ -191,7 +191,11 @@ activates the window.
   id = "recentWindow"
   [keys.widget.config]
     window = 1
+    showTitle = true # optional
 ```
+
+If `showTitle` is `true`, the title of the window will be displayed below the
+window icon.
 
 #### Time
 
