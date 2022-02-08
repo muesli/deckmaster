@@ -294,7 +294,9 @@ background = "/some/image.png"
 
 ### Actions
 
-You can hook up any key with several actions:
+You can hook up any key with several actions. A regular keypress will trigger
+the widget's configured `keys.action`, while holding the key will trigger
+`keys.action_hold`.
 
 #### Switch deck
 
@@ -330,7 +332,7 @@ A list of available `keycodes` can be found here: [keycodes](https://github.com/
 
 ```toml
 [keys.action]
-  paste = "a text"
+  paste = "some text"
 ```
 
 #### Trigger a dbus call
