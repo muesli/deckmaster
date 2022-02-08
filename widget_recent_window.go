@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"image"
+	"os"
 )
 
 // RecentWindowWidget is a widget displaying a recently activated window.
@@ -75,7 +76,7 @@ func (w *RecentWindowWidget) Update() error {
 // TriggerAction gets called when a button is pressed.
 func (w *RecentWindowWidget) TriggerAction(hold bool) {
 	if xorg == nil {
-		fmt.Println("xorg support is disabled!")
+		fmt.Fprintln(os.Stderr, "xorg support is disabled!")
 		return
 	}
 

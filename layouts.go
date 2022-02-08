@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"image"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -53,7 +54,7 @@ func (l *Layout) FormatLayout(frameReps []string, frameCount int) []image.Rectan
 
 		frame, err := formatFrame(frameReps[i])
 		if err != nil {
-			fmt.Println("using default frame: ", err)
+			fmt.Fprintln(os.Stderr, "using default frame:", err)
 			frame = l.defaultFrame(frameCount, i)
 		}
 		l.frames = append(l.frames, frame)

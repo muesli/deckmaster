@@ -29,7 +29,7 @@ func LoadDeck(dev *streamdeck.Device, base string, deck string) (*Deck, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("Loading deck:", path)
+	verbosef("Loading deck: %s", path)
 
 	dc, err := LoadConfig(path)
 	if err != nil {
@@ -188,12 +188,17 @@ func executeCommand(cmd string) {
 		cmd = exp
 	}
 	args := strings.Split(cmd, " ")
+
 	c := exec.Command(args[0], args[1:]...) //nolint:gosec
+	if *verbose {
+		c.Stdout = os.Stdout
+		c.Stderr = os.Stderr
+	}
+
 	if err := c.Start(); err != nil {
 		fmt.Fprintf(os.Stderr, "Command failed: %s\n", err)
 		return
 	}
-
 	if err := c.Wait(); err != nil {
 		fmt.Fprintf(os.Stderr, "Command failed: %s\n", err)
 	}
