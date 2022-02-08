@@ -23,6 +23,7 @@ type Deck struct {
 	File       string
 	Background image.Image
 	Widgets    []Widget
+	Watcher    *fsnotify.Watcher
 }
 
 // LoadDeck loads a deck configuration.
@@ -72,17 +73,23 @@ func LoadDeck(dev *streamdeck.Device, base string, deckName string) (*Deck, erro
 		d.Widgets = append(d.Widgets, w)
 	}
 
-	watcher, err := fsnotify.NewWatcher()
+	d.Watcher, err = fsnotify.NewWatcher()
 	if err == nil {
-		err = watcher.Add(path)
+		err = d.Watcher.Add(path)
 		if err == nil {
-
 			go func() {
 				for {
 					select {
-					case event := <-watcher.Events:
-						if currentDeck == path {
-							fmt.Printf("Change:  %s: %s\n", event.Op, event.Name)
+					case event, ok := <-d.Watcher.Events:
+						if !ok {
+							return
+						}
+						if d.File == path {
+							fmt.Printf("Change: %s: %s\n", event.Op, event.Name)
+							err = d.Watcher.Close()
+							if err != nil {
+								fatal(err)
+							}
 							d, err := LoadDeck(dev, base, deckName)
 							if err != nil {
 								fatal(err)
@@ -96,16 +103,16 @@ func LoadDeck(dev *streamdeck.Device, base string, deckName string) (*Deck, erro
 							deck.updateWidgets()
 							return
 						}
-					case error := <-watcher.Errors:
-						fmt.Printf("Watcher had an error: %s\n", error)
+					case err := <-d.Watcher.Errors:
+						fmt.Fprintf(os.Stderr, "Watcher had an error: %s\n", err)
 					}
 				}
 			}()
 		} else {
-			fmt.Printf("Failed to watch deck, automatic reloading diabled: %s\n", err)
+			fmt.Fprintf(os.Stderr, "Failed to watch deck, automatic reloading diabled: %s\n", err)
 		}
 	} else {
-		fmt.Printf("Failed to initialize fsnotify, automatic reloading diabled: %s\n", err)
+		fmt.Fprintf(os.Stderr, "Failed to initialize fsnotify, automatic reloading diabled: %s\n", err)
 	}
 
 	return &d, nil
@@ -262,6 +269,10 @@ func (d *Deck) triggerAction(dev *streamdeck.Device, index uint8, hold bool) {
 		}
 
 		if a.Deck != "" {
+			err := d.Watcher.Close()
+			if err != nil {
+				fatal(err)
+			}
 			d, err := LoadDeck(dev, filepath.Dir(d.File), a.Deck)
 			if err != nil {
 				fmt.Fprintln(os.Stderr, "Can't load deck:", err)
