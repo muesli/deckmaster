@@ -9,6 +9,7 @@ require (
 	github.com/StackExchange/wmi v0.0.0-20190523213315-cbe66965904d // indirect
 	github.com/atotto/clipboard v0.1.4
 	github.com/bendahl/uinput v1.4.1
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/flopp/go-findfont v0.1.0
 	github.com/go-ole/go-ole v1.2.4 // indirect
 	github.com/godbus/dbus v4.1.0+incompatible
@@ -17,9 +18,11 @@ require (
 	github.com/jezek/xgbutil v0.0.0-20210302171758-530099784e66
 	github.com/lucasb-eyer/go-colorful v1.2.0
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/muesli/streamdeck v0.2.3-0.20220205114833-1d5ef99e6a4e
+	github.com/muesli/streamdeck v0.2.3-0.20220205132636-dbbc8865ab8c
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/shirou/gopsutil v2.18.12+incompatible
+	github.com/stretchr/testify v1.2.2 // indirect
 	golang.org/x/image v0.0.0-20210628002857-a66eb6448b8d
 	golang.org/x/sys v0.0.0-20190813064441-fde4db37ae7a // indirect
 )

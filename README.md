@@ -346,25 +346,33 @@ A list of available `keycodes` can be found here: [keycodes](https://github.com/
 
 #### Device actions
 
-Increase the brightness. If no value is specified, it will be increased by 10%.
+Increase the brightness. If no value is specified, it will be increased by 10%:
 
 ```toml
 [keys.action]
   device = "brightness+5"
 ```
 
-Decrease the brightness. If no value is specified, it will be decreased by 10%.
+Decrease the brightness. If no value is specified, it will be decreased by 10%:
 
 ```toml
 [keys.action]
   device = "brightness-5"
 ```
 
-Set the brightness to a specific value between 0 and 100.
+Set the brightness to a specific value between 0 and 100:
 
 ```toml
 [keys.action]
   device = "brightness=50"
+```
+
+Put the device into sleep mode, blanking the screen until the next key gets
+pressed:
+
+```toml
+[keys.action]
+  device = "sleep"
 ```
 
 ## More Decks!
