@@ -378,3 +378,12 @@ pressed:
 ## More Decks!
 
 [deckmaster-emojis](https://github.com/muesli/deckmaster-emojis), an Emoji keyboard deck
+
+Made your own useful decks? Submit a pull request!
+
+## Feedback
+
+Got some feedback or suggestions? Please open an issue or drop me a note!
+
+* [Twitter](https://twitter.com/mueslix)
+* [The Fediverse](https://mastodon.social/@fribbledom)
