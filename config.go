@@ -2,9 +2,11 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"image/color"
 	"io/ioutil"
+	"path/filepath"
 	"reflect"
 	"strconv"
 	"strings"
@@ -52,20 +54,75 @@ type Keys []KeyConfig
 // DeckConfig is the central configuration struct.
 type DeckConfig struct {
 	Background string `toml:"background,omitempty"`
+	Parent     string `toml:"parent,omitempty"`
 	Keys       Keys   `toml:"keys"`
 }
 
-// LoadConfig loads config from filename.
-func LoadConfig(filename string) (DeckConfig, error) {
+// MergeDeckConfig merges key configuration from multiple configs.
+func MergeDeckConfig(base, parent *DeckConfig) DeckConfig {
+	merged := make(map[byte]KeyConfig)
+	for _, config := range parent.Keys {
+		merged[config.Index] = config
+	}
+	for _, config := range base.Keys {
+		merged[config.Index] = config
+	}
+
+	keys := make(Keys, 0, len(merged))
+	for _, config := range merged {
+		keys = append(keys, config)
+	}
+
+	background := base.Background
+	if background == "" {
+		background = parent.Background
+	}
+	return DeckConfig{background, base.Parent, keys}
+}
+
+// LoadConfigFromFile loads a DeckConfig from a file while checking for circular
+// dependencies.
+func LoadConfigFromFile(base, path string, files []string) (DeckConfig, error) {
 	config := DeckConfig{}
 
-	b, err := ioutil.ReadFile(filename)
+	filename, err := expandPath(base, path)
 	if err != nil {
 		return config, err
 	}
 
-	_, err = toml.Decode(string(b), &config)
+	// check for circular dependencies
+	for _, prev := range files {
+		// TODO: improve error message with actual file names
+		if prev == filename {
+			return config, errors.New("circular reference")
+		}
+	}
+
+	file, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return config, err
+	}
+
+	_, err = toml.Decode(string(file), &config)
+	if config.Parent != "" {
+		parent, err := LoadConfigFromFile(base, config.Parent, append(files, filename))
+		if err != nil {
+			return parent, err
+		}
+
+		merged := MergeDeckConfig(&config, &parent)
+		return merged, err
+	}
+
 	return config, err
+}
+
+// LoadConfig loads config from filename.
+func LoadConfig(path string) (DeckConfig, error) {
+	base := filepath.Dir(path)
+	filename := filepath.Base(path)
+
+	return LoadConfigFromFile(base, filename, []string{})
 }
 
 // Save writes config as json to filename.
