@@ -115,20 +115,10 @@ func eventLoop(dev *streamdeck.Device, tch chan interface{}) error {
 				if time.Since(keyTimestamps[k.Index]) < longPressDuration {
 					verbosef("Triggering short action for key %d", k.Index)
 					deck.triggerAction(dev, k.Index, false)
+				} else {
+					verbosef("Triggering long action for key %d", k.Index)
+					deck.triggerAction(dev, k.Index, true)
 				}
-			}
-			if !state && k.Pressed {
-				// key was pressed
-				go func() {
-					// launch timer to observe keystate
-					time.Sleep(longPressDuration)
-
-					if state, ok := keyStates.Load(k.Index); ok && state.(bool) {
-						// key still pressed
-						verbosef("Triggering long action for key %d", k.Index)
-						deck.triggerAction(dev, k.Index, true)
-					}
-				}()
 			}
 			keyTimestamps[k.Index] = time.Now()
 
