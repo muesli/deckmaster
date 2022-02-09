@@ -95,6 +95,7 @@ Description=Deckmaster Service
 # adjust the path to deckmaster and .deck file to suit your needs
 ExecStart=/usr/local/bin/deckmaster --deck path-to/some.deck
 Restart=on-failure
+ExecReload=kill -HUP $MAINPID
 
 [Install]
 WantedBy=default.target

@@ -84,6 +84,9 @@ func eventLoop(dev *streamdeck.Device, tch chan interface{}) error {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
+	hup := make(chan os.Signal, 1)
+	signal.Notify(hup, syscall.SIGHUP)
+
 	var keyStates sync.Map
 	keyTimestamps := make(map[uint8]time.Time)
 
@@ -143,6 +146,14 @@ func eventLoop(dev *streamdeck.Device, tch chan interface{}) error {
 
 		case err := <-shutdown:
 			return err
+
+		case <-hup:
+			verbosef("Received SIGHUP, reloading configuration...")
+			deck, err = LoadDeck(dev, "", deck.File)
+			if err != nil {
+				return err
+			}
+			deck.updateWidgets()
 
 		case <-sigs:
 			fmt.Println("Shutting down...")
