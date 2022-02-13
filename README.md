@@ -293,6 +293,16 @@ widgets:
 background = "/some/image.png"
 ```
 
+### Re-using another deck's configuration
+
+If you specify a `parent` inside a deck's configuration, it will inherit all
+of the parent's settings that are not overwritten by the deck's own settings.
+This even works recursively:
+
+```toml
+parent = "another.deck"
+```
+
 ### Actions
 
 You can hook up any key with several actions. A regular keypress will trigger
