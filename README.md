@@ -284,25 +284,6 @@ corresponding icons with correct names need to be placed in
 `~/.local/share/deckmaster/themes/[theme]`. The default icons with their
 respective names can be found [here](https://github.com/muesli/deckmaster/tree/master/assets/weather).
 
-### Background Image
-
-You can configure each deck to display an individual wallpaper behind its
-widgets:
-
-```toml
-background = "/some/image.png"
-```
-
-### Re-using another deck's configuration
-
-If you specify a `parent` inside a deck's configuration, it will inherit all
-of the parent's settings that are not overwritten by the deck's own settings.
-This even works recursively:
-
-```toml
-parent = "another.deck"
-```
-
 ### Actions
 
 You can hook up any key with several actions. A regular keypress will trigger
@@ -386,6 +367,25 @@ pressed:
 ```toml
 [keys.action]
   device = "sleep"
+```
+
+### Background Image
+
+You can configure each deck to display an individual wallpaper behind its
+widgets:
+
+```toml
+background = "/some/image.png"
+```
+
+### Re-using another deck's configuration
+
+If you specify a `parent` inside a deck's configuration, it will inherit all
+of the parent's settings that are not overwritten by the deck's own settings.
+This even works recursively:
+
+```toml
+parent = "another.deck"
 ```
 
 ## More Decks!
