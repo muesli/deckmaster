@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// TimerWidget is a widget displaying a timer
+// TimerWidget is a widget displaying a timer.
 type TimerWidget struct {
 	*BaseWidget
 
@@ -26,29 +26,34 @@ type TimerWidget struct {
 	data TimerData
 }
 
+// TimerData represents the current state of the timer.
 type TimerData struct {
 	startTime  time.Time
 	pausedTime time.Time
 }
 
+// IsPaused returns whether the timer is paused.
 func (d *TimerData) IsPaused() bool {
 	return !d.pausedTime.IsZero()
 }
 
+// IsRunning returns whether the timer is running.
 func (d *TimerData) IsRunning() bool {
 	return !d.IsPaused() && d.HasDeadline()
 }
 
+// HasDeadline returns whether the start time is set.
 func (d *TimerData) HasDeadline() bool {
 	return !d.startTime.IsZero()
 }
 
+// Clear resets the state of the timer.
 func (d *TimerData) Clear() {
 	d.startTime = time.Time{}
 	d.pausedTime = time.Time{}
 }
 
-// NewTimerWidget returns a new TimerWidget
+// NewTimerWidget returns a new TimerWidget.
 func NewTimerWidget(bw *BaseWidget, opts WidgetConfig) *TimerWidget {
 	bw.setInterval(time.Duration(opts.Interval)*time.Millisecond, time.Second/2)
 
@@ -71,6 +76,10 @@ func NewTimerWidget(bw *BaseWidget, opts WidgetConfig) *TimerWidget {
 	if len(times) == 0 {
 		defaultDuration, _ := time.ParseDuration("30m")
 		times = append(times, defaultDuration)
+	}
+
+	if len(formats) == 0 {
+		formats = append(formats, "%H:%i:%s")
 	}
 
 	layout := NewLayout(int(bw.dev.Pixels))
@@ -113,26 +122,30 @@ func (w *TimerWidget) Update() error {
 	}
 	size := int(w.dev.Pixels)
 	img := image.NewRGBA(image.Rect(0, 0, size, size))
-	var str string
 
 	for i := 0; i < len(w.formats); i++ {
+		var timespan Timespan
 		var fontColor = w.colors[i]
 
 		if !w.data.HasDeadline() {
-			str = Timespan(w.times[w.currIndex]).Format(w.formats[i], w.adaptive)
+			timespan = Timespan(w.times[w.currIndex])
 		} else {
 			remainingDuration := time.Until(w.data.startTime.Add(w.times[w.currIndex]))
-			if remainingDuration < 0 && !w.underflow {
-				str = Timespan(w.times[w.currIndex]).Format(w.formats[i], w.adaptive)
+			if int(w.times[w.currIndex].Seconds()) == 0 {
+				timespan = Timespan(remainingDuration * -1)
+			} else if remainingDuration < 0 && !w.underflow {
+				timespan = Timespan(w.times[w.currIndex])
 				w.data.Clear()
 			} else if remainingDuration < 0 && w.underflow {
 				fontColor = w.underflowColors[i]
-				str = Timespan(remainingDuration*-1).Format(w.formats[i], w.adaptive)
+				timespan = Timespan(remainingDuration * -1)
 			} else {
-				str = Timespan(remainingDuration).Format(w.formats[i], w.adaptive)
+				timespan = Timespan(remainingDuration)
 			}
 		}
+
 		font := fontByName(w.fonts[i])
+		str := timespan.Format(w.formats[i], w.adaptive)
 
 		drawString(img,
 			w.frames[i],
@@ -147,10 +160,11 @@ func (w *TimerWidget) Update() error {
 	return w.render(w.dev, img)
 }
 
+// Timespan represents the duration between two events.
 type Timespan time.Duration
 
+// Format returns the formatted version of the timespan.
 func (t Timespan) Format(format string, adaptive bool) string {
-	formatStr := format
 	tm := map[string]string{
 		"%h": "03",
 		"%H": "15",
@@ -162,30 +176,9 @@ func (t Timespan) Format(format string, adaptive bool) string {
 
 	z := time.Unix(0, 0).UTC()
 	current := z.Add(time.Duration(t))
-	foundNonZero := false
-	timeStr := ""
+	var timeStr string
 	if adaptive {
-		for i := 0; i < len(formatStr); i++ {
-			if formatStr[i:i+1] == "%" && len(formatStr) > i+1 {
-				format := ReplaceAll(formatStr[i:i+2], tm)
-				str := strings.TrimLeft(current.Format(format), "0")
-				timeStr += str
-				if str != "" {
-					format = ReplaceAll(formatStr[i+2:], tm)
-					timeStr += current.Format(format)
-					break
-				}
-				foundNonZero = true
-				i++
-			} else {
-				if !foundNonZero {
-					timeStr += formatStr[i : i+1]
-				}
-			}
-		}
-		if timeStr == "" {
-			timeStr = "0"
-		}
+		timeStr = TrimTime(current, format, tm)
 	} else {
 		format := ReplaceAll(format, tm)
 		timeStr = current.Format(format)
@@ -193,6 +186,33 @@ func (t Timespan) Format(format string, adaptive bool) string {
 	return timeStr
 }
 
+// TrimTime does remove leading zeroes and separator that are not required for the time representation.
+func TrimTime(current time.Time, formatStr string, tm map[string]string) string {
+	foundNonZero := false
+	timeStr := ""
+	for i := 0; i < len(formatStr); i++ {
+		if formatStr[i:i+1] == "%" && len(formatStr) > i+1 {
+			format := ReplaceAll(formatStr[i:i+2], tm)
+			str := strings.TrimLeft(current.Format(format), "0")
+			timeStr += str
+			if str != "" {
+				format = ReplaceAll(formatStr[i+2:], tm)
+				timeStr += current.Format(format)
+				break
+			}
+			foundNonZero = true
+			i++
+		} else if !foundNonZero {
+			timeStr += formatStr[i : i+1]
+		}
+	}
+	if timeStr == "" {
+		return "0"
+	}
+	return timeStr
+}
+
+// ReplaceAll does a replacement with all entries of a map.
 func ReplaceAll(str string, tm map[string]string) string {
 	for k, v := range tm {
 		str = strings.ReplaceAll(str, k, v)
@@ -200,6 +220,7 @@ func ReplaceAll(str string, tm map[string]string) string {
 	return str
 }
 
+// TriggerAction updates the timer state.
 func (w *TimerWidget) TriggerAction(hold bool) {
 	if hold {
 		if w.data.IsPaused() {
@@ -211,7 +232,7 @@ func (w *TimerWidget) TriggerAction(hold bool) {
 		if w.data.IsRunning() {
 			w.data.pausedTime = time.Now()
 		} else if w.data.IsPaused() && w.data.HasDeadline() {
-			pausedDuration := time.Now().Sub(w.data.pausedTime)
+			pausedDuration := time.Since(w.data.pausedTime)
 			w.data.startTime = w.data.startTime.Add(pausedDuration)
 			w.data.pausedTime = time.Time{}
 		} else {
