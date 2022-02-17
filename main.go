@@ -44,6 +44,7 @@ var (
 )
 
 const (
+	fadeDuration      = 250 * time.Millisecond
 	longPressDuration = 350 * time.Millisecond
 )
 
@@ -225,6 +226,7 @@ func initDevice() (*streamdeck.Device, error) {
 		return &dev, err
 	}
 
+	dev.SetSleepFadeDuration(fadeDuration)
 	if len(*sleep) > 0 {
 		timeout, err := time.ParseDuration(*sleep)
 		if err != nil {
