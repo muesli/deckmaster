@@ -2,17 +2,18 @@ package main
 
 import (
 	"fmt"
-	"image"
 	"os"
 	"os/exec"
 	"regexp"
 )
 
 const (
-	regex               = `index: ([0-9]+)[\s\S]*?media.name = \"(.*?)\"[\s\S]*?application.name = \"(.*?)\"`
+	regexExpression     = `index: ([0-9]+)[\s\S]*?media.name = \"(.*?)\"[\s\S]*?application.name = \"(.*?)\"`
 	regexGroupClientId  = 1
 	regexGroupMediaName = 2
 	regexGroupAppName   = 3
+
+	listInputSinksCommand = "pacmd list-sink-inputs"
 )
 
 // PulseAudioControlWidget is a widget displaying a recently activated window.
@@ -61,88 +62,86 @@ func (w *PulseAudioControlWidget) RequiresUpdate() bool {
 
 // Update renders the widget.
 func (w *PulseAudioControlWidget) Update() error {
-	img := image.NewRGBA(image.Rect(0, 0, int(w.dev.Pixels), int(w.dev.Pixels)))
-
-	if !w.showTitle {
-		var appName = w.appName
-
-		runes := []rune(appName)
-		if len(runes) > 10 {
-			appName = string(runes[:10])
+	if w.showTitle {
+		sinkTitle, err := getSinkTitleFor(w.appName)
+		if err != nil {
+			return err
 		}
-
-		w.label = appName
-		return w.ButtonWidget.Update()
-	}
-
-	var re = regexp.MustCompile(regex)
-
-	output, err := exec.Command("sh", "-c", "pacmd list-sink-inputs").Output()
-
-	if err != nil {
-		return fmt.Errorf("can't get pulseaudio sinks: %s", err)
-	}
-
-	var sinkTitle = ""
-
-	matches := re.FindAllStringSubmatch(string(output), -1)
-
-	for match := range matches {
-		if w.appName == matches[match][regexGroupAppName] {
-			sinkTitle = matches[match][regexGroupMediaName]
+	
+		if sinkTitle != "" {
+			w.label = stripTextTo(10, sinkTitle)
+			return w.ButtonWidget.Update()
 		}
 	}
-
-	if sinkTitle != "" {
-
-		var title = sinkTitle
-		if w.showTitle {
-
-			runes := []rune(title)
-			if len(runes) > 10 {
-				title = string(runes[:10])
-			}
-		}
-
-		w.label = title
-
-		return w.ButtonWidget.Update()
-	}
-
-	return w.render(w.dev, img)
+	
+	w.label = stripTextTo(10, w.appName)
+	return w.ButtonWidget.Update()
 }
 
 // TriggerAction gets called when a button is pressed.
 func (w *PulseAudioControlWidget) TriggerAction(hold bool) {
-
 	if w.mode != "mute" {
 		fmt.Fprintln(os.Stderr, "unknown mode:", w.mode)
 		return
 	}
 
-	var re = regexp.MustCompile(regex)
-
-	output, err := exec.Command("sh", "-c", "pacmd list-sink-inputs").Output()
-
+	sinkIndex, err := getSinkIndex(w.appName)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "can't get pulseaudio sinks:", err)
-		return
+		fmt.Fprintln(os.Stderr, "can't toggle mute for pulseaudio sink index: "+sinkIndex, err)
 	}
 
+	toggleMute(sinkIndex)
+}
+
+func getSinkIndex(appName string) (string, error) {
+	output, err := exec.Command("sh", "-c", listInputSinksCommand).Output()
+	if err != nil {
+		return "", fmt.Errorf("can't get pulseaudio sinks. 'pacmd' missing? %s", err)
+	}
+
+	var regex = regexp.MustCompile(regexExpression)
+	matches := regex.FindAllStringSubmatch(string(output), -1)
+
 	var sinkIndex string
-
-	matches := re.FindAllStringSubmatch(string(output), -1)
-
 	for match := range matches {
-		if w.appName == matches[match][regexGroupAppName] {
+		if appName == matches[match][regexGroupAppName] {
 			sinkIndex = matches[match][regexGroupClientId]
 		}
 	}
 
-	output, err = exec.Command("sh", "-c", "pactl set-sink-input-mute "+sinkIndex+" toggle").Output()
+	return sinkIndex, nil
+}
+
+func toggleMute(sinkIndex string) {
+	err := exec.Command("sh", "-c", "pactl set-sink-input-mute "+sinkIndex+" toggle").Run()
 
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "can't toggle mute for pulseaudio sink index: "+sinkIndex, err)
-		return
 	}
+}
+
+func stripTextTo(maxLength int, text string) string {
+	runes := []rune(text)
+	if len(runes) > maxLength {
+		return string(runes[:10])
+	}
+	return text
+}
+
+func getSinkTitleFor(appName string) (string, error){
+	output, err := exec.Command("sh", "-c", listInputSinksCommand).Output()
+
+	if err != nil {
+		return "", fmt.Errorf("can't get pulseaudio sinks. 'pacmd' missing? %s", err)
+	}
+
+	var regex = regexp.MustCompile(regexExpression)
+	matches := regex.FindAllStringSubmatch(string(output), -1)
+	for match := range matches {
+		if appName == matches[match][regexGroupAppName] {
+			return matches[match][regexGroupMediaName], nil
+		}
+	}
+
+    return "", nil
 }
