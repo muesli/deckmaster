@@ -67,7 +67,6 @@ func (w *PulseAudioControlWidget) RequiresUpdate() bool {
 	return w.BaseWidget.RequiresUpdate()
 }
 
-
 // Update renders the widget.
 func (w *PulseAudioControlWidget) Update() error {
 	sinkInputData, err := getSinkInputDataForApp(w.appName)
@@ -140,16 +139,16 @@ func getSinkInputDataForApp(appName string) (*sinkInputData, error) {
 	matches := regex.FindAllStringSubmatch(string(output), -1)
 	for match := range matches {
 		if appName == matches[match][regexGroupAppName] {
-			sinkInputData.index    = matches[match][regexGroupClientId]
-			sinkInputData.muted    = yesOrNoToBool(matches[match][regexGroupMuted])
-			sinkInputData.title    = matches[match][regexGroupMediaName]
+			sinkInputData.index = matches[match][regexGroupClientId]
+			sinkInputData.muted = yesOrNoToBool(matches[match][regexGroupMuted])
+			sinkInputData.title = matches[match][regexGroupMediaName]
 		}
 	}
 
 	return sinkInputData, nil
 }
 
-func yesOrNoToBool(yesOrNo string) (bool) {
+func yesOrNoToBool(yesOrNo string) bool {
 	switch yesOrNo {
 	case "yes":
 		return true
