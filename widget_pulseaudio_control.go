@@ -75,24 +75,28 @@ func (w *PulseAudioControlWidget) Update() error {
 	}
 
 	var icon string
-	if sinkInputData.muted {
-		icon = "assets/volume-muted.png"
+	var label string
+	if sinkInputData != nil {
+		if sinkInputData.muted {
+			icon = "assets/muted.png"
+		} else {
+			icon = "assets/not_muted.png"
+		}
+		if w.showTitle && sinkInputData.title != "" {
+			label = sinkInputData.title
+		} else {
+			label = w.appName
+		}
 	} else {
-		icon = "assets/volume-high.png"
+		icon = "assets/not_playing.png"
+		label = w.appName
 	}
 
 	if err := w.LoadImage(icon); err != nil {
 		return err
 	}
 
-	if w.showTitle {
-		if sinkInputData.title != "" {
-			w.label = stripTextTo(10, sinkInputData.title)
-			return w.ButtonWidget.Update()
-		}
-	}
-
-	w.label = stripTextTo(10, w.appName)
+	w.label = stripTextTo(10, label)
 	return w.ButtonWidget.Update()
 }
 
@@ -107,6 +111,10 @@ func (w *PulseAudioControlWidget) TriggerAction(hold bool) {
 
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "can't toggle mute for pulseaudio app "+w.appName, err)
+	}
+
+	if sinkInputData == nil {
+		fmt.Fprintln(os.Stderr, "No running sink found for pulseaudio app "+w.appName, err)
 	}
 
 	toggleMute(sinkInputData.index)
@@ -129,7 +137,6 @@ func stripTextTo(maxLength int, text string) string {
 }
 
 func getSinkInputDataForApp(appName string) (*sinkInputData, error) {
-	sinkInputData := &sinkInputData{}
 	output, err := exec.Command("sh", "-c", listInputSinksCommand).Output()
 	if err != nil {
 		return nil, fmt.Errorf("can't get pulseaudio sinks. 'pacmd' missing? %s", err)
@@ -137,15 +144,17 @@ func getSinkInputDataForApp(appName string) (*sinkInputData, error) {
 
 	var regex = regexp.MustCompile(regexExpression)
 	matches := regex.FindAllStringSubmatch(string(output), -1)
+	var sinkData *sinkInputData
 	for match := range matches {
 		if appName == matches[match][regexGroupAppName] {
-			sinkInputData.index = matches[match][regexGroupClientId]
-			sinkInputData.muted = yesOrNoToBool(matches[match][regexGroupMuted])
-			sinkInputData.title = matches[match][regexGroupMediaName]
+			sinkData = &sinkInputData{}
+			sinkData.index = matches[match][regexGroupClientId]
+			sinkData.muted = yesOrNoToBool(matches[match][regexGroupMuted])
+			sinkData.title = matches[match][regexGroupMediaName]
 		}
 	}
 
-	return sinkInputData, nil
+	return sinkData, nil
 }
 
 func yesOrNoToBool(yesOrNo string) bool {
