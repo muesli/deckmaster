@@ -8,10 +8,11 @@ import (
 )
 
 const (
-	regexExpression     = `index: ([0-9]+)[\s\S]*?media.name = \"(.*?)\"[\s\S]*?application.name = \"(.*?)\"`
+	regexExpression     = `index: ([0-9]+)[\s\S]*?muted: (no|yes)[\s\S]*?media.name = \"(.*?)\"[\s\S]*?application.name = \"(.*?)\"`
 	regexGroupClientId  = 1
-	regexGroupMediaName = 2
-	regexGroupAppName   = 3
+	regexGroupMuted     = 2
+	regexGroupMediaName = 3
+	regexGroupAppName   = 4
 
 	listInputSinksCommand = "pacmd list-sink-inputs"
 )
@@ -23,6 +24,12 @@ type PulseAudioControlWidget struct {
 	appName   string
 	mode      string
 	showTitle bool
+}
+
+type sinkInputData struct {
+	muted bool
+	title string
+	index string
 }
 
 // NewPulseAudioControlWidget returns a new PulseAudioControlWidget.
@@ -60,20 +67,32 @@ func (w *PulseAudioControlWidget) RequiresUpdate() bool {
 	return w.BaseWidget.RequiresUpdate()
 }
 
+
 // Update renders the widget.
 func (w *PulseAudioControlWidget) Update() error {
+	sinkInputData, err := getSinkInputDataForApp(w.appName)
+	if err != nil {
+		return err
+	}
+
+	var icon string
+	if sinkInputData.muted {
+		icon = "assets/volume-muted.png"
+	} else {
+		icon = "assets/volume-high.png"
+	}
+
+	if err := w.LoadImage(icon); err != nil {
+		return err
+	}
+
 	if w.showTitle {
-		sinkTitle, err := getSinkTitleFor(w.appName)
-		if err != nil {
-			return err
-		}
-	
-		if sinkTitle != "" {
-			w.label = stripTextTo(10, sinkTitle)
+		if sinkInputData.title != "" {
+			w.label = stripTextTo(10, sinkInputData.title)
 			return w.ButtonWidget.Update()
 		}
 	}
-	
+
 	w.label = stripTextTo(10, w.appName)
 	return w.ButtonWidget.Update()
 }
@@ -85,31 +104,13 @@ func (w *PulseAudioControlWidget) TriggerAction(hold bool) {
 		return
 	}
 
-	sinkIndex, err := getSinkIndex(w.appName)
+	sinkInputData, err := getSinkInputDataForApp(w.appName)
+
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "can't toggle mute for pulseaudio sink index: "+sinkIndex, err)
+		fmt.Fprintln(os.Stderr, "can't toggle mute for pulseaudio app "+w.appName, err)
 	}
 
-	toggleMute(sinkIndex)
-}
-
-func getSinkIndex(appName string) (string, error) {
-	output, err := exec.Command("sh", "-c", listInputSinksCommand).Output()
-	if err != nil {
-		return "", fmt.Errorf("can't get pulseaudio sinks. 'pacmd' missing? %s", err)
-	}
-
-	var regex = regexp.MustCompile(regexExpression)
-	matches := regex.FindAllStringSubmatch(string(output), -1)
-
-	var sinkIndex string
-	for match := range matches {
-		if appName == matches[match][regexGroupAppName] {
-			sinkIndex = matches[match][regexGroupClientId]
-		}
-	}
-
-	return sinkIndex, nil
+	toggleMute(sinkInputData.index)
 }
 
 func toggleMute(sinkIndex string) {
@@ -128,20 +129,33 @@ func stripTextTo(maxLength int, text string) string {
 	return text
 }
 
-func getSinkTitleFor(appName string) (string, error){
+func getSinkInputDataForApp(appName string) (*sinkInputData, error) {
+	sinkInputData := &sinkInputData{}
 	output, err := exec.Command("sh", "-c", listInputSinksCommand).Output()
-
 	if err != nil {
-		return "", fmt.Errorf("can't get pulseaudio sinks. 'pacmd' missing? %s", err)
+		return nil, fmt.Errorf("can't get pulseaudio sinks. 'pacmd' missing? %s", err)
 	}
 
 	var regex = regexp.MustCompile(regexExpression)
 	matches := regex.FindAllStringSubmatch(string(output), -1)
 	for match := range matches {
 		if appName == matches[match][regexGroupAppName] {
-			return matches[match][regexGroupMediaName], nil
+			sinkInputData.index    = matches[match][regexGroupClientId]
+			sinkInputData.muted    = yesOrNoToBool(matches[match][regexGroupMuted])
+			sinkInputData.title    = matches[match][regexGroupMediaName]
 		}
 	}
 
-    return "", nil
+	return sinkInputData, nil
+}
+
+func yesOrNoToBool(yesOrNo string) (bool) {
+	switch yesOrNo {
+	case "yes":
+		return true
+	case "no":
+		return false
+	}
+	fmt.Fprintln(os.Stderr, "can't convert yes|no to bool: "+yesOrNo)
+	return false
 }
