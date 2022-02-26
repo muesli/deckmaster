@@ -123,7 +123,7 @@ func toggleMute(sinkIndex string) {
 func stripTextTo(maxLength int, text string) string {
 	runes := []rune(text)
 	if len(runes) > maxLength {
-		return string(runes[:10])
+		return string(runes[:maxLength])
 	}
 	return text
 }
