@@ -2,6 +2,7 @@
   index = 0
   [keys.widget]
     id = "pulseAudioControl"
+    interval = 1000
     [keys.widget.config]
       appName = "Firefox"
       mode = "mute"
@@ -11,7 +12,9 @@
   index = 1
   [keys.widget]
     id = "pulseAudioControl"
+    interval = 1000
     [keys.widget.config]
       appName = "Rhythmbox"
       mode = "mute"
       showTitle = true
+      
