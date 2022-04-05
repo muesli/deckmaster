@@ -5,7 +5,7 @@ go 1.16
 require (
 	github.com/BurntSushi/freetype-go v0.0.0-20160129220410-b763ddbfe298 // indirect
 	github.com/BurntSushi/graphics-go v0.0.0-20160129215708-b43f31a4a966 // indirect
-	github.com/BurntSushi/toml v1.0.0
+	github.com/BurntSushi/toml v1.1.0
 	github.com/atotto/clipboard v0.1.4
 	github.com/bendahl/uinput v1.5.1
 	github.com/davecgh/go-spew v1.1.1 // indirect
