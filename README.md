@@ -139,6 +139,25 @@ deckmaster -sleep 10m
 You can find a few example configurations in the [decks](https://github.com/muesli/deckmaster/tree/master/decks)
 directory. Edit them to your needs!
 
+### Background Image
+
+You can configure each deck to display an individual wallpaper behind its
+widgets:
+
+```toml
+background = "/some/image.png"
+```
+
+### Re-using another deck's configuration
+
+If you specify a `parent` inside a deck's configuration, it will inherit all
+of the parent's settings that are not overwritten by the deck's own settings.
+This even works recursively:
+
+```toml
+parent = "another.deck"
+```
+
 ### Widgets
 
 Any widget is build up the following way:
@@ -367,25 +386,6 @@ pressed:
 ```toml
 [keys.action]
   device = "sleep"
-```
-
-### Background Image
-
-You can configure each deck to display an individual wallpaper behind its
-widgets:
-
-```toml
-background = "/some/image.png"
-```
-
-### Re-using another deck's configuration
-
-If you specify a `parent` inside a deck's configuration, it will inherit all
-of the parent's settings that are not overwritten by the deck's own settings.
-This even works recursively:
-
-```toml
-parent = "another.deck"
 ```
 
 ## More Decks!
