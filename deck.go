@@ -188,7 +188,16 @@ func executeCommand(cmd string) {
 	if err == nil {
 		cmd = exp
 	}
-	args := strings.Split(cmd, " ")
+	quoted := false
+	args := strings.FieldsFunc(cmd, func(r rune) bool {
+		if r == '"' {
+			quoted = !quoted
+		}
+		return !quoted && r == ' '
+	})
+	for i := 0; i < len(args); i++ {
+		args[i] = strings.Trim(args[i], "\"")
+	}
 
 	c := exec.Command(args[0], args[1:]...) //nolint:gosec
 	if *verbose {
