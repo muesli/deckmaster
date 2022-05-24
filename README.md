@@ -330,13 +330,25 @@ A list of available `keycodes` can be found here: [keycodes](https://github.com/
 #### Trigger a dbus call
 
 ```toml
-[keys.action]
-  [dbus]
-    object = "object"
-    path = "path"
-    method = "method"
-    value = "value"
+[keys.action.dbus]
+  object = "object"
+  path = "path"
+  method = "method"
+  value = "value"  # omit this for no-arg methods
 ```
+
+For example this: `dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.PlayPause`
+
+Translates to this:
+
+```toml
+[keys.action.dbus]
+  object = "org.mpris.MediaPlayer2.spotify"
+  path = "/org/mpris/MediaPlayer2"
+  method = "org.mpris.MediaPlayer2.Player.PlayPause"
+  #value = ""
+```
+
 
 #### Device actions
 

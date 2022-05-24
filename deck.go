@@ -175,8 +175,13 @@ func emulateClipboard(text string) {
 }
 
 // executes a dbus method.
-func executeDBusMethod(object, path, method, args string) {
-	call := dbusConn.Object(object, dbus.ObjectPath(path)).Call(method, 0, args)
+func executeDBusMethod(object, path, method string, args *string) {
+	var call *dbus.Call
+	if args == nil {
+		call = dbusConn.Object(object, dbus.ObjectPath(path)).Call(method, 0)
+	} else {
+		call = dbusConn.Object(object, dbus.ObjectPath(path)).Call(method, 0, args)
+	}
 	if call.Err != nil {
 		fmt.Fprintf(os.Stderr, "dbus call failed: %s\n", call.Err)
 	}

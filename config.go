@@ -17,10 +17,10 @@ import (
 
 // DBusConfig describes a dbus action.
 type DBusConfig struct {
-	Object string `toml:"object,omitempty"`
-	Path   string `toml:"path,omitempty"`
-	Method string `toml:"method,omitempty"`
-	Value  string `toml:"value,omitempty"`
+	Object string  `toml:"object,omitempty"`
+	Path   string  `toml:"path,omitempty"`
+	Method string  `toml:"method,omitempty"`
+	Value  *string `toml:"value,omitempty"`
 }
 
 // ActionConfig describes an action that can be triggered.
