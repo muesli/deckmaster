@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/bendahl/uinput"
-	"github.com/godbus/dbus"
+	"github.com/godbus/dbus/v5"
 	"github.com/mitchellh/go-homedir"
 	"github.com/muesli/streamdeck"
 )
