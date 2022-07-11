@@ -1,10 +1,7 @@
 package main
 
 import (
-	"errors"
 	"fmt"
-	"image"
-	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -25,8 +22,6 @@ type MediaPlayerWidget struct {
 	currentArtURL string
 
 	currentPlaybackStatus string
-
-	icon image.Image
 }
 
 func NewMediaPlayerWidget(bw *BaseWidget, opts WidgetConfig) (*MediaPlayerWidget, error) {
@@ -134,27 +129,11 @@ func (w *MediaPlayerWidget) SetImageURL(url string) {
 				fmt.Fprintf(os.Stderr, "Error while opening image: %s: %s", url, err)
 			}
 		} else {
-			img, err := w.downloadImage(url)
+			img, err := imageDownloader.Download(url)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error while downloading image: %s: %s", url, err)
 			}
 			w.SetImage(img)
 		}
 	}
-}
-
-func (w *MediaPlayerWidget) downloadImage(url string) (image.Image, error) {
-	response, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-	if response.StatusCode != 200 {
-		return nil, errors.New("unable to download image from URL")
-	}
-	img, _, err := image.Decode(response.Body)
-	if err != nil {
-		return nil, err
-	}
-	return img, nil
 }

@@ -37,6 +37,8 @@ var (
 
 	mediaPlayers *MediaPlayers
 
+	imageDownloader *ImageDownloader
+
 	deckFile   = flag.String("deck", "main.deck", "path to deck config file")
 	device     = flag.String("device", "", "which device to use (serial number)")
 	brightness = flag.Uint("brightness", 80, "brightness in percent")
@@ -299,6 +301,9 @@ func run() error {
 	if err != nil {
 		return fmt.Errorf("Error while running media players: %s", err)
 	}
+
+	// initialize image downloader
+	imageDownloader = NewImageDownloader(1 * time.Hour)
 
 	// load deck
 	deck, err = LoadDeck(dev, ".", *deckFile)
