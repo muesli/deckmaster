@@ -284,6 +284,26 @@ corresponding icons with correct names need to be placed in
 `~/.local/share/deckmaster/themes/[theme]`. The default icons with their
 respective names can be found [here](https://github.com/muesli/deckmaster/tree/master/assets/weather).
 
+#### Media player
+
+A widget that displays media player information.
+
+```toml
+[keys.widget]
+  id = "mediaPlayer"
+  [keys.widget.config]
+    mode = "art" # optional
+    player_name = true # optional
+    icon_playing = "images/stop.jpg"
+    icon_paused = "images/play.jpg"
+    icon_no_player = "images/no-player.jpg"
+```
+
+The supported modes are `art` (default) and `playback status`. If `playback 
+status` has been chosen, the icons `icon_playing`, `icon_paused` or 
+`icon_no_player` will be shown depending on the playback status of the selected
+media player.
+
 ### Actions
 
 You can hook up any key with several actions. A regular keypress will trigger
@@ -368,6 +388,29 @@ pressed:
 [keys.action]
   device = "sleep"
 ```
+
+#### Media player actions
+
+Control playback:
+
+```toml
+[keys.action]
+  media_player = "play_pause"
+```
+
+Supported playback actions are `play`, `play_pause`, `stop`, `previous` and 
+`next`.
+
+Cycle through players:
+
+```toml
+[keys.action]
+  media_player = "select+"
+```
+
+Use `select+` to select the next player to be active and `select-` to select
+the previous player.
+
 
 ### Background Image
 

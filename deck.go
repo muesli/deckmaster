@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/atotto/clipboard"
-	"github.com/godbus/dbus"
+	"github.com/godbus/dbus/v5"
 	"github.com/muesli/streamdeck"
 )
 
@@ -262,6 +262,43 @@ func (d *Deck) triggerAction(dev *streamdeck.Device, index uint8, hold bool) {
 
 			default:
 				fmt.Fprintln(os.Stderr, "Unrecognized special action:", a.Device)
+			}
+		}
+		if a.MediaPlayer != "" {
+			switch {
+			case a.MediaPlayer == "play":
+				if player := mediaPlayers.ActivePlayer(); player != nil {
+					player.Play()
+				}
+
+			case a.MediaPlayer == "play_pause":
+				if player := mediaPlayers.ActivePlayer(); player != nil {
+					player.PlayPause()
+				}
+
+			case a.MediaPlayer == "stop":
+				if player := mediaPlayers.ActivePlayer(); player != nil {
+					player.Stop()
+				}
+
+			case a.MediaPlayer == "previous":
+				if player := mediaPlayers.ActivePlayer(); player != nil {
+					player.Previous()
+				}
+
+			case a.MediaPlayer == "next":
+				if player := mediaPlayers.ActivePlayer(); player != nil {
+					player.Next()
+				}
+
+			case a.MediaPlayer == "select+":
+				mediaPlayers.SelectPlayer(1)
+
+			case a.MediaPlayer == "select-":
+				mediaPlayers.SelectPlayer(-1)
+
+			default:
+				fmt.Fprintln(os.Stderr, "Unrecognized media player action:", a.MediaPlayer)
 			}
 		}
 	}

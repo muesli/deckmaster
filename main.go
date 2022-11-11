@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/bendahl/uinput"
-	"github.com/godbus/dbus"
+	"github.com/godbus/dbus/v5"
 	"github.com/mitchellh/go-homedir"
 	"github.com/muesli/streamdeck"
 )
@@ -34,6 +34,10 @@ var (
 
 	xorg          *Xorg
 	recentWindows []Window
+
+	mediaPlayers *MediaPlayers
+
+	imageDownloader *ImageDownloader
 
 	deckFile   = flag.String("deck", "main.deck", "path to deck config file")
 	device     = flag.String("device", "", "which device to use (serial number)")
@@ -81,7 +85,7 @@ func expandPath(base, path string) (string, error) {
 	return filepath.Abs(path)
 }
 
-func eventLoop(dev *streamdeck.Device, tch chan interface{}) error {
+func eventLoop(dev *streamdeck.Device, tch chan interface{}, mch chan interface{}) error {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 
@@ -143,6 +147,18 @@ func eventLoop(dev *streamdeck.Device, tch chan interface{}) error {
 
 			case ActiveWindowChangedEvent:
 				handleActiveWindowChanged(dev, event)
+			}
+
+		case e := <-mch:
+			switch event := e.(type) {
+			case MediaPlayerStatusChanged:
+				fmt.Fprintf(os.Stderr, "Media player event: %T %+v\n", event, event)
+				handleMediaPlayerStatusChanged()
+			case ActiveMediaPlayerChanged:
+				fmt.Fprintf(os.Stderr, "Media player event: %T %+v\n", event, event)
+				handleMediaPlayerActivePlayerChanged()
+			default:
+				fmt.Fprintf(os.Stderr, "Invalid event: %T %+v\n", event, event)
 			}
 
 		case err := <-shutdown:
@@ -275,6 +291,20 @@ func run() error {
 		defer keyboard.Close() //nolint:errcheck
 	}
 
+	// initialize mediaPlayer
+	mch := make(chan interface{}, 20)
+	mediaPlayers, err = NewMediaPlayers(mch)
+	if err != nil {
+		return fmt.Errorf("Error while initializing media players: %s", err)
+	}
+	err = mediaPlayers.Run()
+	if err != nil {
+		return fmt.Errorf("Error while running media players: %s", err)
+	}
+
+	// initialize image downloader
+	imageDownloader = NewImageDownloader(1 * time.Hour)
+
 	// load deck
 	deck, err = LoadDeck(dev, ".", *deckFile)
 	if err != nil {
@@ -282,7 +312,7 @@ func run() error {
 	}
 	deck.updateWidgets()
 
-	return eventLoop(dev, tch)
+	return eventLoop(dev, tch, mch)
 }
 
 func main() {
