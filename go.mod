@@ -12,7 +12,7 @@ require (
 	github.com/flopp/go-findfont v0.1.0
 	github.com/godbus/dbus v4.1.0+incompatible
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
-	github.com/jezek/xgb v0.0.0-20210312150743-0e0f116e1240
+	github.com/jezek/xgb v1.1.0
 	github.com/jezek/xgbutil v0.0.0-20210302171758-530099784e66
 	github.com/lucasb-eyer/go-colorful v1.2.0
 	github.com/mitchellh/go-homedir v1.1.0
