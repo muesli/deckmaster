@@ -28,6 +28,7 @@ type Widget interface {
 	Action() *ActionConfig
 	ActionHold() *ActionConfig
 	TriggerAction(hold bool)
+	Close() error
 }
 
 // BaseWidget provides common functionality required by all widgets.
@@ -60,6 +61,12 @@ func (w *BaseWidget) ActionHold() *ActionConfig {
 // TriggerAction gets called when a button is pressed.
 func (w *BaseWidget) TriggerAction(_ bool) {
 	// just a stub
+}
+
+// Close gets called when a button is unloaded.
+func (w *BaseWidget) Close() error {
+	// just a stub
+	return nil
 }
 
 // RequiresUpdate returns true when the widget wants to be repainted.
@@ -124,6 +131,9 @@ func NewWidget(dev *streamdeck.Device, base string, kc KeyConfig, bg image.Image
 
 	case "weather":
 		return NewWeatherWidget(bw, kc.Widget)
+
+	case "mute":
+		return NewMicrophoneMuteWidget(bw, kc.Widget)
 	}
 
 	// unknown widget ID

@@ -124,7 +124,7 @@
 [[keys]]
   index = 14
   [keys.widget]
-    id = "recentWindow"
+    id = "mute"
     [keys.widget.config]
-      window = 5
-      showTitle = true
+      icon = "assets/microphone-rec.png"
+      iconMute = "assets/microphone-mute.png"

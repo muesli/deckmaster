@@ -14,6 +14,7 @@ require (
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/jezek/xgb v1.1.0
 	github.com/jezek/xgbutil v0.0.0-20210302171758-530099784e66
+	github.com/jfreymuth/pulse v0.1.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/muesli/streamdeck v0.3.0

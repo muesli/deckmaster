@@ -22,6 +22,7 @@ An application to control your Elgato Stream Deck on Linux
     - Weather
     - Command output
     - Recently used windows (X11-only)
+    - Mute/Unmute default microphone (pulseaudio-only)
 - Lets you trigger several actions:
     - Run commands
     - Emulate a key-press
@@ -193,6 +194,22 @@ activates the window.
   [keys.widget.config]
     window = 1
     showTitle = true # optional
+```
+
+If `showTitle` is `true`, the title of the window will be displayed below the
+window icon.
+
+#### Recent Window (requires pulseaudio)
+
+Displays the mute status of the default pulseaudio source. Pressing the button
+toggles the state
+
+```toml
+[keys.widget]
+  id = "mute"
+  [keys.widget.config]
+    icon = "assets/microphone-rec.png"
+    iconMute = "assets/microphone-mute.png"
 ```
 
 If `showTitle` is `true`, the title of the window will be displayed below the

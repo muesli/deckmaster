@@ -281,6 +281,15 @@ func (d *Deck) updateWidgets() {
 	}
 }
 
+// closeWidgets closes all widgets
+func (d *Deck) closeWidgets() {
+	for _, w := range d.Widgets {
+		if err := w.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to close widget: %s\n", err)
+		}
+	}
+}
+
 // adjustBrightness adjusts the brightness.
 func (d *Deck) adjustBrightness(dev *streamdeck.Device, value string) {
 	if len(value) == 0 {
