@@ -38,7 +38,7 @@ An application to control your Elgato Stream Deck on Linux
 
 ### From source
 
-Make sure you have a working Go environment (Go 1.16 or higher is required).
+Make sure you have a working Go environment (Go 1.17 or higher is required).
 See the [install instructions](https://golang.org/doc/install.html).
 
 To install deckmaster, simply run:
