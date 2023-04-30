@@ -122,6 +122,9 @@ func NewWidget(dev *streamdeck.Device, base string, kc KeyConfig, bg image.Image
 	case "command":
 		return NewCommandWidget(bw, kc.Widget), nil
 
+	case "imageCommand":
+		return NewCommandImageWidget(bw, kc.Widget), nil
+
 	case "weather":
 		return NewWeatherWidget(bw, kc.Widget)
 	}
