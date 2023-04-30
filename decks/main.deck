@@ -5,6 +5,7 @@
     [keys.widget.config]
       mode = "cpu"
       fillColor = "#d497de"
+      borderColor = "#ffffff"
 
 [[keys]]
   index = 1

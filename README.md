@@ -244,6 +244,7 @@ This widget shows the current CPU or memory utilization as a bar graph.
     mode = "cpu"
     color = "#fefefe" # optional
     fillColor = "#d497de" # optional
+    borderColor = "#ffffff" # optional
 ```
 
 There are two values for `mode`: `cpu` and `memory`.
