@@ -284,6 +284,23 @@ corresponding icons with correct names need to be placed in
 `~/.local/share/deckmaster/themes/[theme]`. The default icons with their
 respective names can be found [here](https://github.com/muesli/deckmaster/tree/master/assets/weather).
 
+#### Pulseaudio Control
+
+A widget that can controls a specific pulseaudio input sink (like Rhythmbox, Firefox etc.). 
+
+```toml
+[keys.widget]
+  id = "pulseAudioControl"
+  [keys.widget.config]
+    appName = "Application name" # Like "Rhythmbox"
+    mode = "mute" # Only mute is supported at the moment.
+    showTitle = true # optional
+```
+
+This widget is using "pactl" and "pacmd".
+
+You can use `pacmd list-sink-inputs` to see the current sinks. Use the value of "application.name" for appName.
+
 ### Actions
 
 You can hook up any key with several actions. A regular keypress will trigger
