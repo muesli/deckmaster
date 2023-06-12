@@ -284,6 +284,25 @@ corresponding icons with correct names need to be placed in
 `~/.local/share/deckmaster/themes/[theme]`. The default icons with their
 respective names can be found [here](https://github.com/muesli/deckmaster/tree/master/assets/weather).
 
+#### Spotify
+
+A widget that displays the current album and track position.
+
+```toml
+[keys.widget]
+  id = "spotify"
+  interval = 500
+  [keys.widget.config]
+    fontsize = 8
+    color = "#ffffff" 
+   
+```
+
+This widget depends on the [spotifycli](https://github.com/pwittchen/spotify-cli-linux) application for Linux.
+
+The widget will display the album along with the track position of the current song. The album art is loaded directly 
+from the url provided by the spotify via the spotifycli cli.  
+
 ### Actions
 
 You can hook up any key with several actions. A regular keypress will trigger
