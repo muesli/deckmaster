@@ -1,0 +1,29 @@
+[[keys]]
+  index = 0
+  [keys.widget]
+    id = "button"
+    [keys.widget.config]
+      fontsize = 8
+      label = "<<"
+  [keys.action]
+    exec = "spotifycli --prev"
+
+[[keys]]
+  index = 1
+  [keys.widget]
+    id = "spotify"
+    interval = 500
+    [keys.widget.config]
+      fontsize = 8
+  [keys.action]
+    exec = "spotifycli --playpause"
+
+[[keys]]
+  index = 2
+  [keys.widget]
+    id = "button"
+    [keys.widget.config]
+      fontsize = 8
+      label = ">>"
+  [keys.action]
+    exec = "spotifycli --next"
