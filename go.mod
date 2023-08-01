@@ -16,7 +16,7 @@ require (
 	github.com/muesli/streamdeck v0.4.0
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/shirou/gopsutil v3.21.11+incompatible
-	golang.org/x/image v0.7.0
+	golang.org/x/image v0.10.0
 )
 
 require (
