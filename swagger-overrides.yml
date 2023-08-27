@@ -1,0 +1,23 @@
+paths:
+    /deck/background:
+        put:
+            operationId: putDeckBackground
+            parameters:
+                - description: Set the background of the active deck
+                  in: formData
+                  name: background
+                  required: true
+                  type: file
+    /deck/widgets/{id}/icon:
+        put:
+            operationId: putWidgetButtonIcon
+            parameters:
+                - description: Set the icon of a button widget.
+                  in: formData
+                  name: icon
+                  required: true
+                  type: file
+definitions:
+    Widget:
+       type: object
+       title: "Widget specific state"

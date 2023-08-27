@@ -1,0 +1,834 @@
+{
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json",
+    "image/png"
+  ],
+  "schemes": [
+    "http"
+  ],
+  "swagger": "2.0",
+  "info": {
+    "description": "Swagger file generated from source by the go-swagger package.\n\n`swagger generate spec -o swagger.json -i swagger-overrides.yml -m`\n\nhttps://goswagger.io/\nhttps://github.com/go-swagger/go-swagger/\n\nAllows controlling a single Stream Deck from anywhere using a REST-like API.\nThe device is modeled using four main concepts:\n\nThe device:\nHolds read-only information about the connected device itself, such as\nthe unique serial number, key layout, awake state, and brightness.\nSome properties can be changed to immediately update the device state.\n\nThe deck:\nHolds the configuration initially loaded from a deck file. Properties can\nbe completely or partially updated to reload the correspodning widget(s)\nwith the new confiuration. Only one deck is loaded at a time.\n\nA Key configuration:\nHolds the configuration for a single key. Updating it immediately reloads\nthe corresponding widget with the new configuration. A key is referenced\nusing its one-dimensional index number, or a string name which must be\nunique per deck. Some keys may not yet have a configuration.\n\nA widget:\nHolds the active widget state of a configured key. The widget state\ncannot be updated directly and contents vary by type of widget.",
+    "title": "Deckmaster API implements a REST API for controlling Stream Decks.",
+    "version": "1.0.0"
+  },
+  "host": "localhost:4321",
+  "basePath": "/v1",
+  "paths": {
+    "/deck": {
+      "get": {
+        "summary": "Gets the complete deck state.",
+        "operationId": "getDeckState",
+        "responses": {
+          "200": {
+            "description": "DeckState",
+            "schema": {
+              "$ref": "#/definitions/DeckState"
+            }
+          }
+        }
+      },
+      "put": {
+        "description": "Decks which have overwritten the file property can not be reloaded.",
+        "summary": "Reloads the current configration from the deck file on disk.",
+        "operationId": "putDeckState",
+        "responses": {
+          "200": {
+            "description": "DeckState",
+            "schema": {
+              "$ref": "#/definitions/DeckState"
+            }
+          },
+          "500": {
+            "description": "ApiError",
+            "schema": {
+              "$ref": "#/definitions/ApiError"
+            }
+          }
+        }
+      }
+    },
+    "/deck/background": {
+      "get": {
+        "description": "Accepts the file in a multipart/form-data property named \"background\".",
+        "produces": [
+          "application/json",
+          "image/png"
+        ],
+        "summary": "Set the active deck background.",
+        "operationId": "putDeckBackground",
+        "parameters": [
+          {
+            "type": "file",
+            "description": "Set the background of the active deck",
+            "name": "background",
+            "in": "formData",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "404": {
+            "description": "ApiError",
+            "schema": {
+              "$ref": "#/definitions/ApiError"
+            }
+          },
+          "500": {
+            "description": "ApiError",
+            "schema": {
+              "$ref": "#/definitions/ApiError"
+            }
+          }
+        }
+      },
+      "put": {
+        "description": "Accepts the file in a multipart/form-data property named \"background\".",
+        "produces": [
+          "application/json",
+          "image/png"
+        ],
+        "summary": "Set the active deck background.",
+        "operationId": "putDeckBackground",
+        "parameters": [
+          {
+            "type": "file",
+            "description": "Set the background of the active deck",
+            "name": "background",
+            "in": "formData",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "404": {
+            "description": "ApiError",
+            "schema": {
+              "$ref": "#/definitions/ApiError"
+            }
+          },
+          "500": {
+            "description": "ApiError",
+            "schema": {
+              "$ref": "#/definitions/ApiError"
+            }
+          }
+        }
+      }
+    },
+    "/deck/config": {
+      "get": {
+        "description": "Outputs the entire configuration for the displayed deck.",
+        "summary": "Gets the deck config.",
+        "operationId": "getDeckConfig",
+        "responses": {
+          "200": {
+            "description": "DeckConfig",
+            "schema": {
+              "$ref": "#/definitions/DeckConfig"
+            }
+          }
+        }
+      },
+      "put": {
+        "description": "Merges in changes to the configuration for the displayed deck.",
+        "summary": "Updates the deck config.",
+        "operationId": "putDeckConfig",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "$ref": "#/definitions/DeckConfig"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "DeckConfig",
+            "schema": {
+              "$ref": "#/definitions/DeckConfig"
+            }
+          }
+        }
+      },
+      "post": {
+        "description": "Overwrites the entire configuration for the displayed deck.",
+        "summary": "Sets the deck config.",
+        "operationId": "postDeckConfig",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "$ref": "#/definitions/DeckConfig"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "DeckConfig",
+            "schema": {
+              "$ref": "#/definitions/DeckConfig"
+            }
+          }
+        }
+      }
+    },
+    "/deck/keys/{id}/config": {
+      "get": {
+        "summary": "Gets the config for a single key.",
+        "operationId": "getKeyConfig",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "A 0-based key index (left to right, top to bottom) or the unique name of a key",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "KeyConfig",
+            "schema": {
+              "$ref": "#/definitions/KeyConfig"
+            }
+          },
+          "404": {
+            "description": "ApiError",
+            "schema": {
+              "$ref": "#/definitions/ApiError"
+            }
+          },
+          "500": {
+            "description": "ApiError",
+            "schema": {
+              "$ref": "#/definitions/ApiError"
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Updates the config for a single key.",
+        "operationId": "putKeyConfig",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "A 0-based key index (left to right, top to bottom) or the unique name of a key",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "$ref": "#/definitions/KeyConfig"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "KeyConfig",
+            "schema": {
+              "$ref": "#/definitions/KeyConfig"
+            }
+          },
+          "404": {
+            "description": "ApiError",
+            "schema": {
+              "$ref": "#/definitions/ApiError"
+            }
+          },
+          "500": {
+            "description": "ApiError",
+            "schema": {
+              "$ref": "#/definitions/ApiError"
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Sets the config for a single key.",
+        "operationId": "postKeyConfig",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "A 0-based key index (left to right, top to bottom) or the unique name of a key",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "$ref": "#/definitions/KeyConfig"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "KeyConfig",
+            "schema": {
+              "$ref": "#/definitions/KeyConfig"
+            }
+          },
+          "404": {
+            "description": "ApiError",
+            "schema": {
+              "$ref": "#/definitions/ApiError"
+            }
+          },
+          "500": {
+            "description": "ApiError",
+            "schema": {
+              "$ref": "#/definitions/ApiError"
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Deletes the config for a single key.",
+        "operationId": "deleteKeyConfig",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "A 0-based key index (left to right, top to bottom) or the unique name of a key",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": "ApiError",
+            "schema": {
+              "$ref": "#/definitions/ApiError"
+            }
+          }
+        }
+      }
+    },
+    "/deck/widgets/{id}": {
+      "get": {
+        "summary": "Gets the state of a single widget.",
+        "operationId": "getWidget",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "A 0-based key index (left to right, top to bottom) or the unique name of a key",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "WidgetState",
+            "schema": {
+              "$ref": "#/definitions/WidgetState"
+            }
+          },
+          "404": {
+            "description": "ApiError",
+            "schema": {
+              "$ref": "#/definitions/ApiError"
+            }
+          },
+          "500": {
+            "description": "ApiError",
+            "schema": {
+              "$ref": "#/definitions/ApiError"
+            }
+          }
+        }
+      }
+    },
+    "/deck/widgets/{id}/icon": {
+      "get": {
+        "description": "Set the Accepts header to get a PNG or the native representation as JSON.",
+        "produces": [
+          "application/json",
+          "image/png"
+        ],
+        "summary": "Get the active icon of a button widget.",
+        "operationId": "getWidgetButtonIcon",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "A 0-based key index (left to right, top to bottom) or the unique name of a key",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/image.Image"
+          },
+          "404": {
+            "description": "ApiError",
+            "schema": {
+              "$ref": "#/definitions/ApiError"
+            }
+          },
+          "500": {
+            "description": "ApiError",
+            "schema": {
+              "$ref": "#/definitions/ApiError"
+            }
+          }
+        }
+      },
+      "put": {
+        "description": "Accepts the file in a multipart/form-data property named \"icon\".",
+        "summary": "Replace the active icon of a button widget.",
+        "operationId": "putWidgetButtonIcon",
+        "parameters": [
+          {
+            "type": "file",
+            "description": "Set the icon of a button widget.",
+            "name": "icon",
+            "in": "formData",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "A 0-based key index (left to right, top to bottom) or the unique name of a key",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "404": {
+            "description": "ApiError",
+            "schema": {
+              "$ref": "#/definitions/ApiError"
+            }
+          },
+          "500": {
+            "description": "ApiError",
+            "schema": {
+              "$ref": "#/definitions/ApiError"
+            }
+          }
+        }
+      }
+    },
+    "/device": {
+      "get": {
+        "summary": "Gets the complete device state.",
+        "operationId": "getDeviceState",
+        "responses": {
+          "200": {
+            "description": "DeviceStateRead",
+            "schema": {
+              "$ref": "#/definitions/DeviceStateRead"
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Updates the device state.",
+        "operationId": "putDeviceState",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "$ref": "#/definitions/DeviceStateWrite"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "DeviceStateRead",
+            "schema": {
+              "$ref": "#/definitions/DeviceStateRead"
+            }
+          }
+        }
+      }
+    },
+    "/device/sleep": {
+      "post": {
+        "summary": "Put the device to sleep if awake.",
+        "operationId": "wakeDevice",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/device/wake": {
+      "post": {
+        "summary": "Wake the device if asleep.",
+        "operationId": "wakeDevice",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "ActionConfig": {
+      "type": "object",
+      "title": "ActionConfig describes an action that can be triggered.",
+      "properties": {
+        "dbus": {
+          "$ref": "#/definitions/DBusConfig"
+        },
+        "deck": {
+          "description": "The name of a deck file to load.",
+          "type": "string",
+          "x-go-name": "Deck"
+        },
+        "device": {
+          "description": "A device command execute, like \"sleep\".",
+          "type": "string",
+          "x-go-name": "Device"
+        },
+        "exec": {
+          "description": "A command to execute.",
+          "type": "string",
+          "x-go-name": "Exec"
+        },
+        "keycode": {
+          "description": "A keycode to send.",
+          "type": "string",
+          "x-go-name": "Keycode"
+        },
+        "paste": {
+          "description": "A string to paste.",
+          "type": "string",
+          "x-go-name": "Paste"
+        }
+      },
+      "x-go-package": "github.com/muesli/deckmaster"
+    },
+    "ApiError": {
+      "type": "object",
+      "title": "An API error response.",
+      "properties": {
+        "description": {
+          "description": "An optional internal error string with more details.",
+          "type": "string",
+          "x-go-name": "Description"
+        },
+        "details": {
+          "description": "An optional internal error object with more details.",
+          "type": "string",
+          "x-go-name": "Object"
+        },
+        "error": {
+          "description": "An error message.",
+          "type": "string",
+          "x-go-name": "Message"
+        }
+      },
+      "x-go-name": "apiError",
+      "x-go-package": "github.com/muesli/deckmaster"
+    },
+    "DBusConfig": {
+      "type": "object",
+      "title": "DBusConfig describes a dbus action.",
+      "properties": {
+        "method": {
+          "type": "string",
+          "x-go-name": "Method"
+        },
+        "object": {
+          "type": "string",
+          "x-go-name": "Object"
+        },
+        "path": {
+          "type": "string",
+          "x-go-name": "Path"
+        },
+        "value": {
+          "type": "string",
+          "x-go-name": "Value"
+        }
+      },
+      "x-go-package": "github.com/muesli/deckmaster"
+    },
+    "DeckConfig": {
+      "type": "object",
+      "title": "DeckConfig is the central configuration struct.",
+      "properties": {
+        "background": {
+          "description": "The deck background image.",
+          "type": "string",
+          "x-go-name": "Background"
+        },
+        "keys": {
+          "$ref": "#/definitions/Keys"
+        },
+        "parent": {
+          "description": "A parent deck the configuration overrides.",
+          "type": "string",
+          "x-go-name": "Parent"
+        }
+      },
+      "x-go-package": "github.com/muesli/deckmaster"
+    },
+    "DeckState": {
+      "type": "object",
+      "title": "API representation of an active deck.",
+      "properties": {
+        "background": {
+          "description": "The path to the loaded background image.",
+          "type": "string",
+          "x-go-name": "Background"
+        },
+        "file": {
+          "description": "The path to the loaded deck file.",
+          "type": "string",
+          "x-go-name": "File"
+        },
+        "widgets": {
+          "description": "The active widgets.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/WidgetState"
+          },
+          "x-go-name": "Widgets"
+        }
+      },
+      "x-go-name": "apiDeck",
+      "x-go-package": "github.com/muesli/deckmaster"
+    },
+    "DeviceStateRead": {
+      "type": "object",
+      "title": "Read-only properties of a Stream Deck device.",
+      "properties": {
+        "asleep": {
+          "description": "Is the device asleep (screen off)?",
+          "type": "boolean",
+          "x-go-name": "Asleep"
+        },
+        "brightness": {
+          "description": "Current brightness level (previous brightness if asleep).",
+          "type": "integer",
+          "format": "uint64",
+          "x-go-name": "Brightness"
+        },
+        "columns": {
+          "description": "Number of key columns.",
+          "type": "integer",
+          "format": "uint8",
+          "x-go-name": "Columns"
+        },
+        "dpi": {
+          "description": "Screen resolution in dots per inches.",
+          "type": "integer",
+          "format": "uint64",
+          "x-go-name": "DPI"
+        },
+        "fadeDuration": {
+          "description": "Fade out time in human readable form like \"250ms\".",
+          "type": "string",
+          "x-go-name": "FadeDuration"
+        },
+        "id": {
+          "description": "Platform-specific device path.",
+          "type": "string",
+          "x-go-name": "ID"
+        },
+        "keys": {
+          "description": "Number of keys.",
+          "type": "integer",
+          "format": "uint8",
+          "x-go-name": "Keys"
+        },
+        "padding": {
+          "description": "Padding around buttons in pixels.",
+          "type": "integer",
+          "format": "uint64",
+          "x-go-name": "Padding"
+        },
+        "pixels": {
+          "description": "Number of screen pixels.",
+          "type": "integer",
+          "format": "uint64",
+          "x-go-name": "Pixels"
+        },
+        "rows": {
+          "description": "Number of key rows.",
+          "type": "integer",
+          "format": "uint8",
+          "x-go-name": "Rows"
+        },
+        "serial": {
+          "description": "Device serial number.",
+          "type": "string",
+          "x-go-name": "Serial"
+        },
+        "sleepTimeout": {
+          "description": "Sleep timeout in human readable form like \"1m30s\".",
+          "type": "string",
+          "x-go-name": "SleepTimeout"
+        }
+      },
+      "x-go-name": "jsonDeviceRead",
+      "x-go-package": "github.com/muesli/deckmaster"
+    },
+    "DeviceStateWrite": {
+      "type": "object",
+      "title": "Writeable properties of a Stream Deck device.",
+      "properties": {
+        "asleep": {
+          "description": "Sleep toggle.",
+          "type": "boolean",
+          "x-go-name": "Asleep"
+        },
+        "brightness": {
+          "description": "Brightness level.",
+          "type": "integer",
+          "format": "uint64",
+          "x-go-name": "Brightness"
+        },
+        "fadeDuration": {
+          "description": "Fade out time in human readable form like \"250ms\".",
+          "type": "string",
+          "x-go-name": "FadeDuration"
+        },
+        "sleepTimeout": {
+          "description": "Sleep timout in human readable form like \"1m30s\".",
+          "type": "string",
+          "x-go-name": "SleepTimeout"
+        }
+      },
+      "x-go-name": "jsonDeviceWrite",
+      "x-go-package": "github.com/muesli/deckmaster"
+    },
+    "KeyConfig": {
+      "type": "object",
+      "title": "KeyConfig holds the entire configuration for a single key.",
+      "properties": {
+        "action": {
+          "$ref": "#/definitions/ActionConfig"
+        },
+        "action_hold": {
+          "$ref": "#/definitions/ActionConfig"
+        },
+        "index": {
+          "description": "They key index to configure.",
+          "type": "integer",
+          "format": "uint8",
+          "x-go-name": "Index"
+        },
+        "name": {
+          "description": "An identifying name for the key, unique per deck.",
+          "type": "string",
+          "x-go-name": "Name"
+        },
+        "widget": {
+          "$ref": "#/definitions/WidgetConfig"
+        }
+      },
+      "x-go-package": "github.com/muesli/deckmaster"
+    },
+    "Keys": {
+      "type": "array",
+      "title": "Keys is a slice of keys.",
+      "items": {
+        "$ref": "#/definitions/KeyConfig"
+      },
+      "x-go-package": "github.com/muesli/deckmaster"
+    },
+    "Widget": {
+      "type": "object",
+      "title": "Widget is an interface implemented by all available widgets.",
+      "properties": {
+        "Action": {
+          "$ref": "#/definitions/ActionConfig"
+        },
+        "ActionHold": {
+          "$ref": "#/definitions/ActionConfig"
+        },
+        "Key": {
+          "type": "integer",
+          "format": "uint8"
+        },
+        "RequiresUpdate": {
+          "type": "boolean"
+        },
+        "Update": {
+          "type": "string"
+        }
+      },
+      "x-go-package": "github.com/muesli/deckmaster"
+    },
+    "WidgetConfig": {
+      "type": "object",
+      "title": "WidgetConfig describes configuration data for widgets.",
+      "properties": {
+        "config": {
+          "description": "The widget specific configuration.",
+          "type": "object",
+          "additionalProperties": {},
+          "x-go-name": "Config"
+        },
+        "id": {
+          "description": "The type of widget to use for the key.",
+          "type": "string",
+          "x-go-name": "ID"
+        },
+        "interval": {
+          "description": "The widget's update interval in human readable format like \"1s\".",
+          "type": "integer",
+          "format": "uint64",
+          "x-go-name": "Interval"
+        }
+      },
+      "x-go-package": "github.com/muesli/deckmaster"
+    },
+    "WidgetState": {
+      "type": "object",
+      "title": "API representation of an active widget.",
+      "properties": {
+        "action": {
+          "$ref": "#/definitions/ActionConfig"
+        },
+        "action_hold": {
+          "$ref": "#/definitions/ActionConfig"
+        },
+        "state": {
+          "$ref": "#/definitions/Widget"
+        },
+        "type": {
+          "description": "Type of widget used for the key.",
+          "type": "string",
+          "x-go-name": "Type"
+        }
+      },
+      "x-go-name": "apiWidget",
+      "x-go-package": "github.com/muesli/deckmaster"
+    }
+  }
+}

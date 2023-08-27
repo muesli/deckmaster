@@ -17,45 +17,65 @@ import (
 
 // DBusConfig describes a dbus action.
 type DBusConfig struct {
-	Object string `toml:"object,omitempty"`
-	Path   string `toml:"path,omitempty"`
-	Method string `toml:"method,omitempty"`
-	Value  string `toml:"value,omitempty"`
+	Object string `toml:"object,omitempty" json:"object,omitempty"`
+	Path   string `toml:"path,omitempty" json:"path,omitempty"`
+	Method string `toml:"method,omitempty" json:"method,omitempty"`
+	Value  string `toml:"value,omitempty" json:"value,omitempty"`
 }
 
 // ActionConfig describes an action that can be triggered.
 type ActionConfig struct {
-	Deck    string     `toml:"deck,omitempty"`
-	Keycode string     `toml:"keycode,omitempty"`
-	Exec    string     `toml:"exec,omitempty"`
-	Paste   string     `toml:"paste,omitempty"`
-	Device  string     `toml:"device,omitempty"`
-	DBus    DBusConfig `toml:"dbus,omitempty"`
+	// The name of a deck file to load.
+	Deck string `toml:"deck,omitempty" json:"deck,omitempty"`
+	// A keycode to send.
+	Keycode string `toml:"keycode,omitempty" json:"keycode,omitempty"`
+	// A command to execute.
+	Exec string `toml:"exec,omitempty" json:"exec,omitempty"`
+	// A string to paste.
+	Paste string `toml:"paste,omitempty" json:"paste,omitempty"`
+	// A device command execute, like "sleep".
+	Device string `toml:"device,omitempty" json:"device,omitempty"`
+	// A DBus command to execute.
+	DBus *DBusConfig `toml:"dbus,omitempty" json:"dbus,omitempty"`
 }
 
 // WidgetConfig describes configuration data for widgets.
 type WidgetConfig struct {
-	ID       string                 `toml:"id,omitempty"`
-	Interval uint                   `toml:"interval,omitempty"`
-	Config   map[string]interface{} `toml:"config,omitempty"`
+	// The type of widget to use for the key.
+	ID string `toml:"id,omitempty" json:"id,omitempty"`
+	// The widget's update interval in human readable format like "1s".
+	Interval uint `toml:"interval,omitempty" json:"interval,omitempty"`
+	// The widget specific configuration.
+	Config map[string]interface{} `toml:"config,omitempty" json:"config,omitempty"`
 }
 
 // KeyConfig holds the entire configuration for a single key.
 type KeyConfig struct {
-	Index      uint8         `toml:"index"`
-	Widget     WidgetConfig  `toml:"widget"`
-	Action     *ActionConfig `toml:"action,omitempty"`
-	ActionHold *ActionConfig `toml:"action_hold,omitempty"`
+	// They key index to configure.
+	Index uint8 `toml:"index" json:"index"`
+	// An identifying name for the key, unique per deck.
+	Name string `tomk:"name,omitempty" json:"name,omitempty"`
+	// The widget configuration.
+	Widget WidgetConfig `toml:"widget" json:"widget"`
+	// An action to perform when the key is pressed and released.
+	Action *ActionConfig `toml:"action,omitempty" json:"action,omitempty"`
+	// An action to perform when the key is held.
+	ActionHold *ActionConfig `toml:"action_hold,omitempty" json:"action_hold,omitempty"`
 }
 
 // Keys is a slice of keys.
 type Keys []KeyConfig
 
 // DeckConfig is the central configuration struct.
+//
+// swagger:model
 type DeckConfig struct {
-	Background string `toml:"background,omitempty"`
-	Parent     string `toml:"parent,omitempty"`
-	Keys       Keys   `toml:"keys"`
+	// The deck background image.
+	Background string `toml:"background,omitempty" json:"background,omitempty"`
+	// A parent deck the configuration overrides.
+	Parent string `toml:"parent,omitempty" json:"parent,omitempty"`
+	// Configuration for individual keys
+	Keys Keys `toml:"keys" json:"keys"`
 }
 
 // MergeDeckConfig merges key configuration from multiple configs.

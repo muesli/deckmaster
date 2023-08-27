@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"image"
 	"image/color"
@@ -25,6 +26,7 @@ type Widget interface {
 	Key() uint8
 	RequiresUpdate() bool
 	Update() error
+	reloadBackground()
 	Action() *ActionConfig
 	ActionHold() *ActionConfig
 	TriggerAction(hold bool)
@@ -76,6 +78,22 @@ func (w *BaseWidget) RequiresUpdate() bool {
 // Update renders the widget.
 func (w *BaseWidget) Update() error {
 	return w.render(w.dev, nil)
+}
+
+func (w BaseWidget) MarshalJSON() ([]byte, error) {
+	return json.Marshal(&struct {
+		Key        uint8         `json:"key"`
+		Interval   time.Duration `json:"interval,omitempty"`
+		LastUpdate time.Time     `json:"lastUpdate"`
+	}{
+		Interval:   w.interval,
+		LastUpdate: w.lastUpdate,
+	})
+}
+
+func (w *BaseWidget) reloadBackground() {
+	w.background = deck.backgroundForKey(deck.dev, w.key)
+	w.lastUpdate = time.Time{}
 }
 
 // NewBaseWidget returns a new BaseWidget.

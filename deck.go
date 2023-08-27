@@ -20,6 +20,8 @@ import (
 // Deck is a set of widgets.
 type Deck struct {
 	File       string
+	dev        *streamdeck.Device
+	Config     DeckConfig
 	Background image.Image
 	Widgets    []Widget
 }
@@ -38,40 +40,71 @@ func LoadDeck(dev *streamdeck.Device, base string, deck string) (*Deck, error) {
 	}
 
 	d := Deck{
-		File: path,
+		File:   path,
+		dev:    dev,
+		Config: dc,
 	}
+	err = setDeckConfig(dc, &d)
+	if err != nil {
+		return nil, err
+	}
+	return &d, nil
+}
+
+func setDeckConfig(dc DeckConfig, d *Deck) error {
 	if dc.Background != "" {
-		bgpath, err := expandPath(filepath.Dir(path), dc.Background)
+		bgpath, err := expandPath(filepath.Dir(d.File), dc.Background)
+		if err != nil {
+			return err
+		}
+		if err := d.loadBackground(d.dev, bgpath); err != nil {
+			return err
+		}
+	}
+	d.Config = dc
+	return LoadWidgets(d)
+}
+
+func LoadWidgets(deck *Deck) error {
+	deck.Widgets = []Widget{}
+	keyMap := map[uint8]KeyConfig{}
+	names := map[string]bool{}
+	for _, k := range deck.Config.Keys {
+		if k.Name != "" {
+			if names[k.Name] {
+				return fmt.Errorf("duplicate widgets with the name '%s'", k.Name)
+			}
+			names[k.Name] = true
+		}
+		keyMap[k.Index] = k
+	}
+	for i := uint8(0); i < deck.dev.Keys; i++ {
+		w, err := LoadWidget(deck, i, keyMap[i])
+		if err != nil {
+			return err
+		}
+		deck.Widgets = append(deck.Widgets, w)
+	}
+	return nil
+}
+
+func LoadWidget(deck *Deck, i uint8, keyConfig KeyConfig) (Widget, error) {
+	var err error
+	bg := deck.backgroundForKey(deck.dev, i)
+	var w Widget
+	if (keyConfig.Index == i) && keyConfig.Widget.ID != "" {
+		w, err = NewWidget(deck.dev, filepath.Dir(deck.File), keyConfig, bg)
 		if err != nil {
 			return nil, err
 		}
-		if err := d.loadBackground(dev, bgpath); err != nil {
-			return nil, err
-		}
+	} else {
+		w = NewBaseWidget(deck.dev, filepath.Dir(deck.File), i, nil, nil, bg)
 	}
+	return w, nil
+}
 
-	keyMap := map[uint8]KeyConfig{}
-	for _, k := range dc.Keys {
-		keyMap[k.Index] = k
-	}
-
-	for i := uint8(0); i < dev.Keys; i++ {
-		bg := d.backgroundForKey(dev, i)
-
-		var w Widget
-		if k, found := keyMap[i]; found {
-			w, err = NewWidget(dev, filepath.Dir(path), k, bg)
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			w = NewBaseWidget(dev, filepath.Dir(path), i, nil, nil, bg)
-		}
-
-		d.Widgets = append(d.Widgets, w)
-	}
-
-	return &d, nil
+func (d *Deck) GetDevice() *streamdeck.Device {
+	return d.dev
 }
 
 // loads a background image.
@@ -87,6 +120,17 @@ func (d *Deck) loadBackground(dev *streamdeck.Device, bg string) error {
 		return err
 	}
 
+	err = d.validateBackground(background)
+	if err != nil {
+		return err
+	}
+
+	d.Background = background
+	return nil
+}
+
+func (deck *Deck) validateBackground(background image.Image) error {
+	dev := deck.dev
 	rows := int(dev.Rows)
 	cols := int(dev.Columns)
 	padding := int(dev.Padding)
@@ -98,8 +142,6 @@ func (d *Deck) loadBackground(dev *streamdeck.Device, bg string) error {
 		background.Bounds().Dy() != height {
 		return fmt.Errorf("supplied background image has wrong dimensions, expected %dx%d pixels", width, height)
 	}
-
-	d.Background = background
 	return nil
 }
 
@@ -116,6 +158,22 @@ func (d Deck) backgroundForKey(dev *streamdeck.Device, key uint8) image.Image {
 	}
 
 	return bg
+}
+
+func (deck *Deck) ValidateWidgetBackground(background image.Image) error {
+	dev := deck.dev
+	rows := int(dev.Rows)
+	cols := int(dev.Columns)
+	padding := int(dev.Padding)
+	pixels := int(dev.Pixels)
+
+	width := cols*pixels + (cols-1)*padding
+	height := rows*pixels + (rows-1)*padding
+	if background.Bounds().Dx() != width ||
+		background.Bounds().Dy() != height {
+		return fmt.Errorf("supplied widget image has wrong dimensions, expected %dx%d pixels", width, height)
+	}
+	return nil
 }
 
 // handles keypress with delay.
@@ -178,6 +236,7 @@ func emulateClipboard(text string) {
 func executeDBusMethod(object, path, method, args string) {
 	call := dbusConn.Object(object, dbus.ObjectPath(path)).Call(method, 0, args)
 	if call.Err != nil {
+
 		fmt.Fprintf(os.Stderr, "dbus call failed: %s\n", call.Err)
 	}
 }
@@ -244,7 +303,7 @@ func (d *Deck) triggerAction(dev *streamdeck.Device, index uint8, hold bool) {
 		if a.Paste != "" {
 			emulateClipboard(a.Paste)
 		}
-		if a.DBus.Method != "" {
+		if a.DBus != nil && a.DBus.Method != "" {
 			executeDBusMethod(a.DBus.Object, a.DBus.Path, a.DBus.Method, a.DBus.Value)
 		}
 		if a.Exec != "" {
@@ -269,6 +328,7 @@ func (d *Deck) triggerAction(dev *streamdeck.Device, index uint8, hold bool) {
 
 // updateWidgets updates/repaints all the widgets.
 func (d *Deck) updateWidgets() {
+	updateMutex.Lock()
 	for _, w := range d.Widgets {
 		if !w.RequiresUpdate() {
 			continue
@@ -279,6 +339,26 @@ func (d *Deck) updateWidgets() {
 			fatalf("error: %v", err)
 		}
 	}
+	updateMutex.Unlock()
+}
+
+func (d *Deck) replaceBackground(image image.Image) error {
+	updateMutex.Lock()
+	err := d.validateBackground(image)
+	if err != nil {
+		updateMutex.Unlock()
+		return err
+	}
+	deck.Background = image
+	for _, w := range deck.Widgets {
+		w.reloadBackground()
+		// fmt.Println("Repaint", w.Key())
+		if err := w.Update(); err != nil {
+			fatalf("error: %v", err)
+		}
+	}
+	updateMutex.Unlock()
+	return nil
 }
 
 // adjustBrightness adjusts the brightness.
