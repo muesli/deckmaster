@@ -27,6 +27,12 @@ An application to control your Elgato Stream Deck on Linux
     - Emulate a key-press
     - Paste to clipboard
     - Trigger a dbus call
+- REST based API:
+    - Read and update device state like brightness and sleep/fade time.
+    - Wake or put the device to sleep.
+    - Read and modify the active deck config or an individual key configuration.
+    - Read widget state.
+    - Interactive API documentation using Swagger
 
 ## Installation
 
@@ -134,6 +140,16 @@ Set a sleep timeout after which the screen gets turned off:
 deckmaster -sleep 10m
 ```
 
+```bash
+deckmaster -rest-listen [localhost:4321] [-rest-trusted-proxies [10.0.0.1,10.0.0.2]] [-rest-docs]
+```
+
+Set an interface/ip and/or port to start a REST server on.
+No authentication is required so it is **STRONGLY** recommended to only use *localhost*, else your device may be accessible over the internet.
+If you do intend to expose the API to anything other than the local interface, use a reverse proxy to handle authentication and set the `-rest-trusted-proxies` flag.
+If the `X-Forwarded-For` request header is set its value will only replace the client IP if the connection IP is in the optional `-rest-trusted-proxies` list, otherwise any client could spoof their IP with this header. It is not needed if you are not using a reverse proxy.
+The interactive Swagger documentation will be available as `/docs` if `-rest-docs` is also set.
+
 ## Configuration
 
 You can find a few example configurations in the [decks](https://github.com/muesli/deckmaster/tree/master/decks)
@@ -146,11 +162,15 @@ Any widget is build up the following way:
 ```toml
 [[keys]]
   index = 0
+  name = "My key" # optional
 ```
 
 `index` needs to be present in every widget and describes the position of the
 widget on the streamdeck. `index` is 0-indexed and counted from top to bottom
 and left to right.
+`name` is an optional string which can be used instead of the index to identify
+keys/widgets in the REST API. Must be unique inside the active deck but may be
+reused across different decks.
 
 #### Update interval for widgets
 
