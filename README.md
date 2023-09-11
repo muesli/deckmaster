@@ -371,12 +371,25 @@ pressed:
 
 ### Background Image
 
-You can configure each deck to display an individual wallpaper behind its
-widgets:
+You can configure each deck to display an individual wallpaper behind the entire
+deck:
 
 ```toml
 background = "/some/image.png"
 ```
+
+A key can override the deck background with a solid color:
+
+```toml
+[[keys]]
+  index = 1
+  backgroundColor = "#ff0000" # Sets the background to solid red.
+```
+
+The color is by default rendered on top of any deck background image, but if
+that image has transparency you can also specify `backgroundMode = "blend"` to
+have the background color only show through the transparent image regions.
+This background blend or solid color is static a widget is then rendered on top.
 
 ### Re-using another deck's configuration
 
