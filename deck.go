@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"image"
+	"image/color"
 	"image/draw"
 	"math"
 	"os"
@@ -20,6 +21,7 @@ import (
 // Deck is a set of widgets.
 type Deck struct {
 	File       string
+	Config     DeckConfig
 	Background image.Image
 	Widgets    []Widget
 }
@@ -38,7 +40,8 @@ func LoadDeck(dev *streamdeck.Device, base string, deck string) (*Deck, error) {
 	}
 
 	d := Deck{
-		File: path,
+		Config: dc,
+		File:   path,
 	}
 	if dc.Background != "" {
 		bgpath, err := expandPath(filepath.Dir(path), dc.Background)
@@ -109,10 +112,33 @@ func (d Deck) backgroundForKey(dev *streamdeck.Device, key uint8) image.Image {
 	pixels := int(dev.Pixels)
 	bg := image.NewRGBA(image.Rect(0, 0, pixels, pixels))
 
-	if d.Background != nil {
+	keyConfig := KeyConfig{}
+	for _, conf := range d.Config.Keys {
+		if conf.Index == key {
+			keyConfig = conf
+			break
+		}
+	}
+	if d.Background != nil || keyConfig.BackgroundColor != "" {
 		startx := int(key%dev.Columns) * (pixels + padding)
 		starty := int(key/dev.Columns) * (pixels + padding)
-		draw.Draw(bg, bg.Bounds(), d.Background, image.Point{startx, starty}, draw.Src)
+		bgDrawn := false
+		if d.Background != nil && keyConfig.BackgroundColor != "" && keyConfig.BackgroundMode != "blend" {
+			draw.Draw(bg, bg.Bounds(), d.Background, image.Point{startx, starty}, draw.Over)
+			bgDrawn = true
+		}
+		if keyConfig.BackgroundColor != "" {
+			var fillColor color.Color
+			err := ConfigValue(keyConfig.BackgroundColor, &fillColor)
+			if err != nil {
+				verbosef("Unabled to parse backgroundColor for key %d", key)
+			} else {
+				draw.Draw(bg, bg.Bounds(), &image.Uniform{fillColor}, image.Point{startx, starty}, draw.Src)
+			}
+		}
+		if !bgDrawn && d.Background != nil {
+			draw.Draw(bg, bg.Bounds(), d.Background, image.Point{startx, starty}, draw.Over)
+		}
 	}
 
 	return bg

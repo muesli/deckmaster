@@ -42,10 +42,12 @@ type WidgetConfig struct {
 
 // KeyConfig holds the entire configuration for a single key.
 type KeyConfig struct {
-	Index      uint8         `toml:"index"`
-	Widget     WidgetConfig  `toml:"widget"`
-	Action     *ActionConfig `toml:"action,omitempty"`
-	ActionHold *ActionConfig `toml:"action_hold,omitempty"`
+	Index           uint8         `toml:"index"`
+	Widget          WidgetConfig  `toml:"widget"`
+	Action          *ActionConfig `toml:"action,omitempty"`
+	ActionHold      *ActionConfig `toml:"action_hold,omitempty"`
+	BackgroundColor string        `toml:"backgroundColor,omitempty"`
+	BackgroundMode  string        `toml:"backgroundMode,omitempty"`
 }
 
 // Keys is a slice of keys.
