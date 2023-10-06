@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/shirou/gopsutil/host"
+	"github.com/shirou/gopsutil/v3/host"
 )
 
 // TempWidget is a widget displaying temperature sensor data as a bar.
