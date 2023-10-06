@@ -58,11 +58,17 @@ func (w *TempWidget) Update() error {
 		return fmt.Errorf("can't retrieve sensors data: %s", err)
 	}
 
+	found := false
 	for i := range sensors {
 		if sensors[i].SensorKey == w.sensorKey {
+			found = true
 			value = sensors[i].Temperature
 			break
 		}
+	}
+
+	if !found {
+		return fmt.Errorf("unknown temperature sensor key: %s", w.sensorKey)
 	}
 
 	if w.lastValue == value {
