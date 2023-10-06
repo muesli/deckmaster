@@ -22,6 +22,7 @@ An application to control your Elgato Stream Deck on Linux
     - Weather
     - Command output
     - Recently used windows (X11-only)
+    - Hardware temperature sensor data
 - Lets you trigger several actions:
     - Run commands
     - Emulate a key-press
@@ -286,7 +287,7 @@ respective names can be found [here](https://github.com/muesli/deckmaster/tree/m
 
 #### Temperature
 
-This widget shows temperature sensor data as a bar graph.
+This widget shows hardware temperature sensor data as a bar graph.
 
 ```toml
 [keys.widget]
@@ -299,14 +300,20 @@ This widget shows temperature sensor data as a bar graph.
     fillColor = "#d497de" # optional
 ```
 
-The values for sensorKey are platform dependent. On most Linux systems they're based on the file structure found under /sys/class/hwmon.
+The values for sensorKey are platform dependent. On most Linux systems they're
+based on the [hwmon-sysfs-interface](https://www.kernel.org/doc/Documentation/hwmon/sysfs-interface) under `/sys/class/hwmon`.
 
-Example: k10temp_tctl
+Example: `k10temp_tctl`
 
-k10temp: the name for a specific sensor interface, for example, the value reported from /sys/class/hwmon/hwmon0/name
-tctl: the label for a specific sensor, for example, the value reported from /sys/class/hwmon/hwmon0/temp1_label (label is converted to lowercase and spaces are replaced with underscores)
+- `k10temp`: the name for a specific sensor interface, for example, the value
+reported from `/sys/class/hwmon/hwmon0/name`
+- `tctl`: the label for a specific sensor, for example, the value reported from
+`/sys/class/hwmon/hwmon0/temp1_label` (label is converted to lowercase and
+spaces are replaced with underscores)
 
-For the full explanation on how these sensor keys are created on all platforms, check out the SensorTemperatures* functions from the [gopsutil/host](https://github.com/shirou/gopsutil/blob/master/host/host.go) package.
+For the full explanation on how these sensor keys are created on all platforms,
+check the `SensorTemperatures*` functions in the [gopsutil](https://github.com/shirou/gopsutil/blob/master/host/host.go)
+package.
 
 ### Actions
 
