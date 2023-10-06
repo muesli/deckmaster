@@ -284,6 +284,30 @@ corresponding icons with correct names need to be placed in
 `~/.local/share/deckmaster/themes/[theme]`. The default icons with their
 respective names can be found [here](https://github.com/muesli/deckmaster/tree/master/assets/weather).
 
+#### Temperature
+
+This widget shows temperature sensor data as a bar graph.
+
+```toml
+[keys.widget]
+  id = "temp"
+  [keys.widget.config]
+    sensorKey = "k10temp_tctl"
+    label = "CPU"
+    maxTemp = 100 #optional
+    color = "#fefefe" # optional
+    fillColor = "#d497de" # optional
+```
+
+The values for sensorKey are platform dependent. On most Linux systems they're based on the file structure found under /sys/class/hwmon.
+
+Example: k10temp_tctl
+
+k10temp: the name for a specific sensor interface, for example, the value reported from /sys/class/hwmon/hwmon0/name
+tctl: the label for a specific sensor, for example, the value reported from /sys/class/hwmon/hwmon0/temp1_label (label is converted to lowercase and spaces are replaced with underscores)
+
+For the full explanation on how these sensor keys are created on all platforms, check out the SensorTemperatures* functions from the [gopsutil/host](https://github.com/shirou/gopsutil/blob/master/host/host.go) package.
+
 ### Actions
 
 You can hook up any key with several actions. A regular keypress will trigger
