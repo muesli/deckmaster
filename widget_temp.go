@@ -8,71 +8,78 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/shirou/gopsutil/v3/cpu"
-	"github.com/shirou/gopsutil/v3/mem"
+	"github.com/shirou/gopsutil/v3/host"
 )
 
-// TopWidget is a widget displaying the current CPU/MEM usage as a bar.
-type TopWidget struct {
+// TempWidget is a widget displaying hardware temperature sensor data as a bar.
+type TempWidget struct {
 	*BaseWidget
 
-	mode      string
+	label     string
+	sensorKey string
+	maxTemp   float64
+
 	color     color.Color
 	fillColor color.Color
 
 	lastValue float64
 }
 
-// NewTopWidget returns a new TopWidget.
-func NewTopWidget(bw *BaseWidget, opts WidgetConfig) *TopWidget {
-	bw.setInterval(time.Duration(opts.Interval)*time.Millisecond, time.Second/2)
+// NewTempWidget returns a new TempWidget.
+func NewTempWidget(bw *BaseWidget, opts WidgetConfig) *TempWidget {
+	bw.setInterval(time.Duration(opts.Interval)*time.Millisecond, time.Second*5)
 
-	var mode string
-	_ = ConfigValue(opts.Config["mode"], &mode)
+	var label, sensorKey string
+	_ = ConfigValue(opts.Config["label"], &label)
+	_ = ConfigValue(opts.Config["sensorKey"], &sensorKey)
+	var maxTemp float64
+	_ = ConfigValue(opts.Config["maxTemp"], &maxTemp)
+
 	var color, fillColor color.Color
 	_ = ConfigValue(opts.Config["color"], &color)
 	_ = ConfigValue(opts.Config["fillColor"], &fillColor)
 
-	return &TopWidget{
+	return &TempWidget{
 		BaseWidget: bw,
-		mode:       mode,
+		label:      label,
+		sensorKey:  sensorKey,
+		maxTemp:    maxTemp,
 		color:      color,
 		fillColor:  fillColor,
 	}
 }
 
 // Update renders the widget.
-func (w *TopWidget) Update() error {
+func (w *TempWidget) Update() error {
 	var value float64
-	var label string
 
-	switch w.mode {
-	case "cpu":
-		cpuUsage, err := cpu.Percent(0, false)
-		if err != nil {
-			return fmt.Errorf("can't retrieve CPU usage: %s", err)
+	sensors, err := host.SensorsTemperatures()
+	if err != nil {
+		return fmt.Errorf("can't retrieve sensors data: %s", err)
+	}
+
+	found := false
+	for i := range sensors {
+		if sensors[i].SensorKey == w.sensorKey {
+			found = true
+			value = sensors[i].Temperature
+			break
 		}
+	}
 
-		value = cpuUsage[0]
-		label = "CPU"
-
-	case "memory":
-		memory, err := mem.VirtualMemory()
-		if err != nil {
-			return fmt.Errorf("can't retrieve memory usage: %s", err)
-		}
-		value = memory.UsedPercent
-		label = "MEM"
-
-	default:
-		return fmt.Errorf("unknown widget mode: %s", w.mode)
+	if !found {
+		return fmt.Errorf("unknown temperature sensor key: %s", w.sensorKey)
 	}
 
 	if w.lastValue == value {
+		w.lastUpdate = time.Now()
 		return nil
 	}
 	w.lastValue = value
 
+	if w.maxTemp == 0 {
+		w.maxTemp = 100
+	}
 	if w.color == nil {
 		w.color = DefaultColor
 	}
@@ -93,7 +100,7 @@ func (w *TopWidget) Update() error {
 		&image.Uniform{color.RGBA{0, 0, 0, 255}},
 		image.Point{}, draw.Src)
 	draw.Draw(img,
-		image.Rect(14, 7+int(float64(size-26)*(1-value/100)), size-15, size-21),
+		image.Rect(14, 7+int(float64(size-26)*(1-value/w.maxTemp)), size-15, size-21),
 		&image.Uniform{w.fillColor},
 		image.Point{}, draw.Src)
 
@@ -119,7 +126,7 @@ func (w *TopWidget) Update() error {
 	drawString(img,
 		bounds,
 		ttfFont,
-		"% "+label,
+		"°C "+w.label,
 		w.dev.DPI,
 		-1,
 		w.color,
