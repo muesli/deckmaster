@@ -284,6 +284,50 @@ corresponding icons with correct names need to be placed in
 `~/.local/share/deckmaster/themes/[theme]`. The default icons with their
 respective names can be found [here](https://github.com/muesli/deckmaster/tree/master/assets/weather).
 
+#### Timer
+
+A flexible widget that can display a timer/countdown.
+
+```toml
+[keys.widget]
+  id = "timer"
+  [keys.widget.config]
+    times = "5s;10m;30m;1h5m" # optional
+    font = "bold;regular;thin" # optional
+    color = "#fefefe;#0f0f0f;#00ff00;" # optional
+    adaptive = "false" # optional
+    underflow = "false" # optional
+    underflowColor = "#ff0000;#ff0000;#ff0000" # optional
+```
+
+With `layout` custom layouts can be definded in the format `[posX]x[posY]+[width]x[height]`.
+
+Values for `format` are:
+
+| %   | gets replaced with                                                 |
+| --- | ------------------------------------------------------------------ |
+| %h  | 12-hour format of an hour with leading zeros                       |
+| %H  | 24-hour format of an hour with leading zeros                       |
+| %i  | Minutes with leading zeros                                         |
+| %I  | Minutes without leading zeros                                      |
+| %s  | Seconds with leading zeros                                         |
+| %S  | Seconds without leading zeros                                      |
+
+The timer can be started and paused by short pressing the button.
+When triggering the hold action the next timer in the times list is selected if
+no timer is running. If the timer is paused, it will be reset.
+The setting underflow determines whether the timer keeps ticking after exceeding its deadline.
+The adaptive settings allows the removal of leading zeroes and delimiters that are not required for the time representation.
+
+### Background Image
+
+You can configure each deck to display an individual wallpaper behind its
+widgets:
+
+```toml
+background = "/some/image.png"
+```
+
 ### Actions
 
 You can hook up any key with several actions. A regular keypress will trigger

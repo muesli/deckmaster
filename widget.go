@@ -124,6 +124,9 @@ func NewWidget(dev *streamdeck.Device, base string, kc KeyConfig, bg image.Image
 
 	case "weather":
 		return NewWeatherWidget(bw, kc.Widget)
+
+	case "timer":
+		return NewTimerWidget(bw, kc.Widget), nil
 	}
 
 	// unknown widget ID
