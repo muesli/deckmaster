@@ -61,14 +61,23 @@
     keycode = "Mute"
 
 [[keys]]
+  index = 7
+  [keys.widget]
+    id = "button"
+    [keys.widget.config]
+      label = "Sleep"
+  [keys.action]
+    device = "sleep"
+
+[[keys]]
   index = 8
   [keys.widget]
     id = "button"
     [keys.widget.config]
       icon = "assets/go-previous.png"
-      label = "Prev Act"
+      label = "Dim"
   [keys.action]
-    exec = "kactivities-cli --previous-activity"
+    device = "brightness-10"
 
 [[keys]]
   index = 9
@@ -76,9 +85,9 @@
     id = "button"
     [keys.widget.config]
       icon = "assets/go-next.png"
-      label = "Next Act"
+      label = "Brighten"
   [keys.action]
-    exec = "kactivities-cli --next-activity"
+    device = "brightness+10"
 
 [[keys]]
   index = 10

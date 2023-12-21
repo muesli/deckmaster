@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"image/draw"
+	"math"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -29,7 +30,7 @@ func LoadDeck(dev *streamdeck.Device, base string, deck string) (*Deck, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("Loading deck:", path)
+	verbosef("Loading deck: %s", path)
 
 	dc, err := LoadConfig(path)
 	if err != nil {
@@ -188,12 +189,17 @@ func executeCommand(cmd string) {
 		cmd = exp
 	}
 	args := strings.Split(cmd, " ")
+
 	c := exec.Command(args[0], args[1:]...) //nolint:gosec
+	if *verbose {
+		c.Stdout = os.Stdout
+		c.Stderr = os.Stderr
+	}
+
 	if err := c.Start(); err != nil {
 		fmt.Fprintf(os.Stderr, "Command failed: %s\n", err)
 		return
 	}
-
 	if err := c.Wait(); err != nil {
 		fmt.Fprintf(os.Stderr, "Command failed: %s\n", err)
 	}
@@ -202,44 +208,60 @@ func executeCommand(cmd string) {
 // triggerAction triggers an action.
 func (d *Deck) triggerAction(dev *streamdeck.Device, index uint8, hold bool) {
 	for _, w := range d.Widgets {
-		if w.Key() == index {
-			var a *ActionConfig
-			if hold {
-				a = w.ActionHold()
-			} else {
-				a = w.Action()
+		if w.Key() != index {
+			continue
+		}
+
+		var a *ActionConfig
+		if hold {
+			a = w.ActionHold()
+		} else {
+			a = w.Action()
+		}
+
+		if a == nil {
+			w.TriggerAction(hold)
+			continue
+		}
+
+		if a.Deck != "" {
+			d, err := LoadDeck(dev, filepath.Dir(d.File), a.Deck)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "Can't load deck:", err)
+				return
+			}
+			if err := dev.Clear(); err != nil {
+				fatal(err)
+				return
 			}
 
-			if a != nil {
-				// fmt.Println("Executing overloaded action")
-				if a.Deck != "" {
-					d, err := LoadDeck(dev, filepath.Dir(d.File), a.Deck)
-					if err != nil {
-						fmt.Fprintln(os.Stderr, "Can't load deck:", err)
-						return
-					}
-					if err := dev.Clear(); err != nil {
-						fatal(err)
-						return
-					}
+			deck = d
+			deck.updateWidgets()
+		}
+		if a.Keycode != "" {
+			emulateKeyPresses(a.Keycode)
+		}
+		if a.Paste != "" {
+			emulateClipboard(a.Paste)
+		}
+		if a.DBus.Method != "" {
+			executeDBusMethod(a.DBus.Object, a.DBus.Path, a.DBus.Method, a.DBus.Value)
+		}
+		if a.Exec != "" {
+			go executeCommand(a.Exec)
+		}
+		if a.Device != "" {
+			switch {
+			case a.Device == "sleep":
+				if err := dev.Sleep(); err != nil {
+					fatalf("error: %v\n", err)
+				}
 
-					deck = d
-					deck.updateWidgets()
-				}
-				if a.Keycode != "" {
-					emulateKeyPresses(a.Keycode)
-				}
-				if a.Paste != "" {
-					emulateClipboard(a.Paste)
-				}
-				if a.DBus.Method != "" {
-					executeDBusMethod(a.DBus.Object, a.DBus.Path, a.DBus.Method, a.DBus.Value)
-				}
-				if a.Exec != "" {
-					go executeCommand(a.Exec)
-				}
-			} else {
-				w.TriggerAction(hold)
+			case strings.HasPrefix(a.Device, "brightness"):
+				d.adjustBrightness(dev, strings.TrimPrefix(a.Device, "brightness"))
+
+			default:
+				fmt.Fprintln(os.Stderr, "Unrecognized special action:", a.Device)
 			}
 		}
 	}
@@ -257,4 +279,52 @@ func (d *Deck) updateWidgets() {
 			fatalf("error: %v", err)
 		}
 	}
+}
+
+// adjustBrightness adjusts the brightness.
+func (d *Deck) adjustBrightness(dev *streamdeck.Device, value string) {
+	if len(value) == 0 {
+		fmt.Fprintln(os.Stderr, "No brightness value specified")
+		return
+	}
+
+	v := int64(math.MinInt64)
+	if len(value) > 1 {
+		nv, err := strconv.ParseInt(value[1:], 10, 64)
+		if err == nil {
+			v = nv
+		}
+	}
+
+	switch value[0] {
+	case '=': // brightness=[n]:
+	case '-': // brightness-[n]:
+		if v == math.MinInt64 {
+			v = 10
+		}
+		v = int64(*brightness) - v
+	case '+': // brightness+[n]:
+		if v == math.MinInt64 {
+			v = 10
+		}
+		v = int64(*brightness) + v
+	default:
+		v = math.MinInt64
+	}
+
+	if v == math.MinInt64 {
+		fmt.Fprintf(os.Stderr, "Could not grok the brightness from value '%s'\n", value)
+		return
+	}
+
+	if v < 1 {
+		v = 1
+	} else if v > 100 {
+		v = 100
+	}
+	if err := dev.SetBrightness(uint8(v)); err != nil {
+		fatalf("error: %v\n", err)
+	}
+
+	*brightness = uint(v)
 }

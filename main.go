@@ -18,6 +18,14 @@ import (
 )
 
 var (
+	// Version contains the application version number. It's set via ldflags
+	// when building.
+	Version = ""
+
+	// CommitSHA contains the SHA of the commit that this application was built
+	// against. It's set via ldflags when building.
+	CommitSHA = ""
+
 	deck *Deck
 
 	dbusConn *dbus.Conn
@@ -30,9 +38,13 @@ var (
 	deckFile   = flag.String("deck", "main.deck", "path to deck config file")
 	device     = flag.String("device", "", "which device to use (serial number)")
 	brightness = flag.Uint("brightness", 80, "brightness in percent")
+	sleep      = flag.String("sleep", "", "sleep timeout")
+	verbose    = flag.Bool("verbose", false, "verbose output")
+	version    = flag.Bool("version", false, "display version")
 )
 
 const (
+	fadeDuration      = 250 * time.Millisecond
 	longPressDuration = 350 * time.Millisecond
 )
 
@@ -42,6 +54,14 @@ func fatal(v ...interface{}) {
 
 func fatalf(format string, a ...interface{}) {
 	go func() { shutdown <- fmt.Errorf(format, a...) }()
+}
+
+func verbosef(format string, a ...interface{}) {
+	if !*verbose {
+		return
+	}
+
+	fmt.Printf(format+"\n", a...)
 }
 
 func expandPath(base, path string) (string, error) {
@@ -64,6 +84,9 @@ func expandPath(base, path string) (string, error) {
 func eventLoop(dev *streamdeck.Device, tch chan interface{}) error {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
+	hup := make(chan os.Signal, 1)
+	signal.Notify(hup, syscall.SIGHUP)
 
 	var keyStates sync.Map
 	keyTimestamps := make(map[uint8]time.Time)
@@ -94,7 +117,7 @@ func eventLoop(dev *streamdeck.Device, tch chan interface{}) error {
 			if state && !k.Pressed {
 				// key was released
 				if time.Since(keyTimestamps[k.Index]) < longPressDuration {
-					// fmt.Println("Triggering short action")
+					verbosef("Triggering short action for key %d", k.Index)
 					deck.triggerAction(dev, k.Index, false)
 				}
 			}
@@ -106,7 +129,7 @@ func eventLoop(dev *streamdeck.Device, tch chan interface{}) error {
 
 					if state, ok := keyStates.Load(k.Index); ok && state.(bool) {
 						// key still pressed
-						// fmt.Println("Triggering long action")
+						verbosef("Triggering long action for key %d", k.Index)
 						deck.triggerAction(dev, k.Index, true)
 					}
 				}()
@@ -124,6 +147,19 @@ func eventLoop(dev *streamdeck.Device, tch chan interface{}) error {
 
 		case err := <-shutdown:
 			return err
+
+		case <-hup:
+			verbosef("Received SIGHUP, reloading configuration...")
+
+			nd, err := LoadDeck(dev, ".", deck.File)
+			if err != nil {
+				verbosef("The new configuration is not valid, keeping the current one.")
+				fmt.Fprintf(os.Stderr, "Configuration Error: %s\n", err)
+				continue
+			}
+
+			deck = nd
+			deck.updateWidgets()
 
 		case <-sigs:
 			fmt.Println("Shutting down...")
@@ -161,9 +197,9 @@ func initDevice() (*streamdeck.Device, error) {
 			}
 		}
 		if !found {
-			fmt.Println("Can't find device. Available devices:")
+			fmt.Fprintln(os.Stderr, "Can't find device. Available devices:")
 			for _, v := range d {
-				fmt.Printf("Serial %s (%d buttons)\n", v.Serial, dev.Keys)
+				fmt.Fprintf(os.Stderr, "Serial %s (%d buttons)\n", v.Serial, dev.Keys)
 			}
 			os.Exit(1)
 		}
@@ -176,7 +212,7 @@ func initDevice() (*streamdeck.Device, error) {
 	if err != nil {
 		return &dev, err
 	}
-	fmt.Printf("Found device with serial %s (%d buttons, firmware %s)\n",
+	verbosef("Found device with serial %s (%d buttons, firmware %s)",
 		dev.Serial, dev.Keys, ver)
 
 	if err := dev.Reset(); err != nil {
@@ -188,6 +224,16 @@ func initDevice() (*streamdeck.Device, error) {
 	}
 	if err = dev.SetBrightness(uint8(*brightness)); err != nil {
 		return &dev, err
+	}
+
+	dev.SetSleepFadeDuration(fadeDuration)
+	if len(*sleep) > 0 {
+		timeout, err := time.ParseDuration(*sleep)
+		if err != nil {
+			return &dev, err
+		}
+
+		dev.SetSleepTimeout(timeout)
 	}
 
 	return &dev, nil
@@ -241,6 +287,23 @@ func run() error {
 
 func main() {
 	flag.Parse()
+
+	if *version {
+		if len(CommitSHA) > 7 {
+			CommitSHA = CommitSHA[:7]
+		}
+		if Version == "" {
+			Version = "(built from source)"
+		}
+
+		fmt.Printf("deckmaster %s", Version)
+		if len(CommitSHA) > 0 {
+			fmt.Printf(" (%s)", CommitSHA)
+		}
+
+		fmt.Println()
+		os.Exit(0)
+	}
 
 	if err := run(); err != nil {
 		fmt.Fprintln(os.Stderr, err)

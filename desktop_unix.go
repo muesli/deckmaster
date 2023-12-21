@@ -1,3 +1,4 @@
+//go:build linux
 // +build linux
 
 package main
@@ -256,7 +257,7 @@ func (x Xorg) waitForEvent(events chan<- xgb.Event) {
 	for {
 		ev, err := x.conn.WaitForEvent()
 		if err != nil {
-			fmt.Println("wait for event:", err)
+			verbosef("wait for event: %s", err)
 			continue
 		}
 		events <- ev
@@ -267,7 +268,7 @@ func (x Xorg) waitForEvent(events chan<- xgb.Event) {
 func (x Xorg) queryIdle() time.Duration {
 	info, err := screensaver.QueryInfo(x.conn, xproto.Drawable(x.root)).Reply()
 	if err != nil {
-		fmt.Println("query idle:", err)
+		fmt.Fprintln(os.Stderr, "query idle:", err)
 		return 0
 	}
 	return time.Duration(info.MsSinceUserInput) * time.Millisecond

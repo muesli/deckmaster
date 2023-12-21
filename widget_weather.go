@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"image"
 	"io/ioutil"
-	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -45,7 +45,7 @@ type WeatherData struct {
 	unit     string
 
 	refresh time.Time
-	ready   bool
+	fresh   bool
 
 	response      string
 	responseMutex sync.RWMutex
@@ -56,9 +56,8 @@ func (w *WeatherData) Condition() (string, error) {
 	w.responseMutex.RLock()
 	defer w.responseMutex.RUnlock()
 
-	w.ready = false
 	if strings.Contains(w.response, "Unknown location") {
-		fmt.Println("unknown location:", w.location)
+		fmt.Fprintln(os.Stderr, "unknown location:", w.location)
 		return "", nil
 	}
 
@@ -75,9 +74,8 @@ func (w *WeatherData) Temperature() (string, error) {
 	w.responseMutex.RLock()
 	defer w.responseMutex.RUnlock()
 
-	w.ready = false
 	if strings.Contains(w.response, "Unknown location") {
-		fmt.Println("unknown location:", w.location)
+		fmt.Fprintln(os.Stderr, "unknown location:", w.location)
 		return "", nil
 	}
 
@@ -89,42 +87,54 @@ func (w *WeatherData) Temperature() (string, error) {
 	return strings.Replace(wttr[1], "+", "", 1), nil
 }
 
-// Ready returns true when weather data is available.
-func (w *WeatherData) Ready() bool {
+// Fresh returns true when new weather data is available.
+func (w *WeatherData) Fresh() bool {
 	w.responseMutex.RLock()
 	defer w.responseMutex.RUnlock()
 
-	return w.ready
+	return w.fresh
+}
+
+// Reset marks the data as stale, so that it will be fetched again.
+func (w *WeatherData) Reset() {
+	w.responseMutex.Lock()
+	defer w.responseMutex.Unlock()
+
+	w.fresh = false
 }
 
 // Fetch retrieves weather data when required.
 func (w *WeatherData) Fetch() {
-	w.responseMutex.Lock()
-	defer w.responseMutex.Unlock()
+	w.responseMutex.RLock()
+	lastRefresh := w.refresh
+	w.responseMutex.RUnlock()
 
-	if time.Since(w.refresh) < time.Minute*15 {
+	if time.Since(lastRefresh) < time.Minute*15 {
 		return
 	}
-	// fmt.Println("Refreshing weather data...")
+	verbosef("Refreshing weather data...")
 
 	url := "http://wttr.in/" + w.location + "?format=%x+%t" + formatUnit(w.unit)
 
 	resp, err := http.Get(url) //nolint:gosec
 	if err != nil {
-		fmt.Println("can't fetch weather data:", err)
+		fmt.Fprintln(os.Stderr, "can't fetch weather data:", err)
 		return
 	}
 	defer resp.Body.Close() //nolint:errcheck
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("can't read weather data:", err)
+		fmt.Fprintln(os.Stderr, "can't read weather data:", err)
 		return
 	}
 
+	w.responseMutex.Lock()
+	defer w.responseMutex.Unlock()
+
 	w.refresh = time.Now()
 	w.response = string(body)
-	w.ready = true
+	w.fresh = true
 }
 
 // NewWeatherWidget returns a new WeatherWidget.
@@ -154,7 +164,7 @@ func NewWeatherWidget(bw *BaseWidget, opts WidgetConfig) (*WeatherWidget, error)
 
 // RequiresUpdate returns true when the widget wants to be repainted.
 func (w *WeatherWidget) RequiresUpdate() bool {
-	return w.data.Ready() || w.ButtonWidget.RequiresUpdate()
+	return w.data.Fresh() || w.ButtonWidget.RequiresUpdate()
 }
 
 // Update renders the widget.
@@ -169,6 +179,9 @@ func (w *WeatherWidget) Update() error {
 	if err != nil {
 		return w.render(w.dev, nil)
 	}
+
+	// don't trigger updates until new weather data is available
+	w.data.Reset()
 
 	var iconName string
 	switch cond {
@@ -206,7 +219,7 @@ func (w *WeatherWidget) Update() error {
 		var err error
 		weatherIcon, err = loadThemeImage(w.theme, iconName)
 		if err != nil {
-			log.Println("using fallback icons")
+			fmt.Fprintln(os.Stderr, "weather widget using fallback icons")
 			weatherIcon = weatherImage(imagePath)
 		}
 	} else {
