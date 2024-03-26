@@ -390,7 +390,8 @@ parent = "another.deck"
 
 ## More Decks!
 
-[deckmaster-emojis](https://github.com/muesli/deckmaster-emojis), an Emoji keyboard deck
+* [deckmaster-emojis](https://github.com/muesli/deckmaster-emojis), an Emoji keyboard deck
+* [deckmaster-helldivers2](https://github.com/boj/deckmaster-helldivers2), a deck for calling down Helldivers 2 game stratagems
 
 Made your own useful decks? Submit a pull request!
 
