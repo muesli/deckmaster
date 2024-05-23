@@ -28,23 +28,30 @@ var (
 
 	deck *Deck
 
-	dbusConn *dbus.Conn
-	keyboard uinput.Keyboard
-	shutdown = make(chan error)
+	dbusConn    *dbus.Conn
+	keyboard    uinput.Keyboard
+	shutdown    = make(chan error)
+	updateMutex sync.Mutex
+	// Would not need this if there was a streamdeck.GetSleepTimeout()
+	sleepTimeout time.Duration = 0
+	// Would not need this if there was a streamdeck.GetFadeDuration()
+	fadeDuration time.Duration = 250 * time.Millisecond
 
 	xorg          *Xorg
 	recentWindows []Window
 
-	deckFile   = flag.String("deck", "main.deck", "path to deck config file")
-	device     = flag.String("device", "", "which device to use (serial number)")
-	brightness = flag.Uint("brightness", 80, "brightness in percent")
-	sleep      = flag.String("sleep", "", "sleep timeout")
-	verbose    = flag.Bool("verbose", false, "verbose output")
-	version    = flag.Bool("version", false, "display version")
+	deckFile           = flag.String("deck", "main.deck", "path to deck config file")
+	device             = flag.String("device", "", "which device to use (serial number)")
+	brightness         = flag.Uint("brightness", 80, "brightness in percent")
+	sleep              = flag.String("sleep", "", "sleep timeout")
+	restListen         = flag.String("rest-listen", "", "REST [ip]:[port] to listen to")
+	restTrustedProxies = flag.String("rest-trusted-proxies", "", "A comma-separated list of reverse proxies to trust, accepts IPv4 addresses, IPv4 CIDRs, IPv6 addresses or IPv6 CIDRs")
+	restDocs           = flag.Bool("rest-docs", false, "Enable Swagger based /docs endpoint")
+	verbose            = flag.Bool("verbose", false, "verbose output")
+	version            = flag.Bool("version", false, "display version")
 )
 
 const (
-	fadeDuration      = 250 * time.Millisecond
 	longPressDuration = 350 * time.Millisecond
 )
 
@@ -232,7 +239,7 @@ func initDevice() (*streamdeck.Device, error) {
 		if err != nil {
 			return &dev, err
 		}
-
+		sleepTimeout = timeout
 		dev.SetSleepTimeout(timeout)
 	}
 
@@ -281,6 +288,19 @@ func run() error {
 		return fmt.Errorf("Can't load deck: %s", err)
 	}
 	deck.updateWidgets()
+
+	// Initialize REST server.
+	if len(*restListen) > 0 {
+		server := initRestApi(*restListen, *restTrustedProxies, *restDocs)
+		err = server.Start()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Could not start REST server: %s\n", err)
+		} else {
+			defer server.Stop()
+		}
+	} else {
+		verbosef("REST server disabled.")
+	}
 
 	return eventLoop(dev, tch)
 }
