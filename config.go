@@ -10,6 +10,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/BurntSushi/toml"
 	colorful "github.com/lucasb-eyer/go-colorful"
@@ -194,6 +195,14 @@ func ConfigValue(v interface{}, dst interface{}) error {
 		default:
 			return fmt.Errorf("unhandled type %+v for color.Color conversion", reflect.TypeOf(vt))
 		}
+	case *time.Duration:
+		switch vt := v.(type) {
+		case string:
+			x, _ := time.ParseDuration(vt)
+			*d = x
+		default:
+			return fmt.Errorf("unhandled type %+v for time.Duration conversion", reflect.TypeOf(vt))
+		}
 
 	case *[]string:
 		switch vt := v.(type) {
@@ -215,6 +224,19 @@ func ConfigValue(v interface{}, dst interface{}) error {
 			*d = clrs
 		default:
 			return fmt.Errorf("unhandled type %+v for []color.Color conversion", reflect.TypeOf(vt))
+		}
+	case *[]time.Duration:
+		switch vt := v.(type) {
+		case string:
+			durationsString := strings.Split(vt, ";")
+			var durations []time.Duration
+			for _, durationString := range durationsString {
+				duration, _ := time.ParseDuration(durationString)
+				durations = append(durations, duration)
+			}
+			*d = durations
+		default:
+			return fmt.Errorf("unhandled type %+v for []time.Duration conversion", reflect.TypeOf(vt))
 		}
 
 	default:
