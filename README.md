@@ -330,12 +330,11 @@ A list of available `keycodes` can be found here: [keycodes](https://github.com/
 #### Trigger a dbus call
 
 ```toml
-[keys.action]
-  [dbus]
-    object = "object"
-    path = "path"
-    method = "method"
-    value = "value"
+[keys.action.dbus]
+  object = "object"
+  path = "path"
+  method = "method"
+  value = "value"
 ```
 
 #### Device actions
