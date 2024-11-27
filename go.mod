@@ -3,7 +3,7 @@ module github.com/muesli/deckmaster
 go 1.17
 
 require (
-	github.com/BurntSushi/toml v1.2.1
+	github.com/BurntSushi/toml v1.3.2
 	github.com/atotto/clipboard v0.1.4
 	github.com/bendahl/uinput v1.6.1
 	github.com/flopp/go-findfont v0.1.0
