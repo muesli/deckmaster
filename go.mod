@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/BurntSushi/toml v1.2.1
 	github.com/atotto/clipboard v0.1.4
-	github.com/bendahl/uinput v1.6.1
+	github.com/bendahl/uinput v1.6.2
 	github.com/flopp/go-findfont v0.1.0
 	github.com/godbus/dbus v4.1.0+incompatible
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
