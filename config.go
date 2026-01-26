@@ -5,14 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"image/color"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"reflect"
 	"strconv"
 	"strings"
 
 	"github.com/BurntSushi/toml"
-	colorful "github.com/lucasb-eyer/go-colorful"
+	"github.com/lucasb-eyer/go-colorful"
 )
 
 // DBusConfig describes a dbus action.
@@ -51,11 +51,18 @@ type KeyConfig struct {
 // Keys is a slice of keys.
 type Keys []KeyConfig
 
+type WindowConfig struct {
+	Resource string `toml:"resource,omitempty"`
+	Title    string `toml:"title,omitempty"`
+	Keys     Keys   `toml:"keys"`
+}
+
 // DeckConfig is the central configuration struct.
 type DeckConfig struct {
-	Background string `toml:"background,omitempty"`
-	Parent     string `toml:"parent,omitempty"`
-	Keys       Keys   `toml:"keys"`
+	Background string         `toml:"background,omitempty"`
+	Parent     string         `toml:"parent,omitempty"`
+	Windows    []WindowConfig `toml:"window,omitempty"`
+	Keys       Keys           `toml:"keys"`
 }
 
 // MergeDeckConfig merges key configuration from multiple configs.
@@ -77,7 +84,9 @@ func MergeDeckConfig(base, parent *DeckConfig) DeckConfig {
 	if background == "" {
 		background = parent.Background
 	}
-	return DeckConfig{background, base.Parent, keys}
+
+	windows := append(base.Windows, parent.Windows...)
+	return DeckConfig{background, base.Parent, windows, keys}
 }
 
 // LoadConfigFromFile loads a DeckConfig from a file while checking for circular
@@ -98,12 +107,14 @@ func LoadConfigFromFile(base, path string, files []string) (DeckConfig, error) {
 		}
 	}
 
-	file, err := ioutil.ReadFile(filename)
+	file, err := os.ReadFile(filename)
 	if err != nil {
 		return config, err
 	}
 
-	_, err = toml.Decode(string(file), &config)
+	if _, err = toml.Decode(string(file), &config); err != nil {
+		return config, err
+	}
 	if config.Parent != "" {
 		parent, err := LoadConfigFromFile(base, config.Parent, append(files, filename))
 		if err != nil {
@@ -133,7 +144,7 @@ func (c DeckConfig) Save(filename string) error {
 		return err
 	}
 
-	return ioutil.WriteFile(filename, b.Bytes(), 0600)
+	return os.WriteFile(filename, b.Bytes(), 0600)
 }
 
 // ConfigValue tries to convert an interface{} to the desired type.

@@ -42,17 +42,18 @@ func NewButtonWidget(bw *BaseWidget, opts WidgetConfig) (*ButtonWidget, error) {
 		color:      color,
 		flatten:    flatten,
 	}
-	if icon != "" {
-		if err := w.LoadImage(icon); err != nil {
-			return nil, err
-		}
+	if err := w.LoadImage(&w.icon, icon); err != nil {
+		return nil, err
 	}
-
 	return w, nil
 }
 
 // LoadImage loads an image from disk.
-func (w *ButtonWidget) LoadImage(path string) error {
+func (w *ButtonWidget) LoadImage(property *image.Image, path string) error {
+	if path == "" {
+		return nil
+	}
+
 	path, err := expandPath(w.base, path)
 	if err != nil {
 		return err
@@ -62,7 +63,11 @@ func (w *ButtonWidget) LoadImage(path string) error {
 		return err
 	}
 
-	w.SetImage(icon)
+	if w.flatten {
+		*property = flattenImage(icon, w.color)
+	} else {
+		*property = icon
+	}
 	return nil
 }
 
@@ -76,26 +81,31 @@ func (w *ButtonWidget) SetImage(img image.Image) {
 
 // Update renders the widget.
 func (w *ButtonWidget) Update() error {
+	return w.Draw(w.icon)
+}
+
+// Draw draws the image to the device button
+func (w *ButtonWidget) Draw(icon image.Image) error {
 	size := int(w.dev.Pixels)
 	margin := size / 18
 	height := size - (margin * 2)
 	img := image.NewRGBA(image.Rect(0, 0, size, size))
 
 	if w.label != "" {
-		iconsize := int((float64(height) / 3.0) * 2.0)
+		iconSize := int((float64(height) / 3.0) * 2.0)
 		bounds := img.Bounds()
 
-		if w.icon != nil {
+		if icon != nil {
 			err := drawImage(img,
-				w.icon,
-				iconsize,
+				icon,
+				iconSize,
 				image.Pt(-1, margin))
 
 			if err != nil {
 				return err
 			}
 
-			bounds.Min.Y += iconsize + margin
+			bounds.Min.Y += iconSize + margin
 			bounds.Max.Y -= margin
 		}
 
@@ -107,9 +117,9 @@ func (w *ButtonWidget) Update() error {
 			w.fontsize,
 			w.color,
 			image.Pt(-1, -1))
-	} else if w.icon != nil {
+	} else if icon != nil {
 		err := drawImage(img,
-			w.icon,
+			icon,
 			height,
 			image.Pt(-1, -1))
 

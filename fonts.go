@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"image"
 	"image/color"
 	"io/ioutil"
@@ -85,22 +84,22 @@ func loadFont(name string) (*truetype.Font, error) {
 }
 
 func init() {
-	var err error
-	ttfFont, err = loadFont("Roboto-Regular.ttf")
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error loading font:", err)
+	var e error
+	ttfFont, e = loadFont("Roboto-Regular.ttf")
+	if e != nil {
+		errorLog(e, "failed to load Roboto-Regular.ttf")
 		os.Exit(1)
 	}
 
-	ttfThinFont, err = loadFont("Roboto-Thin.ttf")
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error loading font:", err)
+	ttfThinFont, e = loadFont("Roboto-Thin.ttf")
+	if e != nil {
+		errorLog(e, "failed to load Roboto-Thin.ttf")
 		os.Exit(1)
 	}
 
-	ttfBoldFont, err = loadFont("Roboto-Bold.ttf")
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error loading font:", err)
+	ttfBoldFont, e = loadFont("Roboto-Bold.ttf")
+	if e != nil {
+		errorLog(e, "failed to load Roboto-Bold.ttf")
 		os.Exit(1)
 	}
 }

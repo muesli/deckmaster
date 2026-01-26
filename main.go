@@ -1,18 +1,19 @@
 package main
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"os"
 	"os/signal"
 	"path/filepath"
+	"regexp"
 	"sync"
 	"syscall"
 	"time"
 
+	"github.com/godbus/dbus/v5"
+
 	"github.com/bendahl/uinput"
-	"github.com/godbus/dbus"
 	"github.com/mitchellh/go-homedir"
 	"github.com/muesli/streamdeck"
 )
@@ -28,19 +29,21 @@ var (
 
 	deck *Deck
 
-	dbusConn *dbus.Conn
 	keyboard uinput.Keyboard
 	shutdown = make(chan error)
 
+	invalidChars = regexp.MustCompile("[[:^graph:]]+")
+
+	pa            *PulseAudio
 	xorg          *Xorg
 	recentWindows []Window
 
-	deckFile   = flag.String("deck", "main.deck", "path to deck config file")
-	device     = flag.String("device", "", "which device to use (serial number)")
-	brightness = flag.Uint("brightness", 80, "brightness in percent")
-	sleep      = flag.String("sleep", "", "sleep timeout")
-	verbose    = flag.Bool("verbose", false, "verbose output")
-	version    = flag.Bool("version", false, "display version")
+	deckFileConfig   = flag.String("deck", "main.deck", "path to deck config file")
+	deviceConfig     = flag.String("device", "", "which device to use (serial number)")
+	brightnessConfig = flag.Uint("brightness", 80, "brightness in percent")
+	sleepConfig      = flag.String("sleep", "", "sleep timeout")
+	verboseConfig    = flag.Bool("verbose", false, "verbose output")
+	versionConfig    = flag.Bool("version", false, "display version")
 )
 
 const (
@@ -48,20 +51,29 @@ const (
 	longPressDuration = 350 * time.Millisecond
 )
 
-func fatal(v ...interface{}) {
-	go func() { shutdown <- errors.New(fmt.Sprint(v...)) }()
-}
-
-func fatalf(format string, a ...interface{}) {
-	go func() { shutdown <- fmt.Errorf(format, a...) }()
-}
-
-func verbosef(format string, a ...interface{}) {
-	if !*verbose {
-		return
+func errorLog(e error, format string, args ...interface{}) {
+	if e != nil {
+		message := fmt.Sprintf(format, args...)
+		_, _ = fmt.Fprintf(os.Stderr, "ERROR: %s\n\t%+v\n", message, e)
 	}
+}
 
-	fmt.Printf(format+"\n", a...)
+func errorLogF(format string, args ...interface{}) {
+	_, _ = fmt.Fprintf(os.Stderr, format+"\n", args...)
+}
+
+func fatal(e error) {
+	go func() { shutdown <- e }()
+}
+
+func verboseLog(format string, a ...interface{}) {
+	if *verboseConfig {
+		fmt.Printf(format+"\n", a...)
+	}
+}
+
+func strip(s string) string {
+	return invalidChars.ReplaceAllString(s, "")
 }
 
 func expandPath(base, path string) (string, error) {
@@ -81,6 +93,22 @@ func expandPath(base, path string) (string, error) {
 	return filepath.Abs(path)
 }
 
+func reapChildProcesses() {
+	sigs := make(chan os.Signal)
+	signal.Notify(sigs, syscall.SIGCHLD)
+
+	for range sigs {
+		for {
+			var status syscall.WaitStatus
+			pid, err := syscall.Wait4(-1, &status, syscall.WNOHANG, nil)
+			if pid <= 0 || err != nil {
+				break
+			}
+			verboseLog("reaped pid=%d status=%d", pid, status.ExitStatus())
+		}
+	}
+}
+
 func eventLoop(dev *streamdeck.Device, tch chan interface{}) error {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
@@ -91,9 +119,14 @@ func eventLoop(dev *streamdeck.Device, tch chan interface{}) error {
 	var keyStates sync.Map
 	keyTimestamps := make(map[uint8]time.Time)
 
-	kch, err := dev.ReadKeys()
-	if err != nil {
-		return err
+	go pa.Start()
+	go reapChildProcesses()
+
+	wch := MonitorActiveWindowChanged()
+
+	kch, e := dev.ReadKeys()
+	if e != nil {
+		return e
 	}
 	for {
 		select {
@@ -102,8 +135,8 @@ func eventLoop(dev *streamdeck.Device, tch chan interface{}) error {
 
 		case k, ok := <-kch:
 			if !ok {
-				if err = dev.Open(); err != nil {
-					return err
+				if e = dev.Open(); e != nil {
+					return e
 				}
 				continue
 			}
@@ -117,27 +150,45 @@ func eventLoop(dev *streamdeck.Device, tch chan interface{}) error {
 			if state && !k.Pressed {
 				// key was released
 				if time.Since(keyTimestamps[k.Index]) < longPressDuration {
-					verbosef("Triggering short action for key %d", k.Index)
+					verboseLog("Triggering short action for key %d", k.Index)
 					deck.triggerAction(dev, k.Index, false)
 				}
 			}
 			if !state && k.Pressed {
 				// key was pressed
 				go func() {
-					// launch timer to observe keystate
+					// launch timer to observe KeyState
 					time.Sleep(longPressDuration)
 
 					if state, ok := keyStates.Load(k.Index); ok && state.(bool) {
 						// key still pressed
-						verbosef("Triggering long action for key %d", k.Index)
+						verboseLog("Triggering long action for key %d", k.Index)
 						deck.triggerAction(dev, k.Index, true)
 					}
 				}()
 			}
 			keyTimestamps[k.Index] = time.Now()
 
-		case e := <-tch:
-			switch event := e.(type) {
+		case changeType := <-pa.Updates():
+			playback := changeType == SinkMuteChanged || changeType == SinkChanged
+			for widget := range deck.Widgets {
+				w, success := widget.(MuteChangedMonitor)
+				if success {
+					w.MuteChanged(playback)
+				}
+				if changeType == SinkChanged || changeType == SourceChanged {
+					w, success := widget.(AudioChangedMonitor)
+					if success {
+						w.AudioStreamChanged(changeType)
+					}
+				}
+			}
+
+		case activeWindow := <-wch:
+			deck.WindowChanged(activeWindow)
+
+		case event := <-tch:
+			switch event := event.(type) {
 			case WindowClosedEvent:
 				handleWindowClosed(event)
 
@@ -149,12 +200,11 @@ func eventLoop(dev *streamdeck.Device, tch chan interface{}) error {
 			return err
 
 		case <-hup:
-			verbosef("Received SIGHUP, reloading configuration...")
+			verboseLog("Received SIGHUP, reloading configuration...")
 
-			nd, err := LoadDeck(dev, ".", deck.File)
-			if err != nil {
-				verbosef("The new configuration is not valid, keeping the current one.")
-				fmt.Fprintf(os.Stderr, "Configuration Error: %s\n", err)
+			nd, e := LoadDeck(dev, ".", deck.file)
+			if e != nil {
+				errorLog(e, "invalid configuration")
 				continue
 			}
 
@@ -169,12 +219,10 @@ func eventLoop(dev *streamdeck.Device, tch chan interface{}) error {
 }
 
 func closeDevice(dev *streamdeck.Device) {
-	if err := dev.Reset(); err != nil {
-		fmt.Fprintln(os.Stderr, "Unable to reset Stream Deck")
-	}
-	if err := dev.Close(); err != nil {
-		fmt.Fprintln(os.Stderr, "Unable to close Stream Deck")
-	}
+	errorLog(dev.Reset(), "failed to reset Stream Deck")
+	errorLog(dev.Clear(), "failed to clear the Stream Deck")
+	errorLog(dev.Sleep(), "failed to sleep the Stream Deck")
+	errorLog(dev.Close(), "failed to close Stream Deck")
 }
 
 func initDevice() (*streamdeck.Device, error) {
@@ -187,19 +235,19 @@ func initDevice() (*streamdeck.Device, error) {
 	}
 
 	dev := d[0]
-	if len(*device) > 0 {
+	if len(*deviceConfig) > 0 {
 		found := false
 		for _, v := range d {
-			if v.Serial == *device {
+			if v.Serial == *deviceConfig {
 				dev = v
 				found = true
 				break
 			}
 		}
 		if !found {
-			fmt.Fprintln(os.Stderr, "Can't find device. Available devices:")
+			errorLogF("Can't find device. Available devices:")
 			for _, v := range d {
-				fmt.Fprintf(os.Stderr, "Serial %s (%d buttons)\n", v.Serial, dev.Keys)
+				errorLogF("Serial %s (%d buttons)", v.Serial, dev.Keys)
 			}
 			os.Exit(1)
 		}
@@ -212,23 +260,23 @@ func initDevice() (*streamdeck.Device, error) {
 	if err != nil {
 		return &dev, err
 	}
-	verbosef("Found device with serial %s (%d buttons, firmware %s)",
-		dev.Serial, dev.Keys, ver)
+	verboseLog("Found device with serial %s (%d buttons, firmware %s)",
+		dev.Serial, dev.Keys, strip(ver))
 
 	if err := dev.Reset(); err != nil {
 		return &dev, err
 	}
 
-	if *brightness > 100 {
-		*brightness = 100
+	if *brightnessConfig > 100 {
+		*brightnessConfig = 100
 	}
-	if err = dev.SetBrightness(uint8(*brightness)); err != nil {
+	if err = dev.SetBrightness(uint8(*brightnessConfig)); err != nil {
 		return &dev, err
 	}
 
 	dev.SetSleepFadeDuration(fadeDuration)
-	if len(*sleep) > 0 {
-		timeout, err := time.ParseDuration(*sleep)
+	if len(*sleepConfig) > 0 {
+		timeout, err := time.ParseDuration(*sleepConfig)
 		if err != nil {
 			return &dev, err
 		}
@@ -241,44 +289,52 @@ func initDevice() (*streamdeck.Device, error) {
 
 func run() error {
 	// initialize device
-	dev, err := initDevice()
+	dev, e := initDevice()
 	if dev != nil {
 		defer closeDevice(dev)
 	}
-	if err != nil {
-		return fmt.Errorf("Unable to initialize Stream Deck: %s", err)
+	if e != nil {
+		return fmt.Errorf("failed to initialize Stream Deck: %w", e)
 	}
 
 	// initialize dbus connection
-	dbusConn, err = dbus.SessionBus()
-	if err != nil {
-		return fmt.Errorf("Unable to connect to dbus: %s", err)
+	sessionBus, e := dbus.ConnectSessionBus()
+	if e != nil {
+		return fmt.Errorf("failed to connect to DBus %w", e)
 	}
+	defer sessionBus.Close() //nolint:errcheck
 
 	// initialize xorg connection and track window focus
 	tch := make(chan interface{})
-	xorg, err = Connect(os.Getenv("DISPLAY"))
-	if err == nil {
+	xorg, e = Connect()
+	if e == nil {
 		defer xorg.Close()
 		xorg.TrackWindows(tch, time.Second)
 	} else {
-		fmt.Fprintf(os.Stderr, "Could not connect to X server: %s\n", err)
-		fmt.Fprintln(os.Stderr, "Tracking window manager will be disabled!")
+		errorLog(e, "failed to connect to X server (Wayland?)")
 	}
 
 	// initialize virtual keyboard
-	keyboard, err = uinput.CreateKeyboard("/dev/uinput", []byte("Deckmaster"))
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Could not create virtual input device (/dev/uinput): %s\n", err)
-		fmt.Fprintln(os.Stderr, "Emulating keyboard events will be disabled!")
+	keyboard, e = uinput.CreateKeyboard("/dev/uinput", []byte("deckmaster"))
+	if e != nil {
+		errorLog(e, "failed to create virtual input device (/dev/uinput)")
+		errorLogF("Emulating keyboard events will be disabled!")
 	} else {
 		defer keyboard.Close() //nolint:errcheck
 	}
 
+	// initialize PulseAudio
+	pa, e = NewPulseAudio()
+	if e != nil {
+		errorLog(e, "failed to create PulseAudio device")
+	} else {
+		defer pa.Close()
+	}
+
 	// load deck
-	deck, err = LoadDeck(dev, ".", *deckFile)
-	if err != nil {
-		return fmt.Errorf("Can't load deck: %s", err)
+	deck, e = LoadDeck(dev, ".", *deckFileConfig)
+	if e != nil {
+		return fmt.Errorf("failed to load deck: %s", e)
 	}
 	deck.updateWidgets()
 
@@ -288,7 +344,7 @@ func run() error {
 func main() {
 	flag.Parse()
 
-	if *version {
+	if *versionConfig {
 		if len(CommitSHA) > 7 {
 			CommitSHA = CommitSHA[:7]
 		}
@@ -305,8 +361,8 @@ func main() {
 		os.Exit(0)
 	}
 
-	if err := run(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+	if e := run(); e != nil {
+		errorLog(e, "fatal")
 		os.Exit(1)
 	}
 }

@@ -1,0 +1,18 @@
+{
+    "KPlugin": {
+        "Name": "DeckMaster",
+        "Description": "Sends ActiveWindowChanged notifications to DeckMaster",
+        "Icon": "preferences-system-windows",
+
+        "Authors": [
+            {"Name": "Thiago Vidal"}
+        ],
+        "Id": "deckmaster",
+        "Version": "1.0",
+        "License": "GPLv3",
+        "Website": "https://github.com/muesli/deckmaster/kwin"
+    },
+    "X-Plasma-API": "javascript",
+    "X-Plasma-MainScript": "code/main.js",
+    "KPackageStructure": "KWin/Script"
+}

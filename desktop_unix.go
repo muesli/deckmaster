@@ -1,14 +1,11 @@
 //go:build linux
-// +build linux
 
 package main
 
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"image"
-	"os"
 	"time"
 
 	"github.com/jezek/xgb"
@@ -50,16 +47,16 @@ type Window struct {
 }
 
 // Connect establishes a connection with an Xorg display.
-func Connect(display string) (*Xorg, error) {
+func Connect() (*Xorg, error) {
 	var x Xorg
 	var err error
 
-	x.conn, err = xgb.NewConnDisplay(display)
+	x.conn, err = xgb.NewConn()
 	if err != nil {
 		return nil, err
 	}
 
-	x.util, err = xgbutil.NewConnDisplay(display)
+	x.util, err = xgbutil.NewConn()
 	if err != nil {
 		return nil, err
 	}
@@ -67,6 +64,8 @@ func Connect(display string) (*Xorg, error) {
 	if err := screensaver.Init(x.conn); err == nil {
 		drw := xproto.Drawable(x.root)
 		screensaver.SelectInput(x.conn, drw, screensaver.EventNotifyMask)
+	} else {
+		return nil, err
 	}
 
 	setup := xproto.Setup(x.conn)
@@ -82,7 +81,7 @@ func Connect(display string) (*Xorg, error) {
 }
 
 // Close terminates the connection.
-func (x Xorg) Close() {
+func (x *Xorg) Close() {
 	x.util.Conn().Close()
 	x.conn.Close()
 }
@@ -146,33 +145,33 @@ func (x *Xorg) TrackWindows(ch chan interface{}, timeout time.Duration) {
 }
 
 // ActiveWindow returns the currently active window.
-func (x Xorg) ActiveWindow() Window {
+func (x *Xorg) ActiveWindow() Window {
 	return x.activeWindow
 }
 
 // RequestActivation requests a window to be focused.
-func (x Xorg) RequestActivation(w Window) error {
+func (x *Xorg) RequestActivation(w Window) error {
 	return ewmh.ActiveWindowReq(x.util, xproto.Window(w.ID))
 }
 
 // CloseWindow closes a window.
-func (x Xorg) CloseWindow(w Window) error {
+func (x *Xorg) CloseWindow(w Window) error {
 	return ewmh.CloseWindow(x.util, xproto.Window(w.ID))
 }
 
-func (x Xorg) atom(aname string) *xproto.InternAtomReply {
+func (x *Xorg) atom(aname string) *xproto.InternAtomReply {
 	a, err := xproto.InternAtom(x.conn, true, uint16(len(aname)), aname).Reply()
 	if err != nil {
-		fatal("atom:", err)
+		fatal(err)
 	}
 	return a
 }
 
-func (x Xorg) property(w xproto.Window, a *xproto.InternAtomReply) (*xproto.GetPropertyReply, error) {
+func (x *Xorg) property(w xproto.Window, a *xproto.InternAtomReply) (*xproto.GetPropertyReply, error) {
 	return xproto.GetProperty(x.conn, false, w, a.Atom, xproto.GetPropertyTypeAny, 0, (1<<32)-1).Reply()
 }
 
-func (x Xorg) active() xproto.Window {
+func (x *Xorg) active() xproto.Window {
 	p, err := x.property(x.root, x.activeAtom)
 	if err != nil || len(p.Value) == 0 {
 		return x.root
@@ -180,7 +179,7 @@ func (x Xorg) active() xproto.Window {
 	return xproto.Window(xgb.Get32(p.Value))
 }
 
-func (x Xorg) name(w xproto.Window) (string, error) {
+func (x *Xorg) name(w xproto.Window) (string, error) {
 	name, err := x.property(w, x.netNameAtom)
 	if err != nil {
 		return "", err
@@ -197,17 +196,17 @@ func (x Xorg) name(w xproto.Window) (string, error) {
 	return string(name.Value), nil
 }
 
-func (x Xorg) icon(w xproto.Window) (image.Image, error) {
+func (x *Xorg) icon(w xproto.Window) (image.Image, error) {
 	icon, err := xgraphics.FindIcon(x.util, w, 128, 128)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Could not find icon for window %d\n", w)
+		errorLogF("Could not find icon for window %d", w)
 		return nil, err
 	}
 
 	return icon, nil
 }
 
-func (x Xorg) class(w xproto.Window) (string, error) {
+func (x *Xorg) class(w xproto.Window) (string, error) {
 	class, err := x.property(w, x.classAtom)
 	if err != nil {
 		return "", err
@@ -220,7 +219,7 @@ func (x Xorg) class(w xproto.Window) (string, error) {
 	return "", errors.New("empty class")
 }
 
-func (x Xorg) window() (Window, bool) {
+func (x *Xorg) window() (Window, bool) {
 	id := x.active()
 	/* skip invalid window id */
 	if id == 0 {
@@ -248,16 +247,16 @@ func (x Xorg) window() (Window, bool) {
 	}, true
 }
 
-func (x Xorg) spy(w xproto.Window) {
+func (x *Xorg) spy(w xproto.Window) {
 	xproto.ChangeWindowAttributes(x.conn, w, xproto.CwEventMask,
 		[]uint32{xproto.EventMaskPropertyChange | xproto.EventMaskStructureNotify})
 }
 
-func (x Xorg) waitForEvent(events chan<- xgb.Event) {
+func (x *Xorg) waitForEvent(events chan<- xgb.Event) {
 	for {
 		ev, err := x.conn.WaitForEvent()
 		if err != nil {
-			verbosef("wait for event: %s", err)
+			verboseLog("wait for event: %s", err)
 			continue
 		}
 		events <- ev
@@ -268,7 +267,7 @@ func (x Xorg) waitForEvent(events chan<- xgb.Event) {
 func (x Xorg) queryIdle() time.Duration {
 	info, err := screensaver.QueryInfo(x.conn, xproto.Drawable(x.root)).Reply()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "query idle:", err)
+		errorLogF("query idle:", err)
 		return 0
 	}
 	return time.Duration(info.MsSinceUserInput) * time.Millisecond

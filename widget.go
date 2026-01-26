@@ -5,6 +5,9 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 	"os"
 	"path/filepath"
 	"time"
@@ -17,7 +20,7 @@ import (
 
 var (
 	// DefaultColor is the standard color for text rendering.
-	DefaultColor = color.RGBA{255, 255, 255, 255}
+	DefaultColor = color.White
 )
 
 // Widget is an interface implemented by all available widgets.
@@ -98,6 +101,12 @@ func NewWidget(dev *streamdeck.Device, base string, kc KeyConfig, bg image.Image
 	case "button":
 		return NewButtonWidget(bw, kc.Widget)
 
+	case "audio":
+		return NewAudioWidget(bw, kc.Widget)
+
+	case "mute":
+		return NewMuteWidget(bw, kc.Widget)
+
 	case "clock":
 		kc.Widget.Config = make(map[string]interface{})
 		kc.Widget.Config["format"] = "%H;%i;%s"
@@ -127,7 +136,7 @@ func NewWidget(dev *streamdeck.Device, base string, kc KeyConfig, bg image.Image
 	}
 
 	// unknown widget ID
-	return nil, fmt.Errorf("Unknown widget with ID %s", kc.Widget.ID)
+	return nil, fmt.Errorf("unknown widget with ID %s", kc.Widget.ID)
 }
 
 // renders the widget including its background image.
@@ -163,6 +172,9 @@ func loadImage(path string) (image.Image, error) {
 	defer f.Close() //nolint:errcheck
 
 	icon, _, err := image.Decode(f)
+	if err != nil {
+		return nil, fmt.Errorf("image=%s, %w", filepath.Base(path), err)
+	}
 	return icon, err
 }
 
@@ -216,7 +228,7 @@ func drawString(img *image.RGBA, bounds image.Rectangle, ttf *truetype.Font, tex
 	c := ftContext(img, ttf, dpi, fontsize)
 
 	if fontsize <= 0 {
-		// pick biggest available height to fit the string
+		// pick the biggest available height to fit the string
 		fontsize, _ = maxPointSize(text,
 			ftContext(img, ttf, dpi, fontsize), dpi,
 			bounds.Dx(), bounds.Dy())
@@ -238,8 +250,8 @@ func drawString(img *image.RGBA, bounds image.Rectangle, ttf *truetype.Font, tex
 	}
 
 	c.SetSrc(image.NewUniform(color))
-	if _, err := c.DrawString(text, freetype.Pt(pt.X, pt.Y)); err != nil {
-		fmt.Fprintf(os.Stderr, "Can't render string: %s\n", err)
+	if _, e := c.DrawString(text, freetype.Pt(pt.X, pt.Y)); e != nil {
+		errorLog(e, "failed to render string")
 		return
 	}
 }

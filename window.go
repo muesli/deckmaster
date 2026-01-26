@@ -5,7 +5,7 @@ import (
 )
 
 func handleActiveWindowChanged(dev *streamdeck.Device, event ActiveWindowChangedEvent) {
-	verbosef("Active window changed to %s (%d, %s)",
+	verboseLog("Active window changed to %s (%d, %s)",
 		event.Window.Class, event.Window.ID, event.Window.Name)
 
 	// remove dupes

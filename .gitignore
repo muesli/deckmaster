@@ -19,3 +19,7 @@ dist/
 
 # direnv
 .envrc
+
+# GoLand Project Files
+.idea/
+*.iml

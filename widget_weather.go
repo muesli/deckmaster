@@ -7,7 +7,6 @@ import (
 	"image"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -57,7 +56,7 @@ func (w *WeatherData) Condition() (string, error) {
 	defer w.responseMutex.RUnlock()
 
 	if strings.Contains(w.response, "Unknown location") {
-		fmt.Fprintln(os.Stderr, "unknown location:", w.location)
+		errorLogF("unknown location: %s", w.location)
 		return "", nil
 	}
 
@@ -75,7 +74,7 @@ func (w *WeatherData) Temperature() (string, error) {
 	defer w.responseMutex.RUnlock()
 
 	if strings.Contains(w.response, "Unknown location") {
-		fmt.Fprintln(os.Stderr, "unknown location:", w.location)
+		errorLogF("unknown location: %s", w.location)
 		return "", nil
 	}
 
@@ -112,20 +111,20 @@ func (w *WeatherData) Fetch() {
 	if time.Since(lastRefresh) < time.Minute*15 {
 		return
 	}
-	verbosef("Refreshing weather data...")
+	verboseLog("Refreshing weather data...")
 
 	url := "http://wttr.in/" + w.location + "?format=%x+%t" + formatUnit(w.unit)
 
-	resp, err := http.Get(url) //nolint:gosec
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "can't fetch weather data:", err)
+	resp, e := http.Get(url) //nolint:gosec
+	if e != nil {
+		errorLog(e, "failed to fetch weather data")
 		return
 	}
 	defer resp.Body.Close() //nolint:errcheck
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "can't read weather data:", err)
+	body, e := ioutil.ReadAll(resp.Body)
+	if e != nil {
+		errorLog(e, "failed to read weather data")
 		return
 	}
 
@@ -219,7 +218,7 @@ func (w *WeatherWidget) Update() error {
 		var err error
 		weatherIcon, err = loadThemeImage(w.theme, iconName)
 		if err != nil {
-			fmt.Fprintln(os.Stderr, "weather widget using fallback icons")
+			errorLogF("weather widget using fallback icons")
 			weatherIcon = weatherImage(imagePath)
 		}
 	} else {
